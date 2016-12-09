@@ -1,0 +1,5 @@
+source COMPILE_dist_init_dmnu.csh
+source COMPILE_cubep3m_dmnu.csh
+source COMPILE_cic_power_dmnu_init.csh
+source COMPILE_cic_power_dmnu.csh
+source COMPILE_cic_veldivg_dmnu.csh

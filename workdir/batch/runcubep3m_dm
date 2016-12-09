@@ -1,0 +1,86 @@
+#!/bin/bash
+# MOAB/Torque submission script for SciNet GPC
+#
+#PBS -l nodes=1:ppn=8,walltime=12:00:00
+#PBS -N cubep3m_dm
+
+cd $PBS_O_WORKDIR
+
+#
+# Define some variables
+#
+
+export NUM_NODE_COMPILED='1'
+export PPN_TO_USE='1'
+export RUN_SUFFIX='Log'
+export LOCAL_SCRATCH_PATH='/scratch2/p/pen/dinman/Development/cubep3m_dm'
+
+export I_MPI_PIN_DOMAIN='omp'
+export OMP_NUM_THREADS='16'
+export OMP_STACKSIZE="100M"
+
+#
+# Load proper modules
+#
+
+pload
+module load extras
+
+#
+# Make scratch directory
+#
+
+[ -d $LOCAL_SCRATCH_PATH ] || mkdir $LOCAL_SCRATCH_PATH
+
+#
+# Log nodes used
+#
+
+cat $PBS_NODEFILE > $LOCAL_SCRATCH_PATH/nodes$RUN_SUFFIX
+
+#
+# IntelMPI flags -- see https://support.scinet.utoronto.ca/wiki/index.php/GPC_MPI_Versions
+#
+
+mpi_ipoib_args="-env I_MPI_TCP_NETMASK=ib -env I_MPI_FABRICS shm:tcp"
+mpi_xrc_args="-genv I_MPI_FABRICS=shm:ofa -genv I_MPI_OFA_USE_XRC=1 -genv I_MPI_OFA_DYNAMIC_QPS=1 -genv I_MPI_OFA_NUM_RDMA_CONNECTIONS=-1"
+
+#
+# List of programs to run
+#
+
+mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init_dmnu_dm >& $LOCAL_SCRATCH_PATH/dist_init_dm$RUN_SUFFIX
+#mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init_dmnu_nu >& $LOCAL_SCRATCH_PATH/dist_init_nu$RUN_SUFFIX
+for i in {1..10}; do
+ t=$(qstat -x $PBS_JOB_ID)
+ [ "$t" != "" ] && {
+   echo $t | awk -F '<Remaining>|</Remaining>' '{print $2}' > killtime.txt
+   break
+ }
+ sleep 30
+done
+mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_xrc_args   ../source_threads/cubep3m_dm >& $LOCAL_SCRATCH_PATH/cubep3m_dm$RUN_SUFFIX
+for i in {1..10}; do
+ t=$(qstat -x $PBS_JOB_ID)
+ [ "$t" != "" ] && {
+   echo $t | awk -F '<Remaining>|</Remaining>' '{print $2}' > killtime.txt
+   break
+ }
+ sleep 30
+done
+#mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_xrc_args   ../source_threads/cubep3m_nu >& $LOCAL_SCRATCH_PATH/cubep3m_nu$RUN_SUFFIX
+
+mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/cic_power/ngp_power_dm_init >& $LOCAL_SCRATCH_PATH/ngp_power_dmnu_init$RUN_SUFFIX
+
+
+mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/cic_power/ngp_power_dm >& $LOCAL_SCRATCH_PATH/ngp_power_dmnu$RUN_SUFFIX
+#mpirun -ppn $PPN_TO_USE -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/cic_velpower/ngp_veldivg >& $LOCAL_SCRATCH_PATH/ngp_veldivg$RUN_SUFFIX
+
+
+#
+# Copy relevant data to the run directory
+#
+
+cp -r ../input $LOCAL_SCRATCH_PATH
+cp parameters-used $LOCAL_SCRATCH_PATH/input
+
