@@ -5,12 +5,17 @@ doPlot = False
 
 #z of fE
 
-Z=10
+Z=15
 if (Z==20):
     iE = 20
     ZA = 20.1
     ZB = 19.9
     ZE = 20.0
+if (Z==15):
+    iE = 15
+    ZA = 15.1
+    ZB = 14.9
+    ZE = 15.0
 if (Z==10):
     iE = 10.0
     ZA = 10.1
@@ -42,8 +47,8 @@ fO = prefix+str(Z)+'_v'+suffix
 a = 1.0/(1.0+ZE)
 
 #Cosmological parameters
-OM = 1.0-0.672932
-OL = 1.0 - OM
+OM = 0.327068#1.0-0.672932
+OL = 1-OM#1.0 - OM
 
 #Assuming k-col in h/Mpc
 H0 = 100
