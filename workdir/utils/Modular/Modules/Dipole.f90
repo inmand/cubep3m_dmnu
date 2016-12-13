@@ -578,6 +578,7 @@ contains
   function f(x)
     integer :: x,f
     f=-1
+    if (x<3) return
     if (mod(x,2)==0) then 
        f=2
     else if (mod(x,3)==0) then
