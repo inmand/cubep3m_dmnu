@@ -922,11 +922,13 @@ contains
             read(21) garbage3 !! angular momentum
             read(21) garbage3 !! var in vel
             read(21) garbage3 !! var in pos
+#ifdef NEUTRINOS
             read(21) garbage3 !! moment of inertia
             read(21) garbage3 !! moment of inertia
             read(21) garbage3 !! xbar nu
             read(21) garbage3 !! vbar nu
             read(21) garbage1 !! nbr nu
+#endif
         enddo
         !! Convert global halo coordinates to local node coordinates
         do j=1 , np_local_h
