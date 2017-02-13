@@ -40,7 +40,7 @@ contains
     if (rank==0) write(*,*) "Assuming CIC particle interpolation"
 #endif
 #else
-    integer, parameter :: interpExponent = 0
+    integer, parameter :: interpExponent = 2
 #if (VERBOSITY>0)
     if (rank==0) write(*,*) "Using NGP particle interpolation"
 #endif
@@ -358,11 +358,11 @@ contains
     integer :: i
     integer :: n
     n = size(kaxis)
-    i=n
+    i=n-1
     do while(kr < kaxis(i) .AND. i>1)
        i=i-1
     end do
-    i = merge(i+1,i,kr - kaxis(i) > 0.5)
+    i = merge(i+1,i,(kr - kaxis(i))/(kaxis(i+1)-kaxis(i)) > 0.5)
   end function nearest_k
   
   subroutine power_error_stop(expl)
