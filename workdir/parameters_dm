@@ -1,6 +1,6 @@
 !-*-f90-*-
 ! path to initial conditions (use local scratch space)
-character(*), parameter :: ic_path        = '/scratch2/p/pen/dinman/Development/cubep3m_nu/'
+character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test0/cubep3m_dm/'
 
 ! path to local scratch (for writing temp files)
 character(*), parameter :: scratch_path   = ic_path
@@ -9,17 +9,17 @@ character(*), parameter :: scratch_path   = ic_path
 character(*), parameter :: output_path    = ic_path
 
 ! path to cubepm root directory 
-character(*), parameter :: cubepm_root    = ic_path//'workdir/'
+character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 
 ! nodes / dimension, total nodes = nodes_dim**3
 integer(4),   parameter :: nodes_dim      = 1
 
 ! fine mesh tiles / node / dimension
-integer(4),   parameter :: tiles_node_dim = 4
+integer(4),   parameter :: tiles_node_dim = 2
 
 ! cores / node
-integer(4),   parameter :: cores = 8
-integer(4),   parameter :: nested_threads = 2
+integer(4),   parameter :: cores = 4
+integer(4),   parameter :: nested_threads = 1
 
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer = 2.25
@@ -33,7 +33,7 @@ real(4), parameter :: density_buffer = 2.25
 integer(4),   parameter :: nf_tile        = 176
 
 ! boxsize of simulation in Mpc/h
-real(4),      parameter :: box            = 125.0*nodes_dim 
+real(4),      parameter :: box            = 300.0*nodes_dim 
 
 ! initial redshift
 real(4),      parameter :: z_i            = 75.0
@@ -41,18 +41,18 @@ real(4),      parameter :: z_i_nu         = 10.0
 
 ! parameters to change between dm and dmnu
 !!dm
-!!$real(4),     parameter :: N_massive_nu   = 0.0
-!!$real(4),     parameter :: sigma_8 = 0.0950
-!!$character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu000_onu0/mnu000_onu0_transfer_out_z10.dat'
-!!$character(len=*), parameter :: vfntf = ''
-!!$integer, parameter      :: nk=1675
+real(4),     parameter :: N_massive_nu   = 0.0
+real(4),     parameter :: sigma_8 = 0.0950
+character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu000_onu0/mnu000_onu0_transfer_out_z10.dat'
+character(len=*), parameter :: vfntf = ''
+integer, parameter      :: nk=1675
 
 !!dmnu
-real(4),     parameter :: N_massive_nu   = 3.0
-real(4),     parameter :: sigma_8 = 0.0900
-character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10.dat'
-character(len=*), parameter :: vfntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10_v.dat'
-integer, parameter      :: nk=1675
+!!$real(4),     parameter :: N_massive_nu   = 3.0
+!!$real(4),     parameter :: sigma_8 = 0.0900
+!!$character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10.dat'
+!!$character(len=*), parameter :: vfntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10_v.dat'
+!!$integer, parameter      :: nk=1675
 
 ! neutrino parameters
 real(4),      parameter :: H0             = 67.
