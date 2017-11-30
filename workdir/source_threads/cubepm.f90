@@ -10,10 +10,6 @@ program cubep3m
   include 'mpif.h'
 #  include "cubepm.fh"
 
-#ifdef WRITELOG
-  integer(4) :: fstat, np_max
-#endif
-
   real(4) :: t_elapsed
   external t_elapsed
 
@@ -89,27 +85,10 @@ call mpi_barrier(mpi_comm_world,ierr)
 
   if (rank == 0) write(*,*) 'starting main loop'
 
-#ifdef WRITELOG
-  if (rank==0) then
-    fstat=0
-    open(unit=76,file=logfile,status='replace',iostat=fstat,form='formatted')
-  endif
-#endif
-
   do 
     call timestep
     sec1a = mpi_wtime(ierr)
     if (rank == 0) write(*,*) "TIMESTEP_TIME [hrs] = ", (sec1a - sec1) / 3600.
-
-
-#ifdef WRITELOG
-    if(rank==0) then
-       write(unit=76,fmt='(i6,2x)',    advance='no' )  nts
-       write(unit=76,fmt='(f10.6,2x)', advance='no' )  1.0/a-1.0
-       write(unit=76,fmt='(f10.6,2x)', advance='no' )  (sec1a-sec1)/3600.
-       write(unit=76,fmt='(f10.6)',    advance='yes')  min_den_buf
-    endif
-#endif
 
     call particle_mesh
     if (rank == 0) write(*,*) 'finished particle mesh',t_elapsed(wc_counter)
@@ -219,12 +198,6 @@ call mpi_barrier(mpi_comm_world,ierr)
     if (nts == max_nts .or. final_step .or. a .gt. 1.0) exit
 
   enddo
-
-
-#ifdef WRITELOG
-    if(rank==0) close(76)
-#endif
-
 
 #ifdef TIMING
   if (rank==0) then

@@ -1028,12 +1028,6 @@
     if(rank==0) write(*,*) '*** max allowed                = ' , max_buf/6 , '    ***'
     if(rank==0) write(*,*) '*****************************************************'
 
-!#ifdef WRITELOG
-!    if(rank==0 .and. record_den_buf) then
-!       write(unit=76,fmt='(f10.6)',advance='yes') real(np_max)*density_buffer/real(max_np)
-!    endif
-!#endif
-
     call system_clock(count=count_f,count_rate=count_r)
 #ifdef MPI_TIME
     call mpi_time_analyze('par pass',real(count_f-count_i)/real(count_r),rank,nodes)
