@@ -4,11 +4,6 @@
    include 'mpif.h'
 #   include "cubepm.fh"
 
-#ifdef MHD
-   integer :: nerr,nerrl
-   real :: cmax, cmaxl
-#endif
-
 #ifdef DIAG
    integer(4) :: i,j,k
    real(8) :: sumrhoc,sumrhof
@@ -91,16 +86,7 @@
    if (rank == 0) print *, 'finished coarse max dt'
 #endif
 
-#ifdef MHD
-   call coarse_velocity(cmax,nerr)
-   cmaxl=cmax
-   nerrl=nerr
-   call mpi_reduce(cmaxl,cmax,1,mpi_real,mpi_max,0,mpi_comm_cart,ierr)
-   call mpi_reduce(nerrl,nerr,1,mpi_integer,mpi_sum,0,mpi_comm_cart,ierr)
-   if (rank==0) print *,'after coarse velocity fluid stats',cmax/freeze,dt*cmax,nerr
-#else
    if (coarse_vel_update) call coarse_velocity
-#endif
 
 #ifdef DEBUG
    if (rank == 0) print *, 'finished coarse velocity'

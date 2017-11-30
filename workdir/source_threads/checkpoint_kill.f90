@@ -5,10 +5,6 @@
   subroutine checkpoint_kill
 #endif
 
-#ifdef MHD
-    use mpi_tvd_mhd
-#endif
-
     implicit none
 
     include 'mpif.h'
@@ -510,14 +506,6 @@
     endif
 #endif
 #endif    
-#endif
-
-    !
-    ! Write gas checkpoint
-    !
-
-#ifdef MHD
-    call mpi_tvd_mhd_state_output(output_path,nts,t,z_s)
 #endif
 
     write(*,*) 'Finished checkpoint_kill:',rank

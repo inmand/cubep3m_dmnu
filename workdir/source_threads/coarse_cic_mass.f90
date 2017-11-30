@@ -29,10 +29,6 @@
       dx1(:) = i1(:) - x(:)
       dx2(:) = 1.0 - dx1(:)
 #endif
-#ifdef MHD
-      dx1(1) = mass_p * dx1(1)*(1.0-omega_b/omega_m)
-      dx2(1) = mass_p * dx2(1)*(1.0-omega_b/omega_m)
-#else
 
 #ifdef NEUTRINOS
 #ifdef NUPID
@@ -47,7 +43,6 @@
       dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(1)
 #endif
 
-#endif
 
 #ifdef DEBUG_CCIC
 !      if (i1(1) == 1 .and. i1(2) == 1 .and. &

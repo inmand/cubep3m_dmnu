@@ -6,17 +6,9 @@ program cubep3m
     use MKL_DFTI
 #endif
 
-#ifdef MHD
-  use mpi_tvd_mhd
-#endif
-
   implicit none
   include 'mpif.h'
 #  include "cubepm.fh"
-
-#ifdef MHD
-  integer(4) :: nc_to_mhd(3)
-#endif
 
 #ifdef WRITELOG
   integer(4) :: fstat, np_max
@@ -90,40 +82,6 @@ call mpi_barrier(mpi_comm_world,ierr)
 
   if (rank == 0) write(*,*) 'finished initializing particles',t_elapsed(wc_counter)
 
-#ifdef MHD
-  nc_to_mhd=nf_physical_node_dim
-  call mpi_tvd_mhd_init(nc_to_mhd,mpi_comm_cart,cart_rank, &
-                        cart_coords,cart_neighbor,nodes_dim)
-  if (rank == 0) write(*,*) 'finished initializing mhd',t_elapsed(wc_counter)
-
-  if (grid_ic) then
-    u=0.0
-    u(1,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n)=1.0
-    u(5,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n)=0.0001
-    print *,rank,sum(u(1,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n))
-    b=0.0
-  elseif (random_ic) then
-    u=0.0
-    u(1,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n)=1.0
-    u(5,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n)=0.0001
-    print *,rank,sum(u(1,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n))
-    b=0.0
-  else
-    call mpi_tvd_mhd_ic(ic_path)
-  endif
-
-  if (rank == 0) write(*,*) 'finished reading mhd initial conditions',t_elapsed(wc_counter)
-
-  call comm_bufferupdate(u,b,nx,ny,nz)
-  call transposef(u,b,nx%l,ny%l,nz%l)
-  call comm_bufferupdate(u,b,ny,nz,nx)
-  call transposef(u,b,ny%l,nz%l,nx%l)
-  call comm_bufferupdate(u,b,nz,nx,ny)
-  call transposef(u,b,nz%l,nx%l,ny%l)
-
-  if (rank == 0) write(*,*) 'finished updating buffers with initial conditions',t_elapsed(wc_counter)
-#endif
-
  !if(rank ==0) write(*,*)'Calling init_projection.f90'
  call link_list
  call init_projection
@@ -153,66 +111,8 @@ call mpi_barrier(mpi_comm_world,ierr)
     endif
 #endif
 
-#ifdef MHD
-
-! Note that the dimensions of u and b don't match the
-! declaration in this routine on return from transpose.
-! u and b simply act as pointers and the dimensions are
-! correctly interpreted in sweep.
-
-! first pass gas update
-
-! Forward Sweep
-    call sweep(forward,u,b,nx,ny,nz,dt_gas)  !x
-    call transposef(u,b,nx%l,ny%l,nz%l)
-    call sweep(forward,u,b,ny,nz,nx,dt_gas)  !y
-    call transposef(u,b,ny%l,nz%l,nx%l)
-    call sweep(forward,u,b,nz,nx,ny,dt_gas)  !z
-
-    if (rank == 0) write(*,*) 'finished forward gas sweep',t_elapsed(wc_counter)
-
-! Backward Sweep
-    call sweep(backward,u,b,nz,nx,ny,dt_gas) !z
-    call transposeb(u,b,nz%l,nx%l,ny%l)
-    call sweep(backward,u,b,ny,nz,nx,dt_gas) !y
-    call transposeb(u,b,ny%l,nz%l,nx%l)
-    call sweep(backward,u,b,nx,ny,nz,dt_gas) !x
-
-    if (rank == 0) write(*,*) 'finished backward gas sweep',t_elapsed(wc_counter)
-
-#ifdef DEBUG_DEN_BUF
-    print *,rank,sum(u(1,nx%m:nx%n,ny%m:ny%n,nz%m:nz%n))
-#endif
-
-    call gas_density_buffer
-
-    if (rank == 0) write(*,*) 'finished gas density buffer',t_elapsed(wc_counter)
-
-#endif
-
     call particle_mesh
     if (rank == 0) write(*,*) 'finished particle mesh',t_elapsed(wc_counter)
-
-#ifdef MHD
-! second pass gas update
-! Forward Sweep
-    call sweep(forward,u,b,nx,ny,nz,dt_gas)  !x
-    call transposef(u,b,nx%l,ny%l,nz%l)
-    call sweep(forward,u,b,ny,nz,nx,dt_gas)  !y
-    call transposef(u,b,ny%l,nz%l,nx%l)
-    call sweep(forward,u,b,nz,nx,ny,dt_gas)  !z
-
-    if (rank == 0) write(*,*) 'finished forward gas sweep',t_elapsed(wc_counter)
-
-! Backward Sweep
-    call sweep(backward,u,b,nz,nx,ny,dt_gas) !z
-    call transposeb(u,b,nz%l,nx%l,ny%l)
-    call sweep(backward,u,b,ny,nz,nx,dt_gas) !y
-    call transposeb(u,b,ny%l,nz%l,nx%l)
-    call sweep(backward,u,b,nx,ny,nz,dt_gas) !x
-
-    if (rank == 0) write(*,*) 'finished backward gas sweep',t_elapsed(wc_counter)
-#endif
 
 #ifdef ZOOMCHECK
     call zoomcheckpoint
@@ -333,11 +233,6 @@ call mpi_barrier(mpi_comm_world,ierr)
   endif
 #endif
 
-
-#ifdef MHD
-  call mpi_tvd_mhd_finalize
-#endif
-
   call cubepm_fftw(0)
   do ierr=1,cores 
     call cubepm_fftw2('q',ierr)
@@ -376,13 +271,6 @@ contains
 #ifdef PID_FLAG
 !!  should also add PIDsend/PIDrecv buffers, but they're small 
     memory_used = memory_used + 2.0*real(max_np) !PID
-#endif
-
-
-
-#ifdef MHD
-!! should also add send/recv mhd buffers, but they're small 
-    memory_used = memory_used + 8*real(nf_physical_node_dim+6)**3 !u+b
 #endif
 
     if (rank==0) then

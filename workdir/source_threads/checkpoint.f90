@@ -1,10 +1,5 @@
 ! write checkpoints to disk
   subroutine checkpoint
-
-#ifdef MHD
-    use mpi_tvd_mhd
-#endif
-
     implicit none
 
     include 'mpif.h'
@@ -476,14 +471,6 @@
     close(15)
 #endif
 #endif    
-#endif
-
-    !
-    ! Write gas checkpoint
-    !
-
-#ifdef MHD
-    call mpi_tvd_mhd_state_output(output_path,nts,t,z_s)
 #endif
 
     !

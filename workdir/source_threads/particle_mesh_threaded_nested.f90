@@ -23,10 +23,6 @@
 #else
     real(4), dimension(1) :: pp_ext_sum
 #endif
-#ifdef MHD
-    integer(4) :: nerrl, nerr
-    real(4) :: cmaxl, cmax
-#endif
 #ifdef DIAG
     real(8) :: sumrhof
 #endif
@@ -63,11 +59,6 @@
     call particle_pass
     call mpi_barrier(mpi_comm_world, ierr)
 
-#ifdef MHD
-    nerr=0
-    cmax=1e-5
-#endif
-
 #ifdef NESTED_OMP
     !$omp  parallel num_threads(cores) default(shared) &
     !$omp& private(cur_tile, i, j, k, k0, tile, thread, i3, cic_l, cic_h, offset, force_mag, pp_ext_sum)
@@ -93,34 +84,12 @@
       j = j - tile(2) * tiles_node_dim
       tile(1) = j - 1
 
-!#ifdef MHD
-!      call fine_mesh(tile,cmax,nerr,thread)
-!#else
-!      call fine_mesh(tile,thread)
-!#endif
-
 !! normalize fine mesh density
 #ifndef NEUTRINOS
      rho_f(:,:,:,thread)= ratio_omega_nu2m
 #else
      rho_f(:,:,:,thread)= 0.0
 #endif
-
-#ifdef MHD
-#ifdef DEBUG_PP_MESH
-!    print *,rank,'gas mass init rho_f:',sum(rho_f)
-    print *,'Entering fine_gas_mass', cur_tile, thread, rank
-#endif
-
-    call fine_gas_mass(tile,thread) 
-    rho_f(:,:,:,thread) = rho_f(:,:,:,thread)*(omega_b/omega_m) 
-
-#ifdef DEBUG_PP_MESH
-    print *,cur_tile ,thread,rank,'gas mass rho_f:',sum(rho_f)
-#endif
-
-#endif
-
 
 !! calculate coarse mesh offsets
 #ifdef NGP
@@ -154,10 +123,6 @@
                         x_n = xv(1:3, pp_n) + offset_n(:)
                         i1_n(:) = floor(x_n(:)) + 1
 
-#ifdef MHD
-                        rho_f(i1_n(1),i1_n(2),i1_n(3),thread) = rho_f(i1_n(1),i1_n(2),i1_n(3),thread)+mass_p*(1.0-omega_b/omega_m)
-#else
-
 #ifdef NEUTRINOS
 #ifdef NUPID
                         rho_f(i1_n(1),i1_n(2),i1_n(3),thread) = rho_f(i1_n(1),i1_n(2),i1_n(3),thread)+mass_p*mass_p_nudm_fac(nuPIDmap(PID(pp_n)))
@@ -168,7 +133,6 @@
                         rho_f(i1_n(1),i1_n(2),i1_n(3),thread) = rho_f(i1_n(1),i1_n(2),i1_n(3),thread)+mass_p*mass_p_nudm_fac(1)
 #endif
 
-#endif
                         pp_n = ll(pp_n)
 
                     enddo !! pp_n
@@ -406,11 +370,8 @@
                       sep_n = xv(:3,pp1_n) - xv(:3,pp2_n)                      
                       rmag_n = sqrt(sep_n(1)*sep_n(1) + sep_n(2)*sep_n(2) + sep_n(3)*sep_n(3))
                       if (rmag_n > rsoft) then
-#ifdef MHD
-                        force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)*(1.0 - omega_b/omega_m)
-#else          
+
                         force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)  !mass_p divides out below
-#endif
 #ifdef NEUTRINOS
                         !! Determine if particle pp2_n is a neutrino or dark matter
 #ifdef NUPID
@@ -457,14 +418,6 @@
 #endif 
 
 ! end fine velocity on dm
-
-#ifdef MHD
-    !write(*,*)  'Calling fine_velocity for MHD'
-    !! NOTE: THIS SUBROUTINE WILL NEED TO BE MODIFIED FOR NESTED_THREADS 
-    call fine_velocity(tile,cmax,nerr,thread)
-    write(*,*)  'Called fine_velocity for MHD on tile', cur_tile
-#endif
-
 
 #ifdef PP_EXT
 
@@ -694,9 +647,6 @@
                                                     force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)*(1 - (7.0/4.0)*(rmag_n*pp_bias/(nf_cutoff))**3 + &
                                                                  (3.0/4.0)*(rmag_n*pp_bias/(nf_cutoff))**5)  !mass_p divides out below
                                                 endif
-#ifdef MHD
-                                                force_pp_n = force_pp_n*(1.0 - omega_b/omega_m)                
-#endif
 
                                                 !force_pp = force_pp - mass_p*( -7*rmag/(4*nf_cutoff**3) + 3*rmag**3/(4*nf_cutoff**5))
                                                 !force_pp = force_pp + sep*mass_p*(7/(4*nf_cutoff**3) - 3*rmag**2/(4*nf_cutoff**5))
@@ -832,16 +782,6 @@
   
     call mpi_barrier(mpi_comm_world, ierr) 
 
-#ifdef MHD
-    cmaxl=cmax
-    nerrl=nerr
-    call mpi_reduce(cmaxl,cmax,1,mpi_real,mpi_max,0,mpi_comm_cart,ierr)
-    call mpi_reduce(nerrl,nerr,1,mpi_integer,mpi_sum,0,mpi_comm_cart,ierr)
-
-    if (rank == 0) then
-      print *,'fluid stats',cmax/freeze,dt*cmax,nerr
-    endif
-#endif
 
 !! calculate maximum dt from fine mesh force
 

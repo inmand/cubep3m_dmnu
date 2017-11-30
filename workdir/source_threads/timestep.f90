@@ -1,10 +1,5 @@
 !! increment timestep 
   subroutine timestep
-
-#ifdef MHD
-    use mpi_tvd_mhd
-#endif
-
     implicit none
  
     include 'mpif.h'
@@ -13,9 +8,6 @@
     real(4) :: ra,da_1,da_2,dt_e,am
     integer(4) :: n
 
-#ifdef MHD
-    real(4) :: cfl,amax,cmax,D1,D2,dta,dtc
-#endif
     real(4) :: vmax, vmax_local
     real(4) :: Dx
 
@@ -44,39 +36,6 @@
     dt_vmax = fbuf * Dx / vmax
 
     if (rank == 0) write(*,*) 'vmax and maximum timestep from vmax=',vmax,dt_vmax
-
-#ifdef MHD
-!! calculate cfl for gas and calculate minimum gas timestep
-    call calcfl(u,b,nx,ny,nz,cfl)
-    call fluid_minmax(u,amax,cmax,D1,D2)
-    if (rank==0) then
-      print*,'cfl=',cfl,'amax=',amax,'cmax=',cmax
-      print*,'min gas density =',D1,'max gas density =',D2
-    endif 
-    cmax=cmax*cfactor
-    amax=amax*cfactor
-    freeze=cmax
-#ifdef DEBUG_CFL
-!    print *,'cfl hardwired to 0.7'
-    dta=0.7/amax
-    dtc=0.7/cmax
-    dt_f_acc=0.7*dt_f_acc
-    dt_c_acc=0.7*dt_c_acc
-    dt_vmax=0.7*dt_vmax
-#ifdef PPINT
-    dt_pp_acc=0.7*dt_pp_acc
-#endif
-#else
-    dta=cfl/amax
-    dtc=cfl/cmax
-    dt_f_acc=cfl*dt_f_acc
-    dt_c_acc=cfl*dt_c_acc
-    dt_vmax=cfl*dt_vmax
-#ifdef PPINT
-    dt_pp_acc=cfl*dt_pp_acc
-#endif
-#endif
-#endif
 
     if (rank == 0) then
 
@@ -117,17 +76,6 @@
 
 ! take the minimum of all the limits 
 
-#ifdef MHD
-#ifdef PPINT
-#ifdef PP_EXT
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc,dta,dtc)
-#else
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc,dta,dtc)
-#endif
-#else
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_c_acc,dta,dtc)
-#endif
-#else
 #ifdef PPINT
 #ifdef PP_EXT
         dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
@@ -136,7 +84,6 @@
 #endif
 #else
         dt = min(dt_e,dt_f_acc,dt_vmax,dt_c_acc)
-#endif
 #endif
 
         dt = dt * dt_scale
@@ -200,13 +147,7 @@
         write(*,*) 'Redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
         write(*,*) 'Scale factor: ',a,a_mid,a+da
         write(*,*) 'Expansion   : ',ra
-#ifdef MHD
-#ifdef PPINT
-        write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc,dta,dtc
-#else
-        write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_c_acc,dta,dtc
-#endif
-#else
+
 #ifdef PPINT
 #ifdef PP_EXT
         write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
@@ -215,7 +156,6 @@
 #endif
 #else
         write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_c_acc
-#endif
 #endif
 
         tau=tau+dt
