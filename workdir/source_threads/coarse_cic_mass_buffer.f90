@@ -1,9 +1,6 @@
 !! add mass to coarse mesh density along nodal boundry
   subroutine coarse_cic_mass_boundry(pp)
     use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
     implicit none
 
 #    include "cubepm.fh"

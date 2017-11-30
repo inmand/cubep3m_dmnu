@@ -2,10 +2,6 @@
 !! Hugh Merz :: merz@cita.utoronto.ca :: 2006 11 02 
 program cubep3m
   use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
-
   implicit none
   include 'mpif.h'
 #  include "cubepm.fh"

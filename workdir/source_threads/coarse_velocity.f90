@@ -1,10 +1,6 @@
 !! update coarse mesh velocity
 subroutine coarse_velocity
     use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
-
     implicit none
 
 #    include "cubepm.fh"

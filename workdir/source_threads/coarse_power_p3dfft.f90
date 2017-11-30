@@ -1,9 +1,6 @@
 !! calculate mass power spectrum using coarse mesh density
   subroutine coarse_power
     use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
     implicit none
   
     include 'mpif.h'

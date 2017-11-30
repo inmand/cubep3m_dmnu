@@ -1,9 +1,6 @@
 !! update particle positions
   subroutine update_position
     use omp_lib
-#ifdef FFTMKL
-   use MKL_DFTI
-#endif
 implicit none
 #ifdef DISP_MESH 
     include 'mpif.h'

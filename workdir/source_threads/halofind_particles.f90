@@ -7,9 +7,6 @@
  
 subroutine halofind 
     use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
     implicit none
 
     include "mpif.h"
@@ -797,12 +794,7 @@ end subroutine neutrino_properties
 ! -------------------------------------------------------------------------------------------------------
 
 subroutine initialize_halofind
-
     use omp_lib
-#ifdef FFTMKL 
-    use MKL_DFTI
-#endif
-
     implicit none
 #    include "cubepm.fh"
     include 'mpif.h'
