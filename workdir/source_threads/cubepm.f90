@@ -62,7 +62,7 @@ program cubep3m
     call particle_mesh
     if (rank == 0) write(*,*) 'finished particle mesh',t_elapsed(wc_counter)
 
-#ifdef CHECKPOINT_KILL
+#   ifdef CHECKPOINT_KILL
     !! Determine if it is time to write a checkpoint before being killed
     kill_step = .false.
     sec1a = mpi_wtime(ierr)
@@ -72,94 +72,93 @@ program cubep3m
     call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
 
     if (checkpoint_step.or.projection_step.or.halofind_step.or.kill_step) then
-#else
+#   else
     if (checkpoint_step.or.projection_step.or.halofind_step) then
-#endif
+#   endif
 
-!! advance the particles to the end of the current step.
+       !! advance the particles to the end of the current step.
+       dt_old = 0.0
+       call update_position
 
-      dt_old = 0.0
-      call update_position
+#      if defined(ZIP) || defined(ZIPDM)
+       force_grid_back = .true.
+       call move_grid_back
+       force_grid_back = .false.
+#      endif
+       call link_list
 
-#if defined(ZIP) || defined(ZIPDM)
-    force_grid_back = .true.
-    call move_grid_back
-    force_grid_back = .false.
-#endif
-    call link_list
-
-#ifdef CHECKPOINT_KILL
-      if (kill_step .eqv. .true. .and. kill_step_done .eqv. .false.) then
-        sec1a = mpi_wtime(ierr)
-        if (rank == 0) write(*,*) "STARTING CHECKPOINT_KILL: ", sec1a
-#if defined(ZIP) || defined(ZIPDM)
-        call checkpoint_kill(.true.)
-#else
-        call checkpoint_kill
-#endif
-        sec2a = mpi_wtime(ierr)
-        if (rank == 0) write(*,*) "STOPPING CHECKPOINT_KILL: ", sec2a
-        if (rank == 0) write(*,*) "ELAPSED CHECKPOINT_KILL TIME: ", sec2a-sec1a
-        kill_step_done = .true. ! Don't want to keep doing this
-      endif
-#endif
-
-      if (checkpoint_step) then
-        sec1a = mpi_wtime(ierr)
-        if (rank == 0) write(*,*) "STARTING CHECKPOINT: ", sec1a
-        call checkpoint
-        if (rank == 0) write(*,*) 'finished checkpoint',t_elapsed(wc_counter)
-        sec2a = mpi_wtime(ierr)
-        if (rank == 0) write(*,*) "STOPPING CHECKPOINT: ", sec2a
-        if (rank == 0) write(*,*) "ELAPSED CHECKPOINT TIME: ", sec2a-sec1a
-      endif
-
-      if (projection_step.or.halofind_step) then
-        call particle_pass
-        if (halofind_step) then
+#      ifdef CHECKPOINT_KILL
+       if (kill_step .eqv. .true. .and. kill_step_done .eqv. .false.) then
           sec1a = mpi_wtime(ierr)
-          if (rank == 0) write(*,*) "STARTING HALOFIND: ", sec1a
-          call halofind
-          if (rank == 0) write(*,*) 'finished halofind',t_elapsed(wc_counter)
+          if (rank == 0) write(*,*) "STARTING CHECKPOINT_KILL: ", sec1a
+#      if defined(ZIP) || defined(ZIPDM)
+          call checkpoint_kill(.true.)
+#      else
+          call checkpoint_kill
+#      endif
           sec2a = mpi_wtime(ierr)
-          if (rank == 0) write(*,*) "STOPPING HALOFIND: ", sec2a
-          if (rank == 0) write(*,*) "ELAPSED HALOFIND TIME: ", sec2a-sec1a
-        endif
+          if (rank == 0) write(*,*) "STOPPING CHECKPOINT_KILL: ", sec2a
+          if (rank == 0) write(*,*) "ELAPSED CHECKPOINT_KILL TIME: ", sec2a-sec1a
+          kill_step_done = .true. ! Don't want to keep doing this
+       endif
+#      endif
 
-        if (projection_step) then
-          call projection
-          if (rank == 0) write(*,*) 'finished projection',t_elapsed(wc_counter)
-        endif
+       if (checkpoint_step) then
+          sec1a = mpi_wtime(ierr)
+          if (rank == 0) write(*,*) "STARTING CHECKPOINT: ", sec1a
+          call checkpoint
+          if (rank == 0) write(*,*) 'finished checkpoint',t_elapsed(wc_counter)
+          sec2a = mpi_wtime(ierr)
+          if (rank == 0) write(*,*) "STOPPING CHECKPOINT: ", sec2a
+          if (rank == 0) write(*,*) "ELAPSED CHECKPOINT TIME: ", sec2a-sec1a
+       endif
 
-        if(superposition_test)then
-           !fine_clumping=0.0
-           !call link_list
-           !call particle_pass
-           !call halofind
-           if(rank==0)write(*,*) 'Calling report force'
-           call report_force
-           if(rank==0)then
-              write(*,*) 'Called report force'       
-              write(*,*) '*** Ending simulation here ***'
-           endif
-              !stop
-              !call  mpi_finalize(ierr)
-              !exit           
-           stop
-        endif
+       if (projection_step.or.halofind_step) then
+          call particle_pass
+          if (halofind_step) then
+             sec1a = mpi_wtime(ierr)
+             if (rank == 0) write(*,*) "STARTING HALOFIND: ", sec1a
+             call halofind
+             if (rank == 0) write(*,*) 'finished halofind',t_elapsed(wc_counter)
+             sec2a = mpi_wtime(ierr)
+             if (rank == 0) write(*,*) "STOPPING HALOFIND: ", sec2a
+             if (rank == 0) write(*,*) "ELAPSED HALOFIND TIME: ", sec2a-sec1a
+          endif
+          
+          if (projection_step) then
+             call projection
+             if (rank == 0) write(*,*) 'finished projection',t_elapsed(wc_counter)
+          endif
 
-        !! Clean up ghost particles
-        call delete_particles
+          if(superposition_test)then
+             !fine_clumping=0.0
+             !call link_list
+             !call particle_pass
+             !call halofind
+             if(rank==0)write(*,*) 'Calling report force'
+             call report_force
+             if(rank==0)then
+                write(*,*) 'Called report force'       
+                write(*,*) '*** Ending simulation here ***'
+             endif
+             !stop
+             !call  mpi_finalize(ierr)
+             !exit           
+             stop
+          endif
 
-      endif
+          !! Clean up ghost particles
+          call delete_particles
 
-      dt = 0.0
+       endif
+
+       dt = 0.0
 
     endif
 
     if (nts == max_nts .or. final_step .or. a .gt. 1.0) exit
 
-  enddo
+ enddo
 
 #ifdef TIMING
   if (rank==0) then
