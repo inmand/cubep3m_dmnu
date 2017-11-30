@@ -4,7 +4,7 @@ program cubep3m
   use omp_lib
   implicit none
   include 'mpif.h'
-#  include "cubepm.fh"
+# include "cubepm.fh"
 
   real(4) :: t_elapsed
   external t_elapsed
@@ -13,74 +13,47 @@ program cubep3m
   real(8) :: sec1a, sec2a
   logical(kind=4) :: i_continue
 
-#ifdef CHECKPOINT_KILL
+# ifdef CHECKPOINT_KILL
   logical :: kill_step, kill_step_done
   kill_step_done = .false.
-#endif
+# endif
 
   call mpi_initialize
-
   if (rank == 0) call datestamp
 
   sec1 = mpi_wtime(ierr)
   if (rank == 0) write(*,*) "STARTING CUBEP3M: ", sec1
 
-#ifdef CHECKPOINT_KILL
+# ifdef CHECKPOINT_KILL
   call read_remaining_time
-#endif
+# endif
 
   call t_start(wc_counter)
 
-  call memory_usage
-
   call variable_initialize
-
   if (rank == 0) write(*,*) 'finished variable init',t_elapsed(wc_counter)
 
-#ifdef NESTED_OMP
-    call omp_set_num_threads(cores*nested_threads)
-    call omp_set_nested(.true.)
-#else
-    call omp_set_num_threads(cores)
+# ifdef NESTED_OMP
+  call omp_set_num_threads(cores*nested_threads)
+  call omp_set_nested(.true.)
+# else
+  call omp_set_num_threads(cores)
 #endif
-
-if (rank == 0) write(*,*) 'finished omp call',t_elapsed(wc_counter)
+  if (rank == 0) write(*,*) 'finished omp call',t_elapsed(wc_counter)
 
   call coarse_kernel
-if (rank == 0) write(*,*) 'finished coarse kernel init',t_elapsed(wc_counter)
+  if (rank == 0) write(*,*) 'finished coarse kernel init',t_elapsed(wc_counter)
 
   call fine_kernel
-if (rank == 0) write(*,*) 'finished kernel init',t_elapsed(wc_counter)
-
-#ifdef KERN_DUMP
-  call kernel_checkpoint(.true.)
-#endif
-
-#ifdef MEMORY_WAIT
-if (rank==0) then
-  seconds2wait=0
-  print*, 'before particle_initialize, wait for',seconds2wait,' seconds'
-  sec01=mpi_wtime(ierr)
-  i_continue=.false.
-  do while (i_continue == .false.)
-    sec02 = mpi_wtime(ierr) - sec01
-    if (sec02 > seconds2wait) i_continue=.true.
-  enddo
-endif
-call mpi_barrier(mpi_comm_world,ierr)
-#endif
+  if (rank == 0) write(*,*) 'finished kernel init',t_elapsed(wc_counter)
 
   call particle_initialize
-
   if (rank == 0) write(*,*) 'finished initializing particles',t_elapsed(wc_counter)
 
- !if(rank ==0) write(*,*)'Calling init_projection.f90'
- call link_list
- call init_projection
-
+  call link_list
+  call init_projection
 
   if (rank == 0) write(*,*) 'starting main loop'
-
   do 
     call timestep
     sec1a = mpi_wtime(ierr)
@@ -214,40 +187,5 @@ call mpi_barrier(mpi_comm_world,ierr)
   call mpi_finalize(ierr)
 
   if (rank == 0) call datestamp
-
-contains
-  
-  subroutine memory_usage
-!! calculate and display common block memory usage
-    implicit none
-
-    real(4) :: memory_used
-
-
-    memory_used = real((nc_dim+2)*(nc_dim)*(nc_slab)) &    !slab
-       + 3.0*real((nc_dim/2+1)*nc_dim*nc_slab) &  !kern_c
-       + real((nf_tile+2)*nf_tile**2) & !rho_f
-       + real(2*nf_tile*(nf_tile/2+1)*nf_tile) & !rho_ft
-       + real(3*(nf_tile-2*nf_buf+2)**3) &             !force_f
-       + real(nf_tile*(nf_tile/2+1)*nf_tile) & !kern_f
-       + real(max_buf) & !send_buf
-       + real(max_buf) & !recv_buf
-       + 6.0*real(max_np) & !xv
-       + real(max_np) &	 !ll
-       + real((hoc_nc_h-hoc_nc_l)**3) !hoc
-
-
-#ifdef PID_FLAG
-!!  should also add PIDsend/PIDrecv buffers, but they're small 
-    memory_used = memory_used + 2.0*real(max_np) !PID
-#endif
-
-    if (rank==0) then
-      write(*,*) 'majority of memory used / node :'
-      write(*,*) memory_used*4.0,'bytes'
-      write(*,*) memory_used*4.0/1024/1024/1024,'GB' 
-    endif
-
-  end subroutine memory_usage
 
 end program cubep3m
