@@ -62,13 +62,6 @@ program cubep3m
     call particle_mesh
     if (rank == 0) write(*,*) 'finished particle mesh',t_elapsed(wc_counter)
 
-#ifdef ZOOMCHECK
-    call zoomcheckpoint
-#endif
-#ifdef BOXDUMP
-    call boxcheckpoint
-#endif
-
 #ifdef CHECKPOINT_KILL
     !! Determine if it is time to write a checkpoint before being killed
     kill_step = .false.
