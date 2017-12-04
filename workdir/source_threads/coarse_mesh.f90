@@ -1,3 +1,6 @@
+!Preprocessor commands
+#undef COARSE_NGP
+
 !! coarse mesh velocity update
 subroutine coarse_mesh
   implicit none
