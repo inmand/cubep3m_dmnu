@@ -72,8 +72,6 @@
 #endif
 
     
-    if (shake_test_ic) print *,'P0',xv(:,1)
-    
     call system_clock(count=count_f,count_rate=count_r)
 #ifdef MPI_TIME
     call mpi_time_analyze('del part',real(count_f-count_i)/real(count_r),rank,nodes)
