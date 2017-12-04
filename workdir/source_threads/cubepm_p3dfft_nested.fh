@@ -25,16 +25,6 @@ real(4) :: shake_offset(3), cur_sep, dt_pp_acc,dt_pp_ext_acc, dt_max_v, kill_tim
 #ifdef NEUTRINOS
 integer(4) :: nuPIDmap
 #endif
-#ifdef COARSEPROJ
-real(4), dimension(3) :: soffcproj
-logical :: doCoarseProj
-real(4), dimension(0:nc_node_dim+1, 0:nc_node_dim+1, 0:nc_node_dim+1) :: crhoproj
-real(4), dimension(nc_node_dim, nc_node_dim) :: crhoprojsum
-#ifdef NEUTRINOS
-real(4), dimension(0:nc_node_dim+1, 0:nc_node_dim+1, 0:nc_node_dim+1) :: crhoproj_nu
-real(4), dimension(nc_node_dim, nc_node_dim) :: crhoprojsum_nu
-#endif 
-#endif
 
 ! :: checkpoint and projection variables
 
@@ -220,15 +210,6 @@ common / izipvar / pid_i8_nu
 #ifdef PP_EXT
 common / eppvarr / pp_ext_force_accum
 common / eppvari / ll_fine, hoc_fine
-#endif
-
-#ifdef COARSEPROJ
-common / crprvv / soffcproj, doCoarseProj 
-#ifdef NEUTRINOS
-common / crprvr / crhoproj, crhoproj_nu, crhoprojsum, crhoprojsum_nu
-#else
-common / crprvr / crhoproj, crhoprojsum
-#endif
 #endif
 
 common / lvar / min_den_buf
