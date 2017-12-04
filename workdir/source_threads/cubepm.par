@@ -104,10 +104,6 @@ integer(4), parameter   :: pp_range = 2
 
 !! additional simulation analysis
 
-! set this .true. to generate coarse mesh mass power spectrum each timestep
-
-logical, parameter      :: coarse_ps = .false. !.true. ! .false.
-
 ! halo finding parameters 
 
 ! write out entire halo catalog, or just the value of nhalo

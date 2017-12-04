@@ -98,7 +98,4 @@
     if (rank==0) write(*,*) 'coarse force finished',real(count_f - count_i)/real(count_r)
 #endif
 
-
-    if (coarse_ps) call coarse_power
-
   end subroutine coarse_force
