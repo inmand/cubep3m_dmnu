@@ -131,16 +131,6 @@
     endif !! doCoarseProj
 #endif
 
-#ifdef DEBUG_VEL
-   do k=1,nc_node_dim
-     do j=1,nc_node_dim
-       do i=1,nc_node_dim
-         if (rho_c(i,j,k) /= 0.0 ) write(*,*) 'rhoc',rank,i,j,k,rho_c(i,j,k)
-       enddo
-     enddo
-   enddo
-#endif
-
   call system_clock(count=count_f,count_rate=count_r)
 #ifdef MPI_TIME
   call mpi_time_analyze('cm  mass',real(count_f-count_i)/real(count_r),rank,nodes)

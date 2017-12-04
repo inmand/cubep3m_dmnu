@@ -43,11 +43,6 @@ subroutine coarse_velocity
             xv(4:6,pp) = xv(4:6,pp) + force_c(:,i1(1),i2(2),i2(3)) * dV
             dV = a_mid * G * dt * dx2(1) * dx2(2) * dx2(3)
             xv(4:6,pp) = xv(4:6,pp) + force_c(:,i2(1),i2(2),i2(3)) * dV
-#ifdef DEBUG_VEL
-            write(*,*) 'pp,aGdt,i1(3),i2(3),dx1(3),dx2(3),force_c(1,8)'
-            write(*,*) pp,a_mid*G*dt,i1(:),i2(:),dx1(:),dx2(:), &
-                       force_c(1,i1(1):i2(1),i1(2):i2(2),i1(3):i2(3))
-#endif
             pp = ll(pp)
           enddo
         enddo

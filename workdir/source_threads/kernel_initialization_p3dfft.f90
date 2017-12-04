@@ -355,9 +355,6 @@
           do j=1,4
             do i=1,4
               read(11,'(3i4,3e16.8)') temp(:),ck_table(:,i,j,k)
-#ifdef DEBUG_VEL
-              if (rank==0) print *,temp(:),ck(:,i,j,k)
-#endif
             enddo
           enddo
         enddo
@@ -764,10 +761,6 @@
           enddo
         enddo
       enddo
-#endif
-
-#ifdef DEBUG_VEL
-      print *,'coarse kernel',rank,'min',minval(kern_c),'max',maxval(kern_c)
 #endif
 
       if (rank==0) print *,'finished coarse kernel' 

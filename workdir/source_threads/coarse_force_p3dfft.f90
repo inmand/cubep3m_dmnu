@@ -83,14 +83,6 @@
 
     force_c(3,1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)=rho_c
 
-#ifdef DEBUG_VEL
-    if (rank == 1) then
-      do i=1,nc_node_dim
-        write(*,*) i,force_c(1,i,14,2),force_c(2,i,14,2),force_c(3,i,14,2)
-      enddo
-    endif
-#endif
-
     call system_clock(count=count_f,count_rate=count_r)
 #ifdef MPI_TIME
     call mpi_time_analyze('cm force',real(count_f-count_i)/real(count_r),rank,nodes)

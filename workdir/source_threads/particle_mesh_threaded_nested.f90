@@ -834,10 +834,6 @@
     if (rank == 0) write(*,*) 'sum of rho_f=',sumrhof
 #endif
 
-#ifdef DEBUG_VEL
-    write(*,*) rank,xv(:,1:np_local)
-#endif
-
     call coarse_mesh
 
 !! delete all particles outside (1:nc_node_dim]
