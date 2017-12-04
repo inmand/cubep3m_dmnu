@@ -41,16 +41,7 @@
 
 !! start of particle mesh.  All particles are within (1:nc_node_dim]
 
-    if (pairwise_ic) then
-      call set_pair
-    elseif (pair_infall) then
-      if (nts==1) then
-        call set_pair
-      endif
       call update_position
-    else
-      call update_position
-    endif
 
 !! particles must not have advanced past hoc_nc_l:hoc_nc_h
 
@@ -226,8 +217,7 @@
 ! fine velocity
    
 !! calculate max fine mesh force   
-      if (.not.pair_infall) then
-        force_mag=0.0
+      force_mag=0.0
         do k=nf_buf-1,nf_tile-nf_buf+1
           do j=nf_buf-1,nf_tile-nf_buf+1
             do i=nf_buf-1,nf_tile-nf_buf+1
@@ -237,7 +227,7 @@
             enddo
           enddo
         enddo
-      endif
+     
 
 !! update dark matter velocity
 
@@ -304,11 +294,6 @@
 #endif
               if (ngp_fmesh_force) xv(4:6,pp_n)=xv(4:6,pp_n)+force_f(1:3,i1_n(1),i1_n(2),i1_n(3),thread) * &
                          a_mid * G * dt
-              if (pair_infall) then
-                force_mag_n=sqrt(force_f(1,i1_n(1),i1_n(2),i1_n(3),thread)**2+force_f(2,i1_n(1),i1_n(2),i1_n(3),thread)**2+ &
-                               force_f(3,i1_n(1),i1_n(2),i1_n(3),thread)**2)
-                if (force_mag_n > f_force_max(thread, thread_n)) f_force_max(thread, thread_n)=force_mag_n
-              endif
               if (pp_test) print *,'before pp',pp_n,xv(:,pp_n)
 
 #else
@@ -861,9 +846,5 @@
 
     !! Prevent drift from going too far
     call move_grid_back
-
-    if (pairwise_ic.or.pair_infall) then
-      call report_pair
-    endif
 
   end subroutine particle_mesh

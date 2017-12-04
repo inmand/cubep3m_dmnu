@@ -130,23 +130,6 @@ program cubep3m
              if (rank == 0) write(*,*) 'finished projection',t_elapsed(wc_counter)
           endif
 
-          if(superposition_test)then
-             !fine_clumping=0.0
-             !call link_list
-             !call particle_pass
-             !call halofind
-             if(rank==0)write(*,*) 'Calling report force'
-             call report_force
-             if(rank==0)then
-                write(*,*) 'Called report force'       
-                write(*,*) '*** Ending simulation here ***'
-             endif
-             !stop
-             !call  mpi_finalize(ierr)
-             !exit           
-             stop
-          endif
-
           !! Clean up ghost particles
           call delete_particles
 

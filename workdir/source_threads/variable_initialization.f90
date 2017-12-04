@@ -38,12 +38,8 @@
     t=0.0
     np_local=0
     mass_p=0.0
-    if (pair_infall) then
-      cur_sep=pair_infall_sep
-    else
-      cur_sep=min_sep 
-    endif
-
+    cur_sep=min_sep 
+    
     rho_f=0.0
     kern_f=0.0
     force_f=0.0
@@ -96,19 +92,17 @@
         a_projection(i)=1.0/(1.0+z_projection(i))
       enddo
 
-      if (.not. pairwise_ic) then
-        if (num_projections > 0) then
-          write(*,*) 'Projections performed at:'
-          write(*,*) 'z        a'
-          do i=1,num_projections
+      if (num_projections > 0) then
+         write(*,*) 'Projections performed at:'
+         write(*,*) 'z        a'
+         do i=1,num_projections
             write(*,'(f8.4,2x,f8.4)') z_projection(i),a_projection(i)
-          enddo
-        else
+         enddo
+      else
           a_projection(1)=100.0
           write(*,*) 'no projections to be stored'
-        endif
-      endif
-
+       endif
+       
 !! read in when to store checkpoints
 
       open(11,file=checkpoints,status='old',iostat=fstat)
@@ -149,11 +143,6 @@
         a_checkpoint(i)=1.0/(1.0+z_checkpoint(i))
       enddo
 
-      if ( pairwise_ic ) then
-        write(*,*) '------------------------------'
-        write(*,*) 'Conducting Pairwise Force Test'
-        write(*,*) '------------------------------'
-      else
         write(*,*) 'Starting simulation at:'
         write(*,*) 'z      a'
         write(*,'(f8.4,2x,f8.4)') z_i,a_i
@@ -165,7 +154,6 @@
         else
           write(*,*) 'no checkpoints to be stored'
         endif
-      endif
 
 !! read in when to store halo catalogs
 
@@ -198,17 +186,15 @@
         a_halofind(i)=1.0/(1.0+z_halofind(i))
       enddo
 
-      if (.not. pairwise_ic) then
-        if (num_halofinds > 0) then
-          write(*,*) 'Halo catalogs generated at:'
-          write(*,*) 'z        a'
-          do i=1,num_halofinds
+      if (num_halofinds > 0) then
+         write(*,*) 'Halo catalogs generated at:'
+         write(*,*) 'z        a'
+         do i=1,num_halofinds
             write(*,'(f8.4,2x,f8.4)') z_halofind(i),a_halofind(i)
-          enddo
-        else
-          a_halofind(1)=100.0
-          write(*,*) 'no halo catalogs to be stored'
-        endif
+         enddo
+      else
+         a_halofind(1)=100.0
+         write(*,*) 'no halo catalogs to be stored'
       endif
    endif
 

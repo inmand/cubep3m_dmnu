@@ -168,20 +168,14 @@
         a_mid = a
         da = 0.0
 #ifdef PPINT
-        if (pair_infall) then
-!          dt = min(0.1/sqrt(G*mass_p/cur_sep**2),dt_f_acc,dt_pp_acc,dt_c_acc,dt_max_v)
-          dt = min(0.05/sqrt(G*mass_p/cur_sep**2),dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
-        else
 #ifdef PP_EXT
            dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
 #else
            dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
 #endif
-        endif
 #else
         dt = min(1.0,dt_f_acc,dt_vmax,dt_c_acc)
 #endif
-        if (pairwise_ic) dt=1.0
         if (shake_test_ic) dt=1.0
         t = t + dt
         if (rank == 0) write(*,*) 'nts=',nts,'t=',t,'dt=',dt,dt_f_acc,dt_vmax,dt_pp_acc, dt_pp_ext_acc,dt_c_acc,dt_max_v,0.1/sqrt(G*mass_p/cur_sep**2)

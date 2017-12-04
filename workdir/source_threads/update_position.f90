@@ -84,7 +84,7 @@ if (rank==0) then
 
 endif ! rank==0
 
-if (pair_infall_no_shake.and.pair_infall .or. pp_test) offset=0.0
+if (pp_test) offset=0.0
 
 call mpi_bcast(offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
 call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)

@@ -68,14 +68,8 @@ real(4), parameter :: kill_remaining = 30.*60.
 
 logical, parameter      :: random_ic   = .false.
 logical, parameter      :: grid_ic     = .false.
-logical, parameter      :: pairwise_ic = .false. 
-logical, parameter      :: pair_infall = .false.
-logical, parameter      :: pair_infall_no_shake = .false.
 logical, parameter      :: pp_test     = .false.
 logical, parameter      :: shake_test_ic = .false.
-logical, parameter      :: superposition_test = .false.
-real, parameter         :: pair_infall_mass = 1000
-real, parameter         :: pair_infall_sep  = 2.0
 real, parameter         :: min_sep=0.0 !10
 real, parameter         :: max_sep=40!3.0 !20 !nf_buf !2.0 !1
 real, parameter         :: sep_inc=0.1

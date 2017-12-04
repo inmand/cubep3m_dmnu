@@ -77,17 +77,6 @@ print*,'particle_initialize'
       endif
       write(*,*) 'rank',rank,'finished grid_ic'
 
-    elseif (pairwise_ic.or.pair_infall) then
-
-      if (rank == 0) then
-        np_local=2
-        xv(:3,1:2) = 1.0
-        xv(4:,1:2) = 0.0
-      else
-        np_local=0
-      endif
-
-
     elseif (pp_test) then
 
       if (rank==0) then
@@ -979,11 +968,7 @@ print*,'particle_initialize'
     call mpi_bcast(np_total,1,MPI_INTEGER8,0,mpi_comm_world,ierr)
 
     if (.not.restart_ic) then
-       if (pairwise_ic) then
-          mass_p=10000.0
-       elseif (pair_infall) then
-          mass_p=pair_infall_mass
-       elseif (pp_test) then
+       if (pp_test) then
           mass_p=10000.0/4.
        else
           mass_p = real(nf_physical_dim)**3 / real(np_total)
