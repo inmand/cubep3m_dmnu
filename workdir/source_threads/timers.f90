@@ -1,57 +1,48 @@
 !! start system clock timer
 subroutine t_start(system_clock_count_init)
-
-    implicit none
-
-    integer :: system_clock_count_init
-
-    call system_clock(count=system_clock_count_init)
-
-  end subroutine t_start
+  implicit none
+  integer :: system_clock_count_init
+  call system_clock(count=system_clock_count_init)
+end subroutine t_start
 
 !! calculate time elapsed since system_clock_count_init
-  real(kind=4) function t_elapsed(system_clock_count_init)
-
-    implicit none
-
-    integer :: system_clock_count,system_clock_rate,system_clock_count_max
-    integer, intent(in) :: system_clock_count_init
-
-    call system_clock(count=system_clock_count, &
-                    count_rate=system_clock_rate, count_max=system_clock_count_max)
-
-    if (system_clock_count < system_clock_count_init) then
-      t_elapsed=real(system_clock_count + system_clock_count_max - system_clock_count_init) &
-               / real(system_clock_rate)
-    else
-      t_elapsed=real(system_clock_count - system_clock_count_init) &
-               / real(system_clock_rate)
-    endif
-
-  end function t_elapsed
+real(kind=4) function t_elapsed(system_clock_count_init)
+  implicit none
+  integer :: system_clock_count,system_clock_rate,system_clock_count_max
+  integer, intent(in) :: system_clock_count_init
+  call system_clock(count=system_clock_count, &
+       count_rate=system_clock_rate, count_max=system_clock_count_max)
+  if (system_clock_count < system_clock_count_init) then
+     t_elapsed=real(system_clock_count + system_clock_count_max - system_clock_count_init) &
+          / real(system_clock_rate)
+  else
+     t_elapsed=real(system_clock_count - system_clock_count_init) &
+          / real(system_clock_rate)
+  endif
+end function t_elapsed
 
 !! generic f90 system clock stopwatch timer
 !! pass it 'i' to start, 't' to stop
 real function timer(op)
-    implicit none
-    character(len=1), intent(in) :: op
-    integer :: system_clock_count_init,system_clock_count,system_clock_rate,system_clock_count_max
-    save system_clock_count_init, system_clock_rate, system_clock_count_max
-
-    if (op=='i') then
-      call system_clock(count=system_clock_count_init,count_rate=system_clock_rate,count_max=system_clock_count_max)
-      timer=0.0
-    elseif (op=='t') then
-      call system_clock(count=system_clock_count)
-      if (system_clock_count < system_clock_count_init) then
+  implicit none
+  character(len=1), intent(in) :: op
+  integer :: system_clock_count_init,system_clock_count,system_clock_rate,system_clock_count_max
+  save system_clock_count_init, system_clock_rate, system_clock_count_max
+  
+  if (op=='i') then
+     call system_clock(count=system_clock_count_init,count_rate=system_clock_rate,count_max=system_clock_count_max)
+     timer=0.0
+  elseif (op=='t') then
+     call system_clock(count=system_clock_count)
+     if (system_clock_count < system_clock_count_init) then
         timer=real(system_clock_count + system_clock_count_max - system_clock_count_init)/real(system_clock_rate)
-      else
+     else
         timer=real(system_clock_count - system_clock_count_init)/real(system_clock_rate)
-      endif
-    else
-      print *,'timer operation:',op,'not supported'
-      timer=-42.0
-    endif
+     endif
+  else
+     print *,'timer operation:',op,'not supported'
+     timer=-42.0
+  endif
 end function timer
 
 !! print out the date/time 
