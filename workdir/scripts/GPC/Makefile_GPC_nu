@@ -17,7 +17,7 @@ else
 endif
 FFLAGS=-shared-intel -fpp -g  -O3 -xhost -mcmodel=medium -DDIAG -DNGP -DNOPROJ -DPPINT -DMPI_TIME -DLRCKCORR -DFPPKCORR -DNGPH -DDISP_MESH -DNESTED_OMP -DCHECKPOINT_KILL -DZIPPERSDM $(NFLAGS) 
 
-OBJS=checkpoint.o checkpoint_kill.o coarse_cic_mass.o coarse_cic_mass_buffer.o coarse_force_p3dfft.o coarse_force_buffer.o coarse_mass.o coarse_max_dt.o coarse_mesh.o coarse_velocity.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o fine_ngp_mass.o halofind_particles.o fft_fine.o init_projection.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh_threaded_nested.o particle_pass.o projection.o indexedsort.o timers.o timestep.o update_position.o variable_initialization.o 
+OBJS=checkpoint.o checkpoint_kill.o coarse_mesh.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o fine_ngp_mass.o halofind_particles.o fft_fine.o init_projection.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh_threaded_nested.o particle_pass.o projection.o indexedsort.o timers.o timestep.o update_position.o variable_initialization.o 
 
 run: $(TARGET) 
 
@@ -33,29 +33,8 @@ checkpoint.o: checkpoint.f90
 checkpoint_kill.o: checkpoint_kill.f90
 	$(FC) $(FFLAGS) -c $<
 
-coarse_cic_mass.o: coarse_cic_mass.f90
-	$(FC) $(FFLAGS) -qopenmp -c $<
-
-coarse_cic_mass_buffer.o: coarse_cic_mass_buffer.f90
-	$(FC) $(FFLAGS) -qopenmp -c $<
-
-coarse_force_p3dfft.o: coarse_force_p3dfft.f90
-	$(FC) $(FFLAGS) -qopenmp -c $<
-
-coarse_force_buffer.o: coarse_force_buffer.f90
-	$(FC) $(FFLAGS) -c $<
-
-coarse_mass.o: coarse_mass.f90 
-	$(FC) $(FFLAGS) -qopenmp -c $<
-
-coarse_max_dt.o: coarse_max_dt.f90
-	$(FC) $(FFLAGS) -c $<
-
 coarse_mesh.o: coarse_mesh.f90
 	$(FC) $(FFLAGS) -c $<
-
-coarse_velocity.o: coarse_velocity.f90 
-	$(FC) $(FFLAGS) -qopenmp -c $<
 
 delete_particles.o: delete_particles.f90
 	$(FC) $(FFLAGS) -c $<
