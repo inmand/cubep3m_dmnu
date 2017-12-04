@@ -1,3 +1,4 @@
+!-*-f90-*-
 !! Frequently changed parameters are found in this header file:
 
 #include "../parameters"
