@@ -288,13 +288,12 @@
 !********************************************************
 
 #ifdef NGP
-              if (pp_test) print *,'before ngp',pp_n,xv(:,pp_n)
+
 #ifdef DEBUG_PP_MESH_INTENSE
               print *,'force',i1_n,force_f(:,i1_n(1),i1_n(2),i1_n(3),thread)
 #endif
               if (ngp_fmesh_force) xv(4:6,pp_n)=xv(4:6,pp_n)+force_f(1:3,i1_n(1),i1_n(2),i1_n(3),thread) * &
                          a_mid * G * dt
-              if (pp_test) print *,'before pp',pp_n,xv(:,pp_n)
 
 #else
               i2_n(:)  = i1_n(:) + 1
@@ -335,7 +334,7 @@
             do km_n = 1, mesh_scale
               do jm_n = 1, mesh_scale
                 do im_n = 1, mesh_scale
-                  if (pp_test .and. ipl_n(im_n, jm_n, km_n) /= 0) print *,'ipl_n', im_n, jm_n, km_n, ipl_n(im_n, jm_n, km_n)
+                  
 #ifdef DEBUG_PP_MESH
                   if ( ipl_n(im_n, jm_n, km_n) > 1) print *,'ipl', rank, i_n, j_n, k_n, im_n, jm_n, km_n, ipl_n(im_n, jm_n, km_n)
 #endif
@@ -800,12 +799,6 @@
    
 
     call mpi_bcast(dt_pp_acc,1,mpi_real,0,mpi_comm_world,ierr)
-
-    if (pp_test) then
-      do i=1,np_local
-        print *,i,xv(:,i)
-      enddo 
-    endif
 
 #endif
 

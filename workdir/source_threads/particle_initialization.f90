@@ -77,25 +77,6 @@ print*,'particle_initialize'
       endif
       write(*,*) 'rank',rank,'finished grid_ic'
 
-    elseif (pp_test) then
-
-      if (rank==0) then
-        np_local=4
-        xv(1:3,1)=0.3+nf_physical_node_dim/2
-
-        xv(1:3,2)=0.2+nf_physical_node_dim/2
-
-        xv(1,3)=0.2+nf_physical_node_dim/2
-        xv(2:3,3)=0.3+nf_physical_node_dim/2
-
-        xv(1,4)=0.3+nf_physical_node_dim/2
-        xv(2:3,4)=0.2+nf_physical_node_dim/2
-
-        xv(4:,1:4)=0.0
-      else
-        np_local=0
-      endif
-
     elseif (restart_ic) then
 
 ! ---------------------------------------------------------------------------------------------
@@ -968,11 +949,7 @@ print*,'particle_initialize'
     call mpi_bcast(np_total,1,MPI_INTEGER8,0,mpi_comm_world,ierr)
 
     if (.not.restart_ic) then
-       if (pp_test) then
-          mass_p=10000.0/4.
-       else
           mass_p = real(nf_physical_dim)**3 / real(np_total)
-       endif
     endif
 
     if (rank == 0) write(*,*) 'particle mass=', mass_p

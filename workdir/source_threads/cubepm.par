@@ -69,7 +69,6 @@ real(4), parameter :: kill_remaining = 30.*60.
 
 logical, parameter      :: random_ic   = .false.
 logical, parameter      :: grid_ic     = .false.
-logical, parameter      :: pp_test     = .false.
 logical, parameter      :: shake_test_ic = .false.
 real, parameter         :: min_sep=0.0 !10
 real, parameter         :: max_sep=40!3.0 !20 !nf_buf !2.0 !1
