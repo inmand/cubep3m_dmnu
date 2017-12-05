@@ -47,7 +47,7 @@ subroutine particle_initialize
   ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'// &
        rank_s(1:len_trim(rank_s))//'.dat'
 
-  if (rank==0) print*, 'opening dark matter file:',ofile
+  if (rank==0) print*, 'opening dark matter file:',trim(adjustl(ofile))
   open(unit=21, file=ofile, status="old", iostat=fstat, access="stream")
   if (fstat /= 0) then
      write(*,*) 'error opening checkpoint'
@@ -86,7 +86,7 @@ subroutine particle_initialize
 # ifdef NEUTRINOS
   ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'// &
        rank_s(1:len_trim(rank_s))//'_nu.dat'
-  if (rank==0) print*, 'opening neutrino checkpoint file:',ofile
+  if (rank==0) print*, 'opening neutrino file:',trim(adjustl(ofile))
 
   open(unit=21, file=ofile, status="old", iostat=fstat, access="stream")
   if (fstat /= 0) then
@@ -98,8 +98,6 @@ subroutine particle_initialize
   !! Only store the local number of particles. All other info already read from dark matter checkpoint file.
   read(21) np_nu,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
      
-  if (rank == 0) print *,'neutrinos restarting simulation from z=',z_checkpoint(cur_checkpoint-1)
-  
   if (np_local+np_nu > max_np) then
      write(*,*) 'too many particles to store'
      write(*,*) 'rank',rank,'np_local',np_local,'max_np',max_np

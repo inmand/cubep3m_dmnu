@@ -79,22 +79,16 @@ program cubep3m
        dt_old = 0.0
        call update_position
 
-#      if defined(ZIP) || defined(ZIPDM)
-       force_grid_back = .true.
-       call move_grid_back
-       force_grid_back = .false.
-#      endif
+!!$       force_grid_back = .true.
+!!$       call move_grid_back
+!!$       force_grid_back = .false.
        call link_list
 
 #      ifdef CHECKPOINT_KILL
        if (kill_step .eqv. .true. .and. kill_step_done .eqv. .false.) then
           sec1a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STARTING CHECKPOINT_KILL: ", sec1a
-#      if defined(ZIP) || defined(ZIPDM)
-          call checkpoint_kill(.true.)
-#      else
           call checkpoint_kill
-#      endif
           sec2a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STOPPING CHECKPOINT_KILL: ", sec2a
           if (rank == 0) write(*,*) "ELAPSED CHECKPOINT_KILL TIME: ", sec2a-sec1a

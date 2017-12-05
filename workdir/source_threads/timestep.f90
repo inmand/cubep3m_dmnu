@@ -179,8 +179,7 @@ end subroutine timestep
 !! Expansion subroutine :: Hy Trac -- trac@cita.utoronto.ca
 !! Added Equation of State for Dark Energy :: Pat McDonald -- pmcdonal@cita.utoronto.ca
 subroutine expansion(a0,dt0,da1,da2)
-  implicit none
-    
+  implicit none    
 # include "cubepm.par"
 
   real(4) :: a0,dt0,dt_x,da1,da2
