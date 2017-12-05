@@ -29,27 +29,10 @@ program cubep3m
 # endif
 
   call t_start(wc_counter)
-
   call variable_initialize
-  if (rank == 0) write(*,*) 'finished variable init',t_elapsed(wc_counter)
-
-# ifdef NESTED_OMP
-  call omp_set_num_threads(cores*nested_threads)
-  call omp_set_nested(.true.)
-# else
-  call omp_set_num_threads(cores)
-#endif
-  if (rank == 0) write(*,*) 'finished omp call',t_elapsed(wc_counter)
-
   call coarse_kernel
-  if (rank == 0) write(*,*) 'finished coarse kernel init',t_elapsed(wc_counter)
-
   call fine_kernel
-  if (rank == 0) write(*,*) 'finished kernel init',t_elapsed(wc_counter)
-
   call particle_initialize
-  if (rank == 0) write(*,*) 'finished initializing particles',t_elapsed(wc_counter)
-
   call link_list
 
   if (rank == 0) write(*,*) 'starting main loop'
@@ -59,7 +42,6 @@ program cubep3m
     if (rank == 0) write(*,*) "TIMESTEP_TIME [hrs] = ", (sec1a - sec1) / 3600.
 
     call particle_mesh
-    if (rank == 0) write(*,*) 'finished particle mesh',t_elapsed(wc_counter)
 
 #   ifdef CHECKPOINT_KILL
     !! Determine if it is time to write a checkpoint before being killed

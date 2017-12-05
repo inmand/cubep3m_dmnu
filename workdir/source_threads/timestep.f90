@@ -174,6 +174,8 @@ subroutine timestep
   call mpi_bcast(halofind_step,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(final_step,1,mpi_logical,0,mpi_comm_world,ierr)
 
+  if (rank == 0) write(*,*) 'finished particle mesh'
+
 end subroutine timestep
 
 !! Expansion subroutine :: Hy Trac -- trac@cita.utoronto.ca

@@ -10,7 +10,7 @@ subroutine fine_kernel
   integer(kind=4) :: i,j,k,temp(3)
   integer(kind=4) :: errcode,fstat
   real(kind=4) :: rtemp(2)
-   
+
   open(unit=18,file=kernel_path//'wfxyzf.3.ascii',status='old',iostat=fstat)
   if (fstat /= 0) then
      write(*,*) 'rank:',rank,'error opening fine mesh kernel'
@@ -227,6 +227,8 @@ subroutine fine_kernel
   enddo
 
   close(18)
+
+  if (rank == 0) write(*,*) 'finished kernel init'
 
 end subroutine fine_kernel
 
@@ -697,5 +699,6 @@ subroutine coarse_kernel
 #endif
 
   if (rank==0) print *,'finished coarse kernel' 
-  
+  if (rank == 0) write(*,*) 'finished coarse kernel init'
+
 end subroutine coarse_kernel

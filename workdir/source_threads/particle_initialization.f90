@@ -156,4 +156,6 @@ subroutine particle_initialize
   endif
 #endif
 
+  if (rank == 0) write(*,*) 'finished initializing particles'
+
 end subroutine particle_initialize
