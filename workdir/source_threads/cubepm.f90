@@ -13,21 +13,13 @@ program cubep3m
   real(8) :: sec1a, sec2a
   logical(kind=4) :: i_continue
 
-# ifdef CHECKPOINT_KILL
-  logical :: kill_step, kill_step_done
-  kill_step_done = .false.
-# endif
-
   call mpi_initialize
   if (rank == 0) call datestamp
 
   sec1 = mpi_wtime(ierr)
   if (rank == 0) write(*,*) "STARTING CUBEP3M: ", sec1
 
-# ifdef CHECKPOINT_KILL
   call read_remaining_time
-# endif
-
   call t_start(wc_counter)
   call variable_initialize
   call coarse_kernel
@@ -43,19 +35,15 @@ program cubep3m
 
     call particle_mesh
 
-#   ifdef CHECKPOINT_KILL
     !! Determine if it is time to write a checkpoint before being killed
-    kill_step = .false.
-    sec1a = mpi_wtime(ierr)
-    if (rank == 0) then
-        if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
-    endif
-    call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
+!    kill_step = .false.
+!    sec1a = mpi_wtime(ierr)
+!    if (rank == 0) then
+!        if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
+!    endif
+!    call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
 
     if (checkpoint_step.or.projection_step.or.halofind_step.or.kill_step) then
-#   else
-    if (checkpoint_step.or.projection_step.or.halofind_step) then
-#   endif
 
        !! advance the particles to the end of the current step.
        dt_old = 0.0
@@ -66,19 +54,7 @@ program cubep3m
 !!$       force_grid_back = .false.
        call link_list
 
-#      ifdef CHECKPOINT_KILL
-       if (kill_step .eqv. .true. .and. kill_step_done .eqv. .false.) then
-          sec1a = mpi_wtime(ierr)
-          if (rank == 0) write(*,*) "STARTING CHECKPOINT_KILL: ", sec1a
-          call checkpoint(kill_step)
-          sec2a = mpi_wtime(ierr)
-          if (rank == 0) write(*,*) "STOPPING CHECKPOINT_KILL: ", sec2a
-          if (rank == 0) write(*,*) "ELAPSED CHECKPOINT_KILL TIME: ", sec2a-sec1a
-          kill_step_done = .true. ! Don't want to keep doing this
-       endif
-#      endif
-
-       if (checkpoint_step) then
+       if (checkpoint_step .or. kill_step) then
           sec1a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STARTING CHECKPOINT: ", sec1a
           call checkpoint(kill_step)

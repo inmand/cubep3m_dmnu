@@ -30,7 +30,7 @@ real(4), dimension(max_input) :: z_projection,a_projection, &
          z_checkpoint,a_checkpoint,z_halofind,a_halofind
 integer(4) :: num_checkpoints, num_projections, cur_checkpoint, &
          cur_projection,num_halofinds,cur_halofind
-logical :: checkpoint_step, projection_step, halofind_step, final_step
+logical :: checkpoint_step, projection_step, halofind_step, final_step, kill_step
 
 ! :: fine mesh arrays
 

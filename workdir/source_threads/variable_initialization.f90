@@ -52,6 +52,7 @@
     hoc=0
     np_buf=0
     final_step=.false.
+    kill_step=.false.
     shake_offset=0.0
 #ifdef PID_FLAG 
     PID=0

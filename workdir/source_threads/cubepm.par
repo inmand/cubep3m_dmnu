@@ -54,10 +54,10 @@ logical, parameter	:: restart_ic =  .false.
 integer(4), parameter   :: restart_checkpoint = 1 ! line number in input/checkpoint 
 #endif
 
-logical, parameter :: restart_kill = .false. !! Only matters if CHECKPOINT_KILL flag used
+logical, parameter :: restart_kill = .false. !! Restart from kill_step
 character(*), parameter :: reskill_prefix = '0.528'
 
-!! Will checkpoint with this amount of time (in seconds) remaining if CHECKPOINT_KILL flag is used.
+!! Will checkpoint with this amount of time (in seconds) remaining 
 real(4), parameter :: kill_remaining = 30.*60.
 
 ! other internal initial conditions for testing, if all ic flags are

@@ -13,6 +13,9 @@ subroutine timestep
   nts = nts + 1
   if (nts /= 1) dt_old = dt
 
+  real :: sec1, sec1a
+  external :: sec1
+
   !! Compute maximum timestep allowed by the maximum velocity
   vmax_local = 0.
   do n = 1, np_local
@@ -74,7 +77,7 @@ subroutine timestep
         call expansion(a,dt,da_1,da_2)
 
         da=da_1+da_2 
-        
+
         ! Check to see if we are checkpointing / projecting / halofinding this step 
 
         checkpoint_step=.false.
@@ -112,6 +115,14 @@ subroutine timestep
           endif
           
         endif
+        
+        !! Check to see whether we should perform checkpoint kill
+        kill_step = .false.
+        sec1a = mpi_wtime(ierr)
+        if (rank == 0) then
+           if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
+        endif
+        call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
 
         !! Calculate timestep parameters to be used
 
