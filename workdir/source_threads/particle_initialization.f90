@@ -837,18 +837,4 @@ subroutine particle_initialize
     endif
 #endif
 
-!! This is to scale the initial conditions if we are doing testing with another data-set
-#ifdef SCALED_IC
-    do i=1,np_local
-      xv(:,i)=xv(:,i)/4.0
-    enddo
-#endif
-
-! this is to test if we can reconstruct particle ID from drifting vs non-drifting populations
-#ifdef X_DRIFT
-    do i=1,np_local
-      xv(4,i)=xv(4,i) + 10
-    enddo
-#endif
-
   end subroutine particle_initialize
