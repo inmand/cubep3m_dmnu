@@ -66,7 +66,7 @@
         fdm_zip3=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'zip3res_'//rank_s(1:len_trim(rank_s))//'.dat'
     else
 #endif
-        ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xvres'//rank_s(1:len_trim(rank_s))//'.dat'
+        ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'//rank_s(1:len_trim(rank_s))//'.dat'
 #ifdef ZIPDM
     endif
 #endif
@@ -81,7 +81,7 @@
         fnu_zip3=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'zip3res_'//rank_s(1:len_trim(rank_s))//'_nu.dat'
     else
 #endif
-    ofile_nu=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xvres'//rank_s(1:len_trim(rank_s))//'_nu.dat'
+    ofile_nu=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'//rank_s(1:len_trim(rank_s))//'_nu.dat'
 #ifdef ZIP
     endif
 #endif
