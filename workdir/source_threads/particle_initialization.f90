@@ -12,9 +12,7 @@ subroutine particle_initialize
   character(len=6) :: rank_s
   character(len=7) :: z_s, z_s2
   integer(4) :: np_nu
-#ifdef CHECK_IP
-  real(8) :: xva(6)
-#endif
+
 #ifdef NEUTRINOS
   integer(4) :: np_dm
   integer(8) :: np_total_nu
@@ -851,26 +849,6 @@ subroutine particle_initialize
     do i=1,np_local
       xv(4,i)=xv(4,i) + 10
     enddo
-#endif
-
-!! check to make sure no particles are out of bounds
-!! this is not really necessary, as link_list can handle out of bounds
-#ifdef CHECK_IP 
-    if (.not.restart_ic) then
-      xva=0.0
-      do i=1,np_local
-        xva=xva+xv(:,i)
-        do j=1,3
-          if (xv(j,i) < 0.0 .or. xv(j,i) >= real(nf_physical_node_dim,4)) then
-            write(*,*) 'particle out of bounds'
-            write(*,*) xv(:,i)
-            call mpi_abort(mpi_comm_world,ierr,ierr)
-          endif
-        enddo
-      enddo
-      xva=xva/real(np_local)
-      print *,rank,xva 
-    endif
 #endif
 
   end subroutine particle_initialize
