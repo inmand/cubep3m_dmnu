@@ -67,8 +67,6 @@ real(4), parameter :: kill_remaining = 30.*60.
 ! set .false. cubepm assumes it is starting with initial conditions
 ! from dist_init
 
-logical, parameter      :: random_ic   = .false.
-logical, parameter      :: grid_ic     = .false.
 real, parameter         :: min_sep=0.0 !10
 real, parameter         :: max_sep=40!3.0 !20 !nf_buf !2.0 !1
 real, parameter         :: sep_inc=0.1

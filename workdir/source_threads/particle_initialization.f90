@@ -1,83 +1,38 @@
 !! initialize particle list
-  subroutine particle_initialize
-    use omp_lib
-    implicit none
+subroutine particle_initialize
+  use omp_lib
+  implicit none
+  include 'mpif.h'
+# include "cubepm.fh"
 
-    include 'mpif.h'
-#    include "cubepm.fh"
-
-    real(4) :: rnum,z_write,dummy
-    integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
-    integer*8 :: np_total,npl8
-    character(len=max_path) :: ofile
-    character(len=6) :: rank_s
-    character(len=7) :: z_s, z_s2
-    integer(4) :: np_nu
+  real(4) :: rnum,z_write,dummy
+  integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
+  integer*8 :: np_total,npl8
+  character(len=max_path) :: ofile
+  character(len=6) :: rank_s
+  character(len=7) :: z_s, z_s2
+  integer(4) :: np_nu
 #ifdef CHECK_IP
-    real(8) :: xva(6)
+  real(8) :: xva(6)
 #endif
 #ifdef NEUTRINOS
-    integer(4) :: np_dm
-    integer(8) :: np_total_nu
+  integer(4) :: np_dm
+  integer(8) :: np_total_nu
 
-    !! Check that the PID flag is also defined
+  !! Check that the PID flag is also defined
 #ifndef PID_FLAG
-    write(*,*) "ERROR: Using Neutrinos but PID is not enabled !!"
-    call mpi_abort(mpi_comm_world,ierr,ierr)
+  write(*,*) "ERROR: Using Neutrinos but PID is not enabled !!"
+  call mpi_abort(mpi_comm_world,ierr,ierr)
 #endif
 #endif
-#if defined(ZIP) || defined(ZIPDM)
-    character(len=max_path) :: f_zip0,f_zip1,f_zip2,f_zip3
-    integer :: fstat0, fstat1, fstat2, fstat3, l
-    real(4) :: v_r2i
-    integer(4) :: np_uzip
-    integer(1) :: xi1(4,3), rhoc_i1(4), test_i1
-    integer(4) :: xi4(3), rr_i4
-    integer(2) :: vi2(3)
-    equivalence(xi1,xi4)
-    equivalence(rr_i4,rhoc_i1)
-#endif
-print*,'particle_initialize'
-    fstat=0
 
-    np_local=(nf_physical_node_dim/2)**3
+  print*,'particle_initialize'
+  fstat=0
 
-!! set flag in cubepm.par to select desired initial conditions
- 
-    if (random_ic) then
+  np_local=(nf_physical_node_dim/2)**3
 
-      do i=1,np_local
-        do j=1,3
-          call random_number(rnum)
-          if (rnum >= 0.9999) then
-            rnum=0.995
-          endif
-          xv(j,i)=rnum*nf_physical_node_dim
-        enddo
-        xv(4:6,i)=0.0
-      enddo
-
-    elseif (grid_ic) then
-
-      pp=0
-      do k=0,nf_physical_node_dim-1,2
-        do j=0,nf_physical_node_dim-1,2
-          do i=0,nf_physical_node_dim-1,2
-            pp=pp+1
-            xv(1,pp) = i + 0.5
-            xv(2,pp) = j + 0.5
-            xv(3,pp) = k + 0.5
-            xv(4:6,pp) = 0.0
-          enddo
-        enddo
-      enddo
-      if (pp .ne. np_local) then
-        write(*,*) 'pp ne np_local',pp,np_local,'rank',rank
-        stop
-      endif
-      write(*,*) 'rank',rank,'finished grid_ic'
-
-    elseif (restart_ic) then
+  !! set flag in cubepm.par to select desired initial conditions
+  if (restart_ic) then
 
 ! ---------------------------------------------------------------------------------------------
 ! Read in checkpoint
