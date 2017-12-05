@@ -23,6 +23,7 @@ logical :: force_grid_back
 integer(4) :: wc_counter, count_i,count_f,count_r,nts, np_local
 real(4) :: a, a_mid, t, tau, dt, dt_old, dt_gas, mass_p, dt_f_acc, dt_vmax, da, dt_c_acc, freeze
 real(4) :: shake_offset(3), cur_sep, dt_pp_acc,dt_pp_ext_acc, dt_max_v, kill_time
+real(8) :: sec1,sec1a,sec2,sec2a
 
 ! :: checkpoint and projection variables
 

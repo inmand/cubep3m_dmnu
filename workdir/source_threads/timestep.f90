@@ -13,9 +13,6 @@ subroutine timestep
   nts = nts + 1
   if (nts /= 1) dt_old = dt
 
-  real :: sec1, sec1a
-  external :: sec1
-
   !! Compute maximum timestep allowed by the maximum velocity
   vmax_local = 0.
   do n = 1, np_local

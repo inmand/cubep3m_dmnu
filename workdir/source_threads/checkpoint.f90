@@ -1,10 +1,10 @@
 !write checkpoints to disk
-subroutine checkpoint(kill_step)
+subroutine checkpoint(dokill)
   implicit none
   include 'mpif.h'
 # include "cubepm.fh"
 
-  logical, intent(in) :: kill_step
+  logical, intent(in) :: dokill
 
   character (len=max_path) :: ofile,ofile2
   character (len=6) :: rank_s
@@ -21,7 +21,7 @@ subroutine checkpoint(kill_step)
 
   !! label files with the same z as in the checkpoints file
   if (rank == 0) then
-     if (kill_step) then
+     if (dokill) then
         if (rank == 0) z_write = 1./a - 1.
      else
         z_write=z_checkpoint(cur_checkpoint)
@@ -54,7 +54,7 @@ subroutine checkpoint(kill_step)
 #endif
 
   ! Increment checkpoint counter so restart works on next checkpoint
-  if (.not. kill_step) then
+  if (.not. dokill) then
      cur_checkpoint=cur_checkpoint+1
      cur_proj = cur_projection
      cur_halo = cur_halofind
@@ -155,7 +155,7 @@ subroutine checkpoint(kill_step)
 
 #endif
   
-  if (kill_step) then
+  if (dokill) then
      if (rank.eq.0) then
         write(*,*) 'checkpoint kill completed'
         write(*,*) 'exiting code'

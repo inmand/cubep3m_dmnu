@@ -6,13 +6,6 @@ program cubep3m
   include 'mpif.h'
 # include "cubepm.fh"
 
-  real(4) :: t_elapsed
-  external t_elapsed
-
-  real(8) :: sec1, sec2, sec01, sec02, seconds2wait
-  real(8) :: sec1a, sec2a
-  logical(kind=4) :: i_continue
-
   call mpi_initialize
   if (rank == 0) call datestamp
 
@@ -58,7 +51,6 @@ program cubep3m
           sec1a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STARTING CHECKPOINT: ", sec1a
           call checkpoint(kill_step)
-          if (rank == 0) write(*,*) 'finished checkpoint',t_elapsed(wc_counter)
           sec2a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STOPPING CHECKPOINT: ", sec2a
           if (rank == 0) write(*,*) "ELAPSED CHECKPOINT TIME: ", sec2a-sec1a
@@ -70,7 +62,6 @@ program cubep3m
              sec1a = mpi_wtime(ierr)
              if (rank == 0) write(*,*) "STARTING HALOFIND: ", sec1a
              call halofind
-             if (rank == 0) write(*,*) 'finished halofind',t_elapsed(wc_counter)
              sec2a = mpi_wtime(ierr)
              if (rank == 0) write(*,*) "STOPPING HALOFIND: ", sec2a
              if (rank == 0) write(*,*) "ELAPSED HALOFIND TIME: ", sec2a-sec1a
@@ -78,7 +69,7 @@ program cubep3m
           
           if (projection_step) then
              call projection
-             if (rank == 0) write(*,*) 'finished projection',t_elapsed(wc_counter)
+             if (rank == 0) write(*,*) 'finished projection'
           endif
 
           !! Clean up ghost particles
