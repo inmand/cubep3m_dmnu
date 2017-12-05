@@ -1,6 +1,5 @@
-!!  cubep3m - cubical decomposition 2-level particle mesh algorithm with particle-particle interactions
-!! Hugh Merz :: merz@cita.utoronto.ca :: 2006 11 02 
-program cubep3m
+!! cubep3m_dmnu - dm+nu cosmological N-body code
+program cubep3m_dmnu
   use omp_lib
   implicit none
   include 'mpif.h'
@@ -29,22 +28,13 @@ program cubep3m
     call particle_mesh
 
     !! Determine if it is time to write a checkpoint before being killed
-!    kill_step = .false.
-!    sec1a = mpi_wtime(ierr)
-!    if (rank == 0) then
-!        if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
-!    endif
-!    call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
-
     if (checkpoint_step.or.projection_step.or.halofind_step.or.kill_step) then
 
        !! advance the particles to the end of the current step.
        dt_old = 0.0
        call update_position
 
-!!$       force_grid_back = .true.
-!!$       call move_grid_back
-!!$       force_grid_back = .false.
+!!$       call move_grid_back(.true.)
        call link_list
 
        if (checkpoint_step .or. kill_step) then
@@ -105,4 +95,4 @@ program cubep3m
 
   if (rank == 0) call datestamp
 
-end program cubep3m
+end program cubep3m_dmnu

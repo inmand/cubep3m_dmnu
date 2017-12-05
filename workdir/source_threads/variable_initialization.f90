@@ -213,8 +213,6 @@
     mass_p_nudm_fac(1) = ratio_omega_cb2m !1. - ratio_omega_nudm        !! Dark matter
     mass_p_nudm_fac(2) = ratio_omega_nu2m/ratio_nudm!ratio_omega_nudm/ratio_nudm  !! Neutrino
 
-    force_grid_back = .false.
-
     ! NEW TRICK BY JHD TO REMOVE MEMORY RACING CONDITION ON THREADED PLAN
     ! CREATION. 
     do i = 1,cores 

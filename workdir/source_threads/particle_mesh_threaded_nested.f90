@@ -802,6 +802,6 @@
     call delete_particles
 
     !! Prevent drift from going too far
-    call move_grid_back
+    call move_grid_back(.false.)
 
   end subroutine particle_mesh

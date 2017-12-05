@@ -16,7 +16,6 @@ integer(8) :: plan, iplan, fftw2_plan(cores), fftw2_iplan(cores)
 
 logical :: firstfftw, firstfftw_nest
 logical, dimension(cores) :: firstfftw2
-logical :: force_grid_back
 
 ! :: simulation variables
 
@@ -198,5 +197,6 @@ common / equiv6 / recv_buf
 
 common / equiv7 / xv
 
-common / lvar / firstfftw, firstfftw_nest, firstfftw2, projection_step, checkpoint_step, halofind_step, final_step, force_grid_back
+common / lvar / firstfftw, firstfftw_nest, firstfftw2, projection_step, checkpoint_step, halofind_step, final_step, kill_step
 
+common / rvar8 / sec1, sec2, sec1a, sec2a

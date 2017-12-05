@@ -1,10 +1,12 @@
 !! move grid back
-subroutine move_grid_back
+subroutine move_grid_back(force_grid_back)
   implicit none
 #ifdef DISP_MESH 
   include 'mpif.h'
 #endif
 # include "cubepm.fh"
+
+  logical, intent(in) :: force_grid_back
 
   integer(4) :: i
   real(4), dimension(3) :: remove_offset
