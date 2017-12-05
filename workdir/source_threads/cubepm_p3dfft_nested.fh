@@ -23,9 +23,6 @@ logical :: force_grid_back
 integer(4) :: wc_counter, count_i,count_f,count_r,nts, np_local
 real(4) :: a, a_mid, t, tau, dt, dt_old, dt_gas, mass_p, dt_f_acc, dt_vmax, da, dt_c_acc, freeze
 real(4) :: shake_offset(3), cur_sep, dt_pp_acc,dt_pp_ext_acc, dt_max_v, kill_time
-#ifdef NEUTRINOS
-integer(4) :: nuPIDmap
-#endif
 
 ! :: checkpoint and projection variables
 
@@ -77,11 +74,7 @@ real(4), dimension(max_buf)						:: fast_buf
 integer(4), dimension(max_buf/2)					:: fast_pos
 #ifdef PID_FLAG
 #ifdef NEUTRINOS
-#ifdef NUPID
-integer(8), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
-#else
 integer(1), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
-#endif
 #else
 integer(8), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
 #endif
@@ -93,11 +86,7 @@ real(4), dimension(6,max_np) 						:: xv
 integer(4), dimension(max_np) 						:: ll
 #ifdef PID_FLAG
 #ifdef NEUTRINOS
-#ifdef NUPID
-integer(8), dimension(max_np)                       :: PID
-#else
 integer(1), dimension(max_np)                       :: PID
-#endif
 #else
 integer(8), dimension(max_np)                       :: PID
 #endif
@@ -137,9 +126,6 @@ integer(2), dimension(3, max_cell_np, nc_node_dim) :: vel_i2_nu
 integer(4), dimension(nc_node_dim) :: rhoc_i4_nu
 real(4), dimension(6, max_cell_np, nc_node_dim) :: pos_i1_nu
 integer(2) :: vel_i2_nu
-#endif
-#ifdef NUPID
-integer(8), dimesnion(max_cell_np, nc_node_dim) :: pid_i8_nu
 #endif
 #endif
 #endif
@@ -202,9 +188,6 @@ common / izipvard / pid_i8
 #endif
 #ifdef NEUTRINOS
 common / zipvarnu / rhoc_i4_nu, pos_i1_nu, vel_i2_nu
-#ifdef NUPID
-common / izipvar / pid_i8_nu
-#endif
 #endif
 #endif
 

@@ -23,11 +23,7 @@
 #ifdef NEUTRINOS
     integer(4) :: np_dm, np_nu, ind_check1, ind_check2
     character (len=max_path) :: ofile_nu, ofile2_nu
-#ifdef NUPID
-    integer, parameter :: pdm = 0
-#else
     integer, parameter :: pdm = 1
-#endif
 #endif
 #if defined(ZIP) || defined(ZIPDM)
     integer :: l, k
@@ -89,11 +85,7 @@
 #ifdef ZIP
     endif
 #endif
-    !! Neutrino PID file
-#ifdef NUPID
-    ofile2_nu=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'PIDres'// &
-         rank_s(1:len_trim(rank_s))//'_nu.dat'
-#endif
+
 #else
     !! Dark matter PID file (if not a neutrino sim)
 #ifdef PID_FLAG
@@ -174,16 +166,6 @@
     endif
 #endif
 
-#ifdef NUPID
-    !! Neutrino PID file 
-    open(unit=25, file=ofile2_nu, status="replace", iostat=fstat, access="stream")
-    if (fstat /= 0) then
-      write(*,*) 'error opening checkpoint file for write'
-      write(*,*) 'rank',rank,'file:',ofile2_nu
-      call mpi_abort(mpi_comm_world,ierr,ierr)
-    endif
-#endif
-
     !
     ! Write file headers
     !
@@ -213,10 +195,6 @@
         write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,cur_projection,cur_halofind,mass_p
 #ifdef ZIP
     endif
-#endif
-
-#ifdef NUPID
-    write(25) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,cur_projection,cur_halofind,mass_p
 #endif
 
 #else
@@ -273,9 +251,6 @@
 #else
                             pos_i1_nu(:, ind_nu, i) = xv(1:6,l)
 #endif
-#ifdef NUPID
-                            pid_i8_nu(ind_nu, i) = PID(l)
-#endif
                             ind_nu = ind_nu + 1
                         endif
                         l = ll(l)
@@ -310,9 +285,6 @@
 #else
                     write(22) pos_i1_nu(:, 1:rhoc_i4_nu(i), i)
 #endif
-#ifdef NUPID
-                    write(25) pid_i8_nu(1:rhoc_i4_nu(i), i)
-#endif
                 enddo
             enddo !! j
         enddo !! k
@@ -335,11 +307,7 @@
           nplow=(i-1)*blocksize+1
           nphigh=min(i*blocksize,np_local)
           do j=nplow,nphigh
-#ifdef NUPID
-            if (PID(j) == 0) then
-#else
             if (PID(j) == 1) then
-#endif
 #ifdef DISP_MESH
                 write(12) xv(1:3,j) - shake_offset
                 write(12) xv(4:6,j)
@@ -354,9 +322,6 @@
 #else
                 write(22) xv(:,j)
 #endif
-#ifdef NUPID
-                write(25) PID(j)
-#endif
                 ind_check2 = ind_check2 + 1
             endif
           enddo
@@ -367,11 +332,6 @@
 
 #ifdef ZIP
     endif
-#endif
-
-#ifdef NUPID
-    !! Close neutrino PID file
-    close(25)
 #endif
 
     !! Consistency check

@@ -110,13 +110,8 @@ subroutine coarse_cic_mass(pp)
 #    endif
 
 #    ifdef NEUTRINOS
-#    ifdef NUPID
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(nuPIDmap(PID(pp)))
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(nuPIDmap(PID(pp)))
-#    else
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
-#    endif
 #    else
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(1)
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(1)
@@ -175,13 +170,8 @@ subroutine coarse_cic_mass_boundry(pp)
 #    endif
 
 #    ifdef NEUTRINOS
-#    ifdef NUPID
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(nuPIDmap(PID(pp)))
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(nuPIDmap(PID(pp)))
-#    else
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
-#    endif
 #    else
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(1)
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(1)

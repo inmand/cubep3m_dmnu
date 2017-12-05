@@ -333,43 +333,6 @@ print*,'particle_initialize'
 
 #endif
 
-#ifdef NUPID
-      !! DM PIDs are 0 
-      do j = 1, np_local
-        PID(j) = 0
-      enddo
-
-      !! Read neutrino PIDs
-      ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'PID'// &
-            rank_s(1:len_trim(rank_s))//'_nu.dat'
-
-      open(unit=21, file=ofile, status="old", iostat=fstat, access="stream")
-      if (fstat /= 0) then
-        write(*,*) 'error opening checkpoint'
-        write(*,*) 'rank',rank,'file:',ofile
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-      endif
-
-      read(21) np_dm,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
-
-      if (np_dm /= np_nu) then
-        write(*,*) "ERROR WITH NEUTRINO PID FILE: ", rank, np_dm, np_nu, ofile
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-      endif
-
-      blocksize=(32*1024*1024)/24
-      num_writes=np_nu/blocksize+1
-
-      do i = 1,num_writes
-         nplow=(i-1)*blocksize+1 + np_local
-         nphigh=min(i*blocksize,np_nu) + np_local
-         do j=nplow,nphigh
-            read(21) PID(j)
-         enddo
-      enddo
-      close(21)
-#endif
-
 #else
 
 #ifdef PID_FLAG
@@ -682,43 +645,6 @@ print*,'particle_initialize'
     endif
 #endif
 
-#ifdef NUPID
-      !! DM PIDs are 0 
-      do j = 1, np_local
-        PID(j) = 0
-      enddo
-
-      !! Read neutrino PIDs
-      ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//reskill_prefix//'PIDres'// &
-            rank_s(1:len_trim(rank_s))//'_nu.dat'
-
-      open(unit=21, file=ofile, status="old", iostat=fstat, access="stream")
-      if (fstat /= 0) then
-        write(*,*) 'error opening checkpoint'
-        write(*,*) 'rank',rank,'file:',ofile
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-      endif
-
-      read(21) np_dm,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
-
-      if (np_dm /= np_nu) then
-        write(*,*) "ERROR WITH NEUTRINO PID FILE: ", rank, np_dm, np_nu, ofile
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-      endif
-
-      blocksize=(32*1024*1024)/24
-      num_writes=np_nu/blocksize+1
-
-      do i = 1,num_writes
-         nplow=(i-1)*blocksize+1 + np_local
-         nphigh=min(i*blocksize,np_nu) + np_local
-         do j=nplow,nphigh
-            read(21) PID(j)
-         enddo
-      enddo
-      close(21)
-#endif
-
 #else
 
 #ifdef PID_FLAG
@@ -778,10 +704,6 @@ print*,'particle_initialize'
 
       write(z_s,'(f7.3)') z_i
       z_s=adjustl(z_s)
-#ifdef NUPID
-      write(z_s2,'(f7.3)') z_i_nu
-      z_s2=adjustl(z_s2)
-#endif
 
       write(rank_s,'(i6)') rank
       rank_s=adjustl(rank_s)
@@ -882,23 +804,6 @@ print*,'particle_initialize'
 
 #endif
 
-#ifdef NUPID
-        !! Write PIDs to a binary file so that when neutrinos restart at z_i_nu they can read in the PIDs.
-        np_nu = np_local * ratio_nudm_dim**3
-        dummy = 0
-        ofile=ic_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s2(1:len_trim(z_s2))//'PID'//rank_s(1:len_trim(rank_s))//'_nu.dat'
-        open(unit=21, file=ofile, iostat=fstat, access="stream")
-        if (fstat /= 0) then
-            write(*,*) 'error writing initial PID', ofile
-            call mpi_abort(mpi_comm_world,ierr,ierr)
-        endif
-        write(21) np_nu,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
-        do i = 1, np_nu
-            write(21) int(i,kind=8) + int(rank*int(np_nu,kind=8),kind=8)
-        enddo
-        close(21)
-#endif
-
 #ifdef PID_FLAG
         if (rank == 0) write(*,*) 'np_local before delete', np_local, 'rank =', rank
         !call delete_particles
@@ -953,18 +858,13 @@ print*,'particle_initialize'
     if (rank == 0) write(*,*) 'total dark matter mass =', mass_p * np_total
 
 #ifdef NEUTRINOS
-#ifndef NUPID
-    !
     ! Assign 1 byte integer PIDs
-    !
-
     do i = 1, np_local
         PID(i) = 1 !! All dark matter will have a PID of 1
     enddo
     do i = np_local+1, np_local+np_nu
         PID(i) = 2 !! All neutrinos will have a PID of 2 
     enddo
-#endif
 
     !
     ! Print some stats to screen
