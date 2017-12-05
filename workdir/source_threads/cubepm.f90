@@ -51,7 +51,6 @@ program cubep3m
   if (rank == 0) write(*,*) 'finished initializing particles',t_elapsed(wc_counter)
 
   call link_list
-  call init_projection
 
   if (rank == 0) write(*,*) 'starting main loop'
   do 
