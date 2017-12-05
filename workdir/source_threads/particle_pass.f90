@@ -60,7 +60,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+x pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -87,7 +87,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+x pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -158,7 +158,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-x pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -185,7 +185,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-x pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -293,7 +293,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-y pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -320,7 +320,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-y pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -399,7 +399,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+y pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -426,7 +426,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+y pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -523,7 +523,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+z pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -550,7 +550,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (+z pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -620,7 +620,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-z pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
@@ -647,7 +647,7 @@ subroutine particle_pass
      if (rank == 0) write(*,*) "Calling checkpoint_kill and then aborting (-z pass) ... "
      !! Reset np_local to its starting point so that we don't write duplicates. 
      np_local = np_local0
-     call checkpoint_kill
+     call checkpoint(.true.)
      call mpi_barrier(mpi_comm_world,ierr)
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif

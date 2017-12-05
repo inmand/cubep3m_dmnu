@@ -70,7 +70,7 @@ program cubep3m
        if (kill_step .eqv. .true. .and. kill_step_done .eqv. .false.) then
           sec1a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STARTING CHECKPOINT_KILL: ", sec1a
-          call checkpoint_kill
+          call checkpoint(kill_step)
           sec2a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STOPPING CHECKPOINT_KILL: ", sec2a
           if (rank == 0) write(*,*) "ELAPSED CHECKPOINT_KILL TIME: ", sec2a-sec1a
@@ -81,7 +81,7 @@ program cubep3m
        if (checkpoint_step) then
           sec1a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STARTING CHECKPOINT: ", sec1a
-          call checkpoint
+          call checkpoint(kill_step)
           if (rank == 0) write(*,*) 'finished checkpoint',t_elapsed(wc_counter)
           sec2a = mpi_wtime(ierr)
           if (rank == 0) write(*,*) "STOPPING CHECKPOINT: ", sec2a

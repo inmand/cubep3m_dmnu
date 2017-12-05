@@ -18,7 +18,7 @@ endif
 FFLAGS=-shared-intel -fpp -g  -O3 -xhost -mcmodel=medium -DDIAG -DNGP -DNOPROJ -DPPINT -DMPI_TIME -DNGPH -DDISP_MESH -DNESTED_OMP -DCHECKPOINT_KILL  $(NFLAGS) 
 #-DLRCKCORR -DFPPKCORR
 
-OBJS=checkpoint.o checkpoint_kill.o coarse_mesh.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o fine_ngp_mass.o halofind_particles.o fft_fine.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh_threaded_nested.o particle_pass.o projection.o indexedsort.o timers.o timestep.o update_position.o variable_initialization.o 
+OBJS=checkpoint.o coarse_mesh.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o fine_ngp_mass.o halofind_particles.o fft_fine.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh_threaded_nested.o particle_pass.o projection.o indexedsort.o timers.o timestep.o update_position.o variable_initialization.o 
 
 run: $(TARGET) 
 
@@ -29,9 +29,6 @@ cubepm.o: cubepm.f90
 	$(FC) $(FFLAGS) -qopenmp -c $<  
 
 checkpoint.o: checkpoint.f90 
-	$(FC) $(FFLAGS) -c $<
-
-checkpoint_kill.o: checkpoint_kill.f90
 	$(FC) $(FFLAGS) -c $<
 
 coarse_mesh.o: coarse_mesh.f90
