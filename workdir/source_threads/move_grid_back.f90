@@ -1,9 +1,7 @@
 !! move grid back
 subroutine move_grid_back(force_grid_back)
   implicit none
-#ifdef DISP_MESH 
   include 'mpif.h'
-#endif
 # include "cubepm.fh"
 
   logical, intent(in) :: force_grid_back
@@ -12,8 +10,6 @@ subroutine move_grid_back(force_grid_back)
   real(4), dimension(3) :: remove_offset
   logical :: doremove
   real(4), parameter :: maxshake = 16. 
-
-#ifdef DISP_MESH 
 
   call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
   call system_clock(count=count_i)
@@ -65,10 +61,6 @@ subroutine move_grid_back(force_grid_back)
   call mpi_time_analyze('move_grid_back',real(count_f-count_i)/real(count_r),rank,nodes)
 #else
   if (rank==0) write(*,*) 'move grid finished',real(count_f-count_i)/real(count_r)
-#endif
-
-#else
-  if(rank==0) write(*,*)  '*** Could not move back, no off set to start with! ***'
 #endif
 
 end subroutine move_grid_back

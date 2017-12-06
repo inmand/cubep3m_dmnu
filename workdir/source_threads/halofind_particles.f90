@@ -277,13 +277,11 @@ subroutine halofind
 
             v2_wrt_halo(:) = v2_wrt_halo(:)/real(imass_vir)
 
-#ifdef DISP_MESH
             !! Subtract shake offset
             hpos = hpos - shake_offset
             x_mean = x_mean - shake_offset
 #ifdef NEUTRINOS 
             x_mean_nu = x_mean_nu - shake_offset
-#endif
 #endif
 
 #ifndef NEUTRINOS

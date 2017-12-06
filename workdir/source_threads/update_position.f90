@@ -2,14 +2,11 @@
 subroutine update_position
   use omp_lib
   implicit none
-# ifdef DISP_MESH 
   include 'mpif.h'
-# endif
 # include "cubepm.fh"
 
   integer(4) :: i,j
 
-# ifdef DISP_MESH 
   real(4), dimension(3) :: offset
 
   if (rank==0) then
@@ -29,17 +26,11 @@ subroutine update_position
   call mpi_bcast(offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
   call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
   
-# endif
-
   call system_clock(count=count_i)
     
   !$omp parallel do default(shared) private(i)
   do i=1,np_local
-#ifdef DISP_MESH 
      xv(1:3,i)=xv(1:3,i)+xv(4:6,i)*0.5*(dt + dt_old)+offset(:)
-#else
-     xv(1:3,i)=xv(1:3,i)+xv(4:6,i)*0.5*(dt + dt_old)
-#endif
   enddo
   !$omp end parallel do
 

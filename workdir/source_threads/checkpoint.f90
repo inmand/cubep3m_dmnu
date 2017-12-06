@@ -102,20 +102,12 @@ subroutine checkpoint(dokill)
      nphigh=min(i*blocksize,np_local)
      do j=nplow,nphigh
         if (PID(j) == 1) then
-#ifdef DISP_MESH
            write(12) xv(1:3,j) - shake_offset
            write(12) xv(4:6,j)
-#else
-           write(12) xv(:,j)
-#endif
            ind_check1 = ind_check1 + 1
         else
-#ifdef DISP_MESH
            write(22) xv(1:3,j) - shake_offset
            write(22) xv(4:6,j)
-#else
-           write(22) xv(:,j)
-#endif
            ind_check2 = ind_check2 + 1
         endif
      enddo
@@ -133,11 +125,9 @@ subroutine checkpoint(dokill)
 #else
   ! Write data for non-neutrino simulation
 
-#ifdef DISP_MESH
   do j = 1, np_local
      xv(1:3,j) = xv(1:3,j) - shake_offset
   enddo
-#endif
 
   do i=1,num_writes
      nplow=(i-1)*blocksize+1
@@ -147,11 +137,9 @@ subroutine checkpoint(dokill)
 
   close(12)
 
-#ifdef DISP_MESH
   do j = 1, np_local
      xv(1:3,j) = xv(1:3,j) + shake_offset
   enddo
-#endif
 
 #endif
   
