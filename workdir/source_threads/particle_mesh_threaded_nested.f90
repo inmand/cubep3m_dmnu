@@ -21,9 +21,6 @@ subroutine particle_mesh
 #else
   real(4), dimension(1) :: pp_ext_sum
 #endif
-#ifdef DIAG
-  real(8) :: sumrhof
-#endif
 
   !! Variables that appear in the nested parts (give them all _n suffix) 
   integer(4) :: i_n, j_n, k_n, thread_n, n_pairs_n 
@@ -142,16 +139,6 @@ subroutine particle_mesh
      enddo !! k0
 #endif
 
-! sum total fine mesh mass
-#ifdef DIAG 
-     do k=1+nf_buf,nf_tile-nf_buf
-        do j=1+nf_buf,nf_tile-nf_buf
-           do i=1+nf_buf,nf_tile-nf_buf
-              f_mesh_mass(thread)=f_mesh_mass(thread)+real(rho_f(i,j,k,thread),kind=8)
-           enddo
-        enddo
-     enddo
-#endif
      !! transform and calculate fine mesh force 
      call cubepm_fftw2('f',thread)
 
@@ -768,14 +755,6 @@ subroutine particle_mesh
 
 #endif
      
-     !! calculate mass of fine mesh
-
-#ifdef DIAG
-     call mpi_reduce(sum(f_mesh_mass),sumrhof,1,mpi_double_precision, &
-          mpi_sum,0,mpi_comm_world,ierr)
-     if (rank == 0) write(*,*) 'sum of rho_f=',sumrhof
-#endif
-
      call coarse_mesh
 
      !! delete all particles outside (1:nc_node_dim]

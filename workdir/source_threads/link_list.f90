@@ -32,8 +32,4 @@ subroutine link_list
      pp=pp+1
   enddo
   
-#ifdef DIAG
-  if (np_buf.gt.0) write(*,*) rank,'deleted',np_buf,'particles in ll'
-#endif
-
 end subroutine link_list

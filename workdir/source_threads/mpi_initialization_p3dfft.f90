@@ -29,14 +29,6 @@ subroutine mpi_initialize
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
 
-#ifdef DIAG
-  if (rank==0) then
-     write(*,*) 'cubepm running on',nodes,'nodes with',cores,'cores per node'
-     write(*,*) 'using cubic distribution:',nodes_dim,'nodes per dimension'
-     write(*,*) nf_physical_dim,'cells in mesh'
-  endif
-#endif
-
   !! calculate coordinates within slab for cube processes
 
   slab_coord(3) = rank / nodes_slab

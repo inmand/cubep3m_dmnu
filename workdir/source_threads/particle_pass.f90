@@ -235,25 +235,17 @@ subroutine particle_pass
 
   pp=np_local-npmx-nppx+1
   do
-91   continue
      if (pp > np_local) exit
      i=floor(xv(1,pp)/mesh_scale)+1
      j=floor(xv(2,pp)/mesh_scale)+1
      k=floor(xv(3,pp)/mesh_scale)+1
-#ifdef DIAG
      if (i < hoc_nc_l .or. i > hoc_nc_h .or. &
           j < hoc_nc_l .or. j > hoc_nc_h .or. &
           k < hoc_nc_l .or. k > hoc_nc_h) then
         write(*,*) 'x-pass particle out of link list range - deleted'
         write(*,*) rank,xv(:,pp),pp,i,j,k,hoc_nc_l,hoc_nc_h
-        xv(:,pp)=xv(:,np_local)
-#       ifdef PID_FLAG
-        PID(pp)=PID(np_local)
-#       endif
-        np_local=np_local-1
-        goto 91
+        call mpi_abort(mpi_comm_world,ierr,ierr)
      endif
-#endif
      ll(pp)=hoc(i,j,k)
      hoc(i,j,k)=pp
      pp=pp+1
@@ -464,25 +456,17 @@ subroutine particle_pass
   ! add additional particles to linked list
   pp=np_local-npmy-nppy+1
   do
-92   continue
      if (pp > np_local) exit
      i=floor(xv(1,pp)/mesh_scale)+1
      j=floor(xv(2,pp)/mesh_scale)+1
      k=floor(xv(3,pp)/mesh_scale)+1
-#ifdef DIAG
      if (i < hoc_nc_l .or. i > hoc_nc_h .or. &
           j < hoc_nc_l .or. j > hoc_nc_h .or. &
           k < hoc_nc_l .or. k > hoc_nc_h) then
         write(*,*) 'y-pass particle out of link list range - deleted'
         write(*,*) rank,xv(:,pp),pp,i,j,k,hoc_nc_l,hoc_nc_h
-        xv(:,pp)=xv(:,np_local)
-#ifdef PID_FLAG 
-        PID(pp)=PID(np_local)
-#endif
-        np_local=np_local-1
-        goto 92
+        call mpi_abort(mpi_comm_world,ierr,ierr)
      endif
-#endif
      ll(pp)=hoc(i,j,k)
      hoc(i,j,k)=pp
      pp=pp+1
@@ -692,25 +676,17 @@ subroutine particle_pass
   ! add additional particles to linked list
   pp=np_local-npmz-nppz+1
   do
-93   continue
      if (pp > np_local) exit
      i=floor(xv(1,pp)/mesh_scale)+1
      j=floor(xv(2,pp)/mesh_scale)+1
      k=floor(xv(3,pp)/mesh_scale)+1
-#ifdef DIAG
      if (i < hoc_nc_l .or. i > hoc_nc_h .or. &
           j < hoc_nc_l .or. j > hoc_nc_h .or. &
           k < hoc_nc_l .or. k > hoc_nc_h) then
         write(*,*) 'z-pass particle out of link list range - deleted'
         write(*,*) rank,xv(:,pp),pp,i,j,k,hoc_nc_l,hoc_nc_h
-        xv(:,pp)=xv(:,np_local)
-#ifdef PID_FLAG
-        PID(pp)=PID(np_local)
-#endif
-        np_local=np_local-1
-        goto 93
+        call mpi_abort(mpi_comm_world,ierr,ierr)
      endif
-#endif
      ll(pp)=hoc(i,j,k)
      hoc(i,j,k)=pp
      pp=pp+1
