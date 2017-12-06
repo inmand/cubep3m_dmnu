@@ -34,13 +34,6 @@ subroutine update_position
   enddo
   !$omp end parallel do
 
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('pos updt',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'position update finished',real(count_f-count_i)/real(count_r)
-#endif
-
 end subroutine update_position
 
 

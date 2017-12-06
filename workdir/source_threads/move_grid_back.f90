@@ -56,11 +56,4 @@ subroutine move_grid_back(force_grid_back)
 
   endif
 
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('move_grid_back',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'move grid finished',real(count_f-count_i)/real(count_r)
-#endif
-
 end subroutine move_grid_back

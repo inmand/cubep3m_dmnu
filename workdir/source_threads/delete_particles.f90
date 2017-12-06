@@ -33,11 +33,4 @@ subroutine delete_particles
   if (rank == 0) write(*,*) 'total number of particles =', np_total   
 #endif
     
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('del part',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'particle deletion finished',real(count_f-count_i)/real(count_r) 
-#endif
-    
 end subroutine delete_particles

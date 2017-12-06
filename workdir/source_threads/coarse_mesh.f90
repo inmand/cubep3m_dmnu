@@ -77,13 +77,6 @@ subroutine coarse_mass
      !$omp end parallel do
   enddo
 
-  call system_clock(count=count_f,count_rate=count_r)
-# ifdef MPI_TIME
-  call mpi_time_analyze('cm  mass',real(count_f-count_i)/real(count_r),rank,nodes)
-# else
-  if (rank==0) write(*,*) 'coarse mass finished',real(count_f-count_i)/real(count_r)
-# endif
-
 end subroutine coarse_mass
 
 !! add mass to coarse mesh density
@@ -292,13 +285,6 @@ subroutine coarse_force
   call cubepm_fftw(-1)
   force_c(3,1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)=rho_c
 
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('cm force',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'coarse force finished',real(count_f - count_i)/real(count_r)
-#endif
-
 end subroutine coarse_force
 
 !! pass coarse mesh force along boundries to adjacent nodes
@@ -358,13 +344,6 @@ subroutine coarse_force_buffer
        tag,mpi_comm_cart,status,ierr)
   force_c(:,:,:,0)=force_c_buffer(:,:,:)
 
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('cf  buff',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'coarse force buffer finished',real(count_f-count_i)/real(count_r)
-#endif
-
 end subroutine coarse_force_buffer
 
 !! calculate the maximum dt based on the coarse mesh force
@@ -402,13 +381,6 @@ subroutine coarse_max_dt
   
   if (rank == 0) write(*,*) 'maximum dt from coarse grid=',dt_c_acc
    
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('c max dt',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'coarse max dt finished',real(count_f-count_i)/real(count_r)
-#endif
-
 end subroutine coarse_max_dt
 
 !! update coarse mesh velocity
@@ -462,13 +434,5 @@ subroutine coarse_velocity
      enddo
   enddo
   !$omp end parallel do
-
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('cm   vel',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'coarse dark matter velocity finished' &
-       ,real(count_f - count_i)/real(count_r)
-#endif
 
 end subroutine coarse_velocity

@@ -17,11 +17,7 @@ subroutine particle_pass
 
   np_buf_max_dir = 0
 
-#ifdef MPI_TIME
-  call mpi_barrier(mpi_comm_world,ierr)
-#endif
-
-  call system_clock(count=count_i)
+  call mpi_barrier(mpi_comm_world,ierr) !necessary?
 
   !! Keep track of np_local at the start in case we need to checkpoint_kill
   np_local0 = np_local
@@ -732,13 +728,6 @@ subroutine particle_pass
   if(rank==0) write(*,*) '*** max np_buf                 = ' , np_buf_max, '    ***'
   if(rank==0) write(*,*) '*** max allowed                = ' , max_buf/6 , '    ***'
   if(rank==0) write(*,*) '*****************************************************'
-
-  call system_clock(count=count_f,count_rate=count_r)
-#ifdef MPI_TIME
-  call mpi_time_analyze('par pass',real(count_f-count_i)/real(count_r),rank,nodes)
-#else
-  if (rank==0) write(*,*) 'particle pass finished',real(count_f-count_i)/real(count_r)
-#endif
 
 end subroutine particle_pass
 
