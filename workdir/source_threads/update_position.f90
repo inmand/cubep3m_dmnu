@@ -26,8 +26,6 @@ subroutine update_position
   call mpi_bcast(offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
   call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
   
-  call system_clock(count=count_i)
-    
   !$omp parallel do default(shared) private(i)
   do i=1,np_local
      xv(1:3,i)=xv(1:3,i)+xv(4:6,i)*0.5*(dt + dt_old)+offset(:)

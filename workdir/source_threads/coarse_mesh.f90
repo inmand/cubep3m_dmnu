@@ -28,8 +28,6 @@ subroutine coarse_mass
   integer, parameter :: ijstart = 0
   integer, parameter :: ijstop  = nc_node_dim + 1 
     
-  call system_clock(count=count_i)
-
 # ifndef NEUTRINOS
   rho_c = ratio_omega_nu2m
 # else
@@ -206,8 +204,6 @@ subroutine coarse_force
 
   integer(4) :: i,j,k,ii,im
 
-  call system_clock(count=count_i)
-  
   call cubepm_fftw(1)
 
   cmplx_rho_c=slab
@@ -275,8 +271,6 @@ subroutine coarse_force_buffer
   integer(4) :: tag
   integer(4) :: status(MPI_STATUS_SIZE)
 
-  call system_clock(count=count_i)
-  
   buffer_size = 3 * (nc_node_dim + 2)**2
   tag=64
 

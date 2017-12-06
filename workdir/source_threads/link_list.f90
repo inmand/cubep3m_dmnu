@@ -9,8 +9,6 @@ subroutine link_list
   integer(4) :: omp_get_thread_num,omp_get_num_threads
   external omp_get_thread_num,omp_get_num_threads
 
-  call system_clock(count=count_i)
-
   hoc(:,:,:)=0
   np_buf=0
 
