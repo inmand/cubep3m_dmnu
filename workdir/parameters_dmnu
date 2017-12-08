@@ -1,6 +1,6 @@
 !-*-f90-*-
 ! path to initial conditions (use local scratch space)
-character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test8/cubep3m_dmnu/'
+character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test9_1/cubep3m_dmnu/'
 
 ! path to local scratch (for writing temp files)
 character(*), parameter :: scratch_path   = ic_path
@@ -9,7 +9,7 @@ character(*), parameter :: scratch_path   = ic_path
 character(*), parameter :: output_path    = ic_path
 
 ! path to cubepm root directory 
-character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
+character(*), parameter :: cubepm_root    = '/home/dbi208/source/workdir/'
 
 ! nodes / dimension, total nodes = nodes_dim**3
 integer(4),   parameter :: nodes_dim      = 1

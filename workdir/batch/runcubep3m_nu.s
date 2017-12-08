@@ -12,8 +12,8 @@ export OMP_NUM_THREADS="4"
 source /home/dbi208/.bashrc
 iload
 
-ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/DMNU/Test8/cubep3m_dmnu
+ORGDIR=$HOME/source/
+RUNDIR=$SCRATCH/DMNU/Test9_1/cubep3m_dmnu
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch
