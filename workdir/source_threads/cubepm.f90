@@ -6,13 +6,11 @@ program cubep3m_dmnu
 # include "cubepm.fh"
 
   call mpi_initialize
-  if (rank == 0) call datestamp
 
   sec1 = mpi_wtime(ierr)
   if (rank == 0) write(*,*) "STARTING CUBEP3M: ", sec1
 
   call read_remaining_time
-  call t_start(wc_counter)
   call variable_initialize
   call coarse_kernel
   call fine_kernel
@@ -75,13 +73,6 @@ program cubep3m_dmnu
 
  enddo
 
-#ifdef TIMING
-  if (rank==0) then
-    print *,'cubep3m finished:' 
-    call datestamp
-  endif
-#endif
-
   call cubepm_fftw(0)
   do ierr=1,cores 
     call cubepm_fftw2('q',ierr)
@@ -92,7 +83,5 @@ program cubep3m_dmnu
   if (rank == 0) write(*,*) "ELAPSED CUBEP3M TIME: ", sec2-sec1
 
   call mpi_finalize(ierr)
-
-  if (rank == 0) call datestamp
 
 end program cubep3m_dmnu
