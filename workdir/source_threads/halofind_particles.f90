@@ -397,19 +397,7 @@ subroutine find_halo_candidates(tile, ic)
         do j = cic_l(2), cic_h(2)
             do i = cic_l(1), cic_h(1)
                 pp = hoc(i, j, k)
-#ifdef NGPH
-#ifdef NEUTRINOS
-                call fine_ngp_mass(pp, tile, thread, 1)
-#else
-                call fine_ngp_mass(pp, tile, thread)
-#endif
-#else
-#ifdef NEUTRINOS
-                call fine_cic_mass(pp, tile, thread, 1)
-#else
-                call fine_cic_mass(pp, tile, thread)
-#endif
-#endif
+                call fine_ngp_mass(pp,tile,thread)
             enddo
         enddo
     enddo
@@ -826,3 +814,27 @@ subroutine initialize_halofind
     
 end subroutine initialize_halofind
 
+!fine ngp mass, dm only
+subroutine fine_ngp_mass(pp,tile,thread)
+  implicit none
+# include "cubepm.fh"
+
+  integer(4)               :: pp,thread
+  integer(4), dimension(3) :: tile,i1
+  real(4),    dimension(3) :: x, offset
+
+  offset(:)= - tile(:) * nf_physical_tile_dim + nf_buf
+
+  do
+     if (pp == 0) exit
+     x(:) = xv(1:3,pp) + offset(:)
+     i1(:) = floor(x(:)) + 1
+#ifdef NEUTRINOS
+     if (PID(pp).eq.1) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
+#else
+     rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
+#endif
+     pp = ll(pp)
+  enddo
+
+end subroutine fine_ngp_mass

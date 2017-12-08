@@ -18,7 +18,7 @@ endif
 FFLAGS=-shared-intel -fpp -g  -O3 -xhost -mcmodel=medium -DNOPROJ -DPPINT -DNESTED_OMP $(NFLAGS) 
 #-DLRCKCORR -DFPPKCORR
 
-OBJS=checkpoint.o coarse_mesh.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o fine_ngp_mass.o halofind_particles.o fft_fine.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh.o particle_pass.o projection.o indexedsort.o timestep.o update_position.o variable_initialization.o 
+OBJS=checkpoint.o coarse_mesh.o cubepm.o delete_particles.o p3dfft_coarse.o fine_cic_mass.o fine_cic_mass_buffer.o halofind_particles.o fft_fine.o kernel_initialization_p3dfft.o link_list.o move_grid_back.o mpi_initialization_p3dfft.o particle_initialization.o particle_mesh.o particle_pass.o projection.o indexedsort.o timestep.o update_position.o variable_initialization.o 
 
 run: $(TARGET) 
 
