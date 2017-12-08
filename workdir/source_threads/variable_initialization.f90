@@ -59,46 +59,6 @@ subroutine variable_initialize
   
   if (rank == 0) then
 
-     !! read in when to store projections
-     open(11,file=projections, status='old', iostat=fstat)
-     if (fstat /= 0) then
-        write(*,*) 'error opening projection list file'
-        write(*,*) 'rank',rank,'file:',projections
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-     endif
-     do num_projections=1,max_input
-        read(unit=11,err=61,end=71,fmt='(f8.4)') z_projection(num_projections)
-        print*, 'projections ',z_projection(num_projections)
-     enddo
-71   num_projections=num_projections-1
-61   close(11)
-
-     if (num_projections.eq.max_input) then
-        write(*,*) 'too many projections to store > ',max_input
-        call mpi_abort(mpi_comm_world,i,ierr)
-     endif
-
-     print*,num_projections,' projections to do'
-     if (num_projections.eq.1) then
-        write(*,*) 'problem reading projections '
-     endif
-
-
-     do i=1,num_projections
-        a_projection(i)=1.0/(1.0+z_projection(i))
-     enddo
-
-     if (num_projections > 0) then
-        write(*,*) 'Projections performed at:'
-        write(*,*) 'z        a'
-        do i=1,num_projections
-           write(*,'(f8.4,2x,f8.4)') z_projection(i),a_projection(i)
-        enddo
-     else
-        a_projection(1)=100.0
-        write(*,*) 'no projections to be stored'
-     endif
-     
      !! read in when to store checkpoints
      open(11,file=checkpoints,status='old',iostat=fstat)
      if (fstat /= 0) then
@@ -185,7 +145,6 @@ subroutine variable_initialize
   endif
 
   cur_halofind=1
-  cur_projection=1
   cur_checkpoint=1
 
   ! Initialize first time through fftw flag

@@ -11,7 +11,7 @@ subroutine checkpoint(dokill)
   character (len=7) :: z_s  
 
   integer(kind=4) :: i,j,fstat,blocksize,num_writes,nplow,nphigh
-  integer(kind=4) :: cur_proj,cur_halo
+  integer(kind=4) :: cur_halo
   real(kind=4) :: z_write
 #ifdef NEUTRINOS
   integer(4) :: np_dm, np_nu, ind_check1, ind_check2
@@ -56,9 +56,7 @@ subroutine checkpoint(dokill)
   ! Increment checkpoint counter so restart works on next checkpoint
   if (.not. dokill) then
      cur_checkpoint=cur_checkpoint+1
-     cur_proj = cur_projection
      cur_halo = cur_halofind
-     if (projection_step) cur_proj = cur_proj + 1
      if (halofind_step) cur_halo = cur_halo + 1
   end if
   
@@ -86,10 +84,10 @@ subroutine checkpoint(dokill)
   np_dm = count(PID(1:np_local) == pdm)
   np_nu = np_local - np_dm 
   if (rank == 0) write(*,*) "checkpoint np_dm, np_nu = ", np_dm, np_nu
-  write(12) np_dm,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,cur_proj,cur_halo,mass_p
-  write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,cur_proj,cur_halo,mass_p
+  write(12) np_dm,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
+  write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
 #else
-  write(12) np_local,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,cur_proj,cur_halo,mass_p
+  write(12) np_local,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
 #endif
 
 #ifdef NEUTRINOS
@@ -155,7 +153,6 @@ subroutine checkpoint(dokill)
      if (rank==0) then
         print*, 'current steps recorded in xv file:'
         print*, 'cur_checkpoint =', cur_checkpoint
-        print*, 'cur_projection =', cur_proj
         print*, 'cur_halofind   =', cur_halo
 
         write(*,*) "BPOS: ", minval(xv(1:3,1:np_local)), maxval(xv(1:3,1:np_local))

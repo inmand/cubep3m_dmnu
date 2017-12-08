@@ -57,7 +57,7 @@ subroutine particle_initialize
 
   if (restart_ic .or. restart_kill) then
      read(21) np_local,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint, &
-          cur_projection,cur_halofind,mass_p
+          dummy,cur_halofind,mass_p
      if (rank == 0) print *,'restarting simulation from z=',1./a-1.
   else
      read(21) np_local,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy

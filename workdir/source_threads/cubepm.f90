@@ -26,7 +26,7 @@ program cubep3m_dmnu
     call particle_mesh
 
     !! Determine if it is time to write a checkpoint before being killed
-    if (checkpoint_step.or.projection_step.or.halofind_step.or.kill_step) then
+    if (checkpoint_step.or.halofind_step.or.kill_step) then
 
        !! advance the particles to the end of the current step.
        dt_old = 0.0
@@ -44,22 +44,17 @@ program cubep3m_dmnu
           if (rank == 0) write(*,*) "ELAPSED CHECKPOINT TIME: ", sec2a-sec1a
        endif
 
-       if (projection_step.or.halofind_step) then
+       if (halofind_step) then
+          !! Particles on correct node
           call particle_pass
-          if (halofind_step) then
-             sec1a = mpi_wtime(ierr)
-             if (rank == 0) write(*,*) "STARTING HALOFIND: ", sec1a
-             call halofind
-             sec2a = mpi_wtime(ierr)
-             if (rank == 0) write(*,*) "STOPPING HALOFIND: ", sec2a
-             if (rank == 0) write(*,*) "ELAPSED HALOFIND TIME: ", sec2a-sec1a
-          endif
           
-          if (projection_step) then
-             call projection
-             if (rank == 0) write(*,*) 'finished projection'
-          endif
-
+          sec1a = mpi_wtime(ierr)
+          if (rank == 0) write(*,*) "STARTING HALOFIND: ", sec1a
+          call halofind
+          sec2a = mpi_wtime(ierr)
+          if (rank == 0) write(*,*) "STOPPING HALOFIND: ", sec2a
+          if (rank == 0) write(*,*) "ELAPSED HALOFIND TIME: ", sec2a-sec1a
+           
           !! Clean up ghost particles
           call delete_particles
 

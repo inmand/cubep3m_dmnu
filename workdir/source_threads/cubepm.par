@@ -7,11 +7,9 @@
 
 #ifdef NEUTRINOS
 character(*), parameter :: checkpoints=cubepm_root//'input/checkpoints_nu'
-character(*), parameter :: projections=cubepm_root//'input/projections_nu'
 character(*), parameter :: halofinds=  cubepm_root//'input/halofinds_nu'
 #else
 character(*), parameter :: checkpoints=cubepm_root//'input/checkpoints'
-character(*), parameter :: projections=cubepm_root//'input/projections'
 character(*), parameter :: halofinds=  cubepm_root//'input/halofinds'
 #endif
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
