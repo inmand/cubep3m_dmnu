@@ -46,15 +46,6 @@ fine_cic_mass.o: fine_cic_mass.f90
 fine_cic_mass_buffer.o: fine_cic_mass_buffer.f90
 	$(FC) $(FFLAGS) -c $<
 
-#fine_mesh.o: fine_mesh.f90 
-#	$(FC) $(FFLAGS) -qopenmp -c $<
-
-fine_ngp_mass.o: fine_ngp_mass.f90
-	$(FC) $(FFLAGS) -c $<
-
-#fine_velocity.o: fine_velocity.f90 
-#	$(FC) $(FFLAGS) -c $<
-
 halofind_particles.o: halofind_particles.f90
 	$(FC) $(FFLAGS) -qopenmp -c $<
 
