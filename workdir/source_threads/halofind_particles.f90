@@ -5,8 +5,6 @@
 ! searching over the local particle distribution around each fine mesh density peak.
 ! -------------------------------------------------------------------------------------------------------
 
-#define NGPH
- 
 subroutine halofind 
     use omp_lib
     implicit none
