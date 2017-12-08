@@ -4,6 +4,8 @@
 ! well as halo_odc (specified in cubepm.par; independent of redshift) by  
 ! searching over the local particle distribution around each fine mesh density peak.
 ! -------------------------------------------------------------------------------------------------------
+
+#define NGPH
  
 subroutine halofind 
     use omp_lib
