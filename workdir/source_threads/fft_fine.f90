@@ -13,11 +13,7 @@ subroutine cubepm_fftw2(c, thread)
 
   character c
   integer(4) :: thread
-!# ifdef NESTED_OMP
   integer(4) :: fft_threads = nested_threads
-!# else
-!  integer(4) :: fft_threads = 1
-!# endif   
 
   if (firstfftw_nest) then
      call sfftw_init_threads(ierr)

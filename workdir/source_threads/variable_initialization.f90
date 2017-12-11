@@ -167,12 +167,8 @@ subroutine variable_initialize
 
   if (rank == 0) write(*,*) 'finished variable init'
 
-!# ifdef NESTED_OMP
   call omp_set_num_threads(cores*nested_threads)
   call omp_set_nested(.true.)
-!# else
-!  call omp_set_num_threads(cores)
-!#endif
   if (rank == 0) write(*,*) 'finished omp call'
 
 end subroutine variable_initialize
