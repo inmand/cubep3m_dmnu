@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=2:00:00
+#SBATCH --time=1:00:00
 #SBATCH --mem=8GB
 
 export OMP_STACKSIZE="100M"
@@ -13,12 +13,13 @@ source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/DMNU/Test10/cubep3m_dmnu
+RUNDIR=$SCRATCH/DMNU/Test10_3/cubep3m_dmnu
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch
 
 echo ${SLURM_JOB_NODELIST} > $RUNDIR/list_of_nodes
+cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
 
 LOG=_log
 
@@ -34,7 +35,7 @@ source ./COMPILE_ALL.csh >& ${RUNDIR}/compile${LOG}
 mpirun ../utils/dist_init/dist_init_dmnu_dm >& ${RUNDIR}/dist_init_dmu_dm${LOG}
 mpirun ../utils/dist_init/dist_init_dmnu_nu >& ${RUNDIR}/dist_init_dmu_nu${LOG}
 mpirun ../source_threads/cubep3m_dm >& ${RUNDIR}/cubep3m_dm${LOG}
-mpirun ../source_threads/cubep3m_nu >& ${RUNDIR}/cubep3m_nu${LOG}
-mpirun ../utils/cic_power/ngp_power_dmnu >& ${RUNDIR}/ngp_power_dmnu${LOG}
-mpirun ../utils/cic_power/ngp_power_dmnu_init >& ${RUNDIR}/ngp_power_dmnu_init${LOG}
+#mpirun ../source_threads/cubep3m_nu >& ${RUNDIR}/cubep3m_nu${LOG}
+#mpirun ../utils/cic_power/ngp_power_dmnu >& ${RUNDIR}/ngp_power_dmnu${LOG}
+#mpirun ../utils/cic_power/ngp_power_dmnu_init >& ${RUNDIR}/ngp_power_dmnu_init${LOG}
 #mpirun ../utils/cic_velpower/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}          
