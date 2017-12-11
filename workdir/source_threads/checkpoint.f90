@@ -6,6 +6,8 @@ subroutine checkpoint(dokill)
 
   logical, intent(in) :: dokill
 
+  logical :: checkpoint_nu
+
   character (len=max_path) :: ofile,ofile2
   character (len=6) :: rank_s
   character (len=7) :: z_s  
@@ -13,15 +15,19 @@ subroutine checkpoint(dokill)
   integer(kind=4) :: i,j,fstat,blocksize,num_writes,nplow,nphigh
   integer(kind=4) :: cur_halo
   real(kind=4) :: z_write
-#ifdef NEUTRINOS
+
   integer(4) :: np_dm, np_nu, ind_check1, ind_check2
   character (len=max_path) :: ofile_nu, ofile2_nu
-  integer, parameter :: pdm = 1
-#endif
 
   sec1a = mpi_wtime(ierr)
   if (rank.eq.0) write(*,*) 'starting checkpoint',sec1a
   if (rank.eq.0 .and. kill_step) write(*,*) 'checkpoint kill'
+
+  !Whether to open neutrino file or not
+  checkpoint_nu = a .gt. a_i_nu
+  np_dm = count(PID(1:np_local) == pid_dm)
+  np_nu = np_local - np_dm 
+  if (rank == 0) write(*,*) "checkpoint np_dm, np_nu = ", np_dm, np_nu
 
   !! label files with the same z as in the checkpoints file
   if (rank == 0) then
@@ -32,6 +38,13 @@ subroutine checkpoint(dokill)
      end if
   end if
   call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
+
+  ! Increment checkpoint counter so restart works on next checkpoint
+  if (.not. dokill) then
+     cur_checkpoint=cur_checkpoint+1
+     cur_halo = cur_halofind
+     if (halofind_step) cur_halo = cur_halo + 1
+  end if
 
   !! most linux systems choke when writing more than 2GB of data
   !! in one write statement, so break up into blocks < 2GB 
@@ -47,54 +60,33 @@ subroutine checkpoint(dokill)
   write(z_s,'(f7.3)') z_write
   z_s=adjustl(z_s)
 
+  ! Open checkpoint files
   !! Dark matter file
   ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'// &
        rank_s(1:len_trim(rank_s))//'.dat'
-
-#ifdef NEUTRINOS
-  !! Neutrino file
-  ofile_nu=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'// &
-       rank_s(1:len_trim(rank_s))//'_nu.dat'
-#endif
-
-  ! Increment checkpoint counter so restart works on next checkpoint
-  if (.not. dokill) then
-     cur_checkpoint=cur_checkpoint+1
-     cur_halo = cur_halofind
-     if (halofind_step) cur_halo = cur_halo + 1
-  end if
-  
-  ! Open checkpoint files
-  
-  !! Dark matter 
   open(unit=12, file=ofile, status="replace", iostat=fstat, access="stream")
   if (fstat /= 0) then
      write(*,*) 'error opening checkpoint file for write'
      write(*,*) 'rank',rank,'file:',ofile
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
-
-#ifdef NEUTRINOS
-  !! Neutrinos 
-  open(unit=22, file=ofile_nu, status="replace", iostat=fstat, access="stream") 
-  if (fstat /= 0) then
-     write(*,*) 'error opening checkpoint file for write'
-     write(*,*) 'rank',rank,'file:',ofile_nu
-     call mpi_abort(mpi_comm_world,ierr,ierr)
-  endif
-
-  ! Write file headers
-  !! Determine how many dark matter and neutrino particles this rank has
-  np_dm = count(PID(1:np_local) == pdm)
-  np_nu = np_local - np_dm 
-  if (rank == 0) write(*,*) "checkpoint np_dm, np_nu = ", np_dm, np_nu
+  !Write header
   write(12) np_dm,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
-  write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
-#else
-  write(12) np_local,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
-#endif
 
-#ifdef NEUTRINOS
+  if ( checkpoint_nu ) then
+     !! Neutrino file
+     ofile_nu=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'xv'// &
+          rank_s(1:len_trim(rank_s))//'_nu.dat'
+     open(unit=22, file=ofile_nu, status="replace", iostat=fstat, access="stream") 
+     if (fstat /= 0) then
+        write(*,*) 'error opening checkpoint file for write'
+        write(*,*) 'rank',rank,'file:',ofile_nu
+        call mpi_abort(mpi_comm_world,ierr,ierr)
+     endif
+     ! Write header
+     write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
+  end if
+
   ! Write data for neutrino simulation
   ind_check1 = 0
   ind_check2 = 0
@@ -108,6 +100,11 @@ subroutine checkpoint(dokill)
            write(12) xv(4:6,j)
            ind_check1 = ind_check1 + 1
         else
+           !Make sure we don't try to write to a non-opened file
+           if (.not. checkpoint_nu) then
+              if (rank.eq.0) write(*,*) 'ERROR IN CHECKPOINT! FOUND AN UNWANTED NEUTRINO'
+              call mpi_abort(mpi_comm_world,ierr,ierr)
+           end if
            write(22) xv(1:3,j) - shake_offset
            write(22) xv(4:6,j)
            ind_check2 = ind_check2 + 1
@@ -116,34 +113,13 @@ subroutine checkpoint(dokill)
   enddo
 
   close(12)
-  close(22)
+  if (checkpoint_nu) close(22)
 
   !! Consistency check
   if (ind_check1 .ne. np_dm .or. ind_check2 .ne. np_nu) then
      write(*,*) "Dark Matter checkpoint error: ind_checks ", ind_check1, np_dm, ind_check2, np_nu
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
-
-#else
-  ! Write data for non-neutrino simulation
-
-  do j = 1, np_local
-     xv(1:3,j) = xv(1:3,j) - shake_offset
-  enddo
-
-  do i=1,num_writes
-     nplow=(i-1)*blocksize+1
-     nphigh=min(i*blocksize,np_local)
-     write(12) xv(:,nplow:nphigh)
-  enddo
-
-  close(12)
-
-  do j = 1, np_local
-     xv(1:3,j) = xv(1:3,j) + shake_offset
-  enddo
-
-#endif
   
   if (dokill) then
      if (rank.eq.0) then

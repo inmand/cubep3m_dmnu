@@ -28,11 +28,7 @@ subroutine coarse_mass
   integer, parameter :: ijstart = 0
   integer, parameter :: ijstop  = nc_node_dim + 1 
     
-# ifndef NEUTRINOS
-  rho_c = ratio_omega_nu2m
-# else
-  rho_c= 0.0 !- mass_p * (mesh_scale / 2)**3  
-# endif
+  rho_c = f_unclustered
 
   do k0 = 0, mesh_scale-1 
      !$omp parallel do schedule(dynamic) default(shared) private(i,j,k,pp)
@@ -78,13 +74,8 @@ subroutine coarse_cic_mass(pp)
      dx2(:) = 1.0 - dx1(:)
 #    endif
 
-#    ifdef NEUTRINOS
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
-#    else
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(1)
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(1)
-#    endif
 
      rho_c(i1(1),i1(2),i1(3)) = rho_c(i1(1),i1(2),i1(3)) &
           + dx1(1) * dx1(2) * dx1(3)
@@ -138,13 +129,8 @@ subroutine coarse_cic_mass_boundry(pp)
      dx2(:) = 1.0 - dx1(:)
 #    endif
 
-#    ifdef NEUTRINOS
      dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
      dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
-#    else
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(1)
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(1)
-#    endif
 
      if (i1(3) >= 1 .and. i1(3) <= nc_node_dim) then
         if (i1(2) >= 1 .and. i1(2) <= nc_node_dim) then

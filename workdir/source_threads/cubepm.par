@@ -5,11 +5,7 @@
 
 !! files / paths 
 
-#ifdef NEUTRINOS
-character(*), parameter :: checkpoints=cubepm_root//'input/checkpoints_nu'
-#else
 character(*), parameter :: checkpoints=cubepm_root//'input/checkpoints'
-#endif
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 character(*), parameter :: killtime_path=cubepm_root//'batch/killtime.txt' 
 
@@ -32,6 +28,7 @@ real(4), parameter 	:: dt_max = 1.0
 real(4), parameter 	:: ra_max = 0.01
 real(4), parameter 	:: da_max = 0.01
 real(4), parameter      :: a_i = 1.0 / ( z_i + 1.0)
+real(4), parameter      :: a_i_nu = 1.0 / ( z_i_nu + 1.0)
 real(4), parameter      :: cfactor = 1.05
 
 !! initial and final conditions
@@ -42,13 +39,8 @@ integer(4), parameter   :: max_nts = 6000
 
 !for restart:
 
-#ifdef NEUTRINOS
-logical, parameter  :: restart_ic =  .true.
-integer(4), parameter   :: restart_checkpoint = 1 ! line number in input/checkpoint
-#else
 logical, parameter	:: restart_ic =  .false.
 integer(4), parameter   :: restart_checkpoint = 1 ! line number in input/checkpoint 
-#endif
 
 logical, parameter :: restart_kill = .false. !! Restart from kill_step
 character(*), parameter :: reskill_prefix = '0.528'
@@ -195,7 +187,6 @@ integer(4), parameter   :: nc_pen = nc_node_dim / nodes_dim
 integer(4), parameter   :: dim_y = nodes_dim
 integer(4), parameter   :: dim_z = nodes_dim**2
 
-!! Factors needed to make rho_f mean density equal to unity
-integer(4),   parameter :: ratio_nudm     = ratio_nudm_dim**3
-real(4), parameter      :: ratio_omega_nu2m = omega_nu / omega_m
-real(4), parameter 	:: ratio_omega_cb2m = omega_cb / omega_m !1 if CDM only
+!Second species
+integer(4), parameter :: pid_dm = 1
+integer(4), parameter :: pid_nu = 2

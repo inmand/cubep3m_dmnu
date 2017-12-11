@@ -35,6 +35,7 @@ subroutine variable_initialize
   t=0.0
   np_local=0
   mass_p=0.0
+  mass_p_nudm_fac=0.0
   cur_sep=min_sep 
     
   rho_f=0.0
@@ -51,11 +52,10 @@ subroutine variable_initialize
   final_step=.false.
   kill_step=.false.
   shake_offset=0.0
-#ifdef PID_FLAG 
+
   PID=0
   send_buf_PID=0.0
   recv_buf_PID=0.0
-#endif
   
   if (rank == 0) then
 
@@ -129,10 +129,6 @@ subroutine variable_initialize
   firstfftw=.true.
   firstfftw_nest=.true.
   firstfftw2=.true.
-
-  !! Determine factors that must be multiplied to mass_p for dark matter and nuetrinos
-  mass_p_nudm_fac(1) = ratio_omega_cb2m !1. - ratio_omega_nudm        !! Dark matter
-  mass_p_nudm_fac(2) = ratio_omega_nu2m/ratio_nudm!ratio_omega_nudm/ratio_nudm  !! Neutrino
 
   ! NEW TRICK BY JHD TO REMOVE MEMORY RACING CONDITION ON THREADED PLAN
   ! CREATION. 

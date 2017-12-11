@@ -36,9 +36,7 @@ subroutine particle_pass
               if (xv(1,pp) >= nf_physical_node_dim - rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#                ifdef PID_FLAG
                  send_buf_PID(np_buf)=PID(pp)
-#                endif
               endif
               pp = ll(pp)
            enddo
@@ -95,23 +93,13 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,nppx*6,mpi_real,cart_neighbor(5), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(6), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,nppx,MPI_integer1,cart_neighbor(5), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(6), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppx,MPI_integer8,cart_neighbor(5), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-
-#endif
 
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
@@ -119,9 +107,7 @@ subroutine particle_pass
   do i=1,nppx
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
      xv(1,np_local+i)=max(xv(1,np_local+i)-nf_physical_node_dim,-rnf_buf)
-#    ifdef PID_FLAG
      PID(np_local+i)=recv_buf_PID(i)
-#    endif
   enddo
 
   np_local=np_local+nppx
@@ -136,9 +122,7 @@ subroutine particle_pass
               if (xv(1,pp) < rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#                ifdef PID_FLAG
                  send_buf_PID(np_buf)=PID(pp)
-#                endif
               endif
               pp = ll(pp)
            enddo
@@ -195,22 +179,13 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,npmx*6,mpi_real,cart_neighbor(6), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(5), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,npmx,MPI_integer1,cart_neighbor(6), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(5), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmx,MPI_integer8,cart_neighbor(6), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-#endif
     
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
@@ -218,9 +193,7 @@ subroutine particle_pass
 
   do i=1,npmx
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
-#    ifdef PID_FLAG
      PID(np_local+i)=recv_buf_PID(i)
-#    endif
      if (abs(xv(1,np_local+i)).lt.eps) then
         if (xv(1,np_local+i) < 0.0) then
            xv(1,np_local+i)=-eps
@@ -265,9 +238,7 @@ subroutine particle_pass
               if (xv(2,pp) < rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#ifdef PID_FLAG
                  send_buf_PID(np_buf)=PID(pp)
-#endif
               endif
               pp = ll(pp)
            enddo
@@ -324,31 +295,20 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,npmy*6,mpi_real,cart_neighbor(4), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(3), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,npmy,MPI_integer1,cart_neighbor(4), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(3), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmy,MPI_integer8,cart_neighbor(4), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-#endif
 
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
   do i=1,npmy
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
-#ifdef PID_FLAG
      PID(np_local+i)=recv_buf_PID(i)
-#endif
      if (abs(xv(2,np_local+i)).lt.eps) then
         if (xv(2,np_local+i) < 0.0) then
            xv(2,np_local+i)=-eps
@@ -373,9 +333,7 @@ subroutine particle_pass
               if (xv(2,pp) >= nf_physical_node_dim - rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#ifdef PID_FLAG
                  send_buf_PID(np_buf)=PID(pp)
-#endif  
               endif
               pp = ll(pp)
            enddo
@@ -432,22 +390,13 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,nppy*6,mpi_real,cart_neighbor(3), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(4), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,nppy,MPI_integer1,cart_neighbor(3), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(4), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppy,MPI_integer8,cart_neighbor(3), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-#endif
 
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
@@ -455,9 +404,7 @@ subroutine particle_pass
   do i=1,nppy
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
      xv(2,np_local+i)=max(xv(2,np_local+i)-nf_physical_node_dim,-rnf_buf)
-#ifdef PID_FLAG 
      PID(np_local+i)=recv_buf_PID(i)
-#endif
   enddo
   np_local=np_local+nppy
 
@@ -491,9 +438,7 @@ subroutine particle_pass
               if (xv(3,pp) >= nf_physical_node_dim - rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#ifdef PID_FLAG
                  send_buf_PID(np_buf)=PID(pp)
-#endif
               endif
               pp = ll(pp)
            enddo
@@ -550,22 +495,13 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,nppz*6,mpi_real,cart_neighbor(1), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(2), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,nppz,MPI_integer1,cart_neighbor(1), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(2), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppz,MPI_integer8,cart_neighbor(1), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-#endif
 
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
@@ -573,9 +509,7 @@ subroutine particle_pass
   do i=1,nppz
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
      xv(3,np_local+i)=max(xv(3,np_local+i)-nf_physical_node_dim,-rnf_buf)
-#ifdef PID_FLAG
      PID(np_local+i)=recv_buf_PID(i)
-#endif
   enddo
 
   np_local=np_local+nppz
@@ -590,9 +524,7 @@ subroutine particle_pass
               if (xv(3,pp) < rnf_buf) then
                  np_buf = np_buf + 1
                  send_buf((np_buf-1)*6+1:np_buf*6)=xv(:,pp)
-#ifdef PID_FLAG 
                  send_buf_PID(np_buf)=PID(pp)
-#endif
               endif
               pp = ll(pp)
            enddo
@@ -649,29 +581,17 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,npmz*6,mpi_real,cart_neighbor(2), &
        tag,mpi_comm_world,rrequest,rierr)
 
-#ifdef PID_FLAG
-
-#ifdef NEUTRINOS
   call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(1), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,npmz,MPI_integer1,cart_neighbor(2), &
        tag,mpi_comm_world,rrequest,rierr)
-#else
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer8,cart_neighbor(1), &
-       tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmz,MPI_integer8,cart_neighbor(2), &
-       tag,mpi_comm_world,rrequest,rierr)
-#endif
-#endif
 
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
   do i=1,npmz
      xv(:,np_local+i)=recv_buf((i-1)*6+1:(i-1)*6+6)
-#ifdef PID_FLAG
      PID(np_local+i)=recv_buf_PID(i)
-#endif
      if (abs(xv(3,np_local+i)).lt.eps) then
         if (xv(3,np_local+i) < 0.0) then
            xv(3,np_local+i)=-eps

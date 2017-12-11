@@ -13,11 +13,9 @@ subroutine update_position
        
      call random_number(offset)
 
-# ifdef NEUTRINOS
      offset=(offset-0.5)*mesh_scale ! no shake offset
-# else
-     offset=(offset-0.5)*mesh_scale*4.0  - shake_offset
-# endif
+     !offset=(offset-0.5)*mesh_scale*4.0  - shake_offset
+
      shake_offset=shake_offset+offset
      print*,'current shake offset:',shake_offset
   

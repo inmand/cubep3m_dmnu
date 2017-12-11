@@ -30,15 +30,10 @@ subroutine halofind
     real(4), dimension(3) :: r_wrt_halo, v_wrt_halo, v2_wrt_halo, hpos
     integer, parameter :: N_p = 50
     real(4), dimension(N_p) :: E
-#ifndef NEUTRINOS
-#ifdef PID_FLAG
-    integer(8), dimension(N_p) :: pid_halo
-    real(4), dimension(6,N_p) ::xv_halo
-#endif
-#else
+
     real(4), dimension(3) :: x_mean_nu, v_mean_nu
     integer(4) :: n_nu
-#endif
+
     real(4) :: dist, speed, E_tmp
     real(4), dimension(6) :: I_ij
     real(8) :: st1, st2
@@ -47,13 +42,13 @@ subroutine halofind
     integer(8) :: imass_vir, i_vir
     integer(8) :: np_halo_local_vir, np_halo_vir
 
-#ifdef NEUTRINOS
+!#ifdef NEUTRINOS
     real(4), parameter :: nu_search_radius = 2. !! Distance in Mpc/h to search for neutrino properties around each halo  
     real(4), parameter :: nu_search_radius_cells = nu_search_radius * nf_physical_dim / box 
     real(4) :: g4 = box * nf_buf / real(nf_physical_dim) 
     if (rank == 0) write(*,*) "Neutrino search radius: ", nu_search_radius_cells
     if (rank == 0 .and. g4 < nu_search_radius) write(*,*) "WARNING: Buffer size is only ", g4, " < ", nu_search_radius
-#endif
+!#endif
 
     sec1a = mpi_wtime(ierr)
     if (rank.eq.0) write(*,*) 'starting halofind',sec1a
@@ -136,16 +131,14 @@ subroutine halofind
     hpart_odc = 0
     hpart_vir = 0
 
-#ifdef NEUTRINOS
     !! Exclude neutrinos from being included in halos by
     !! making the halofinder think they have already been inclued in a halo
     do i = 1, np_local
-        if (PID(i) > 1) then
+        if (PID(i) .eq. pid_nu) then
             hpart_odc(i) = 1
             hpart_vir(i) = 1
         endif
     enddo 
-#endif
 
     !! Initialize refined mesh
     finegrid(:, :, :) = 0.
@@ -216,10 +209,10 @@ subroutine halofind
             enddo
             mass_odc = mass_p * imass_odc
 
-#ifdef NEUTRINOS
-            call neutrino_properties(hpos(:), nu_search_radius_cells, x_mean_nu, v_mean_nu, n_nu)
-            x_mean_nu = x_mean_nu + offset 
-#endif
+            if (a .gt. a_i_nu) then
+               call neutrino_properties(hpos(:), nu_search_radius_cells, x_mean_nu, v_mean_nu, n_nu)
+               x_mean_nu = x_mean_nu + offset 
+            end if
 
             mass_vir = mass_p * imass_vir
             hpos(:) = hpos(:) + offset
@@ -234,11 +227,6 @@ subroutine halofind
             v_disp = sqrt(v2_mean(1) + v2_mean(2) + v2_mean(3))
             var_x = real(imass_vir)/(real(imass_vir-1)) * (x2_mean - (x_mean-offset)**2)
 
-#ifndef NEUTRINOS
-#ifdef PID_FLAG
-            pid_halo = 0
-#endif
-#endif
             E = 0.
             E_tmp = 0.
             I_ij = 0.
@@ -266,13 +254,6 @@ subroutine halofind
                     if (E_tmp < E(jj)) then
                         E(jj+1:N_p) = E(jj:N_p-1)
                         E(jj) = E_tmp
-#ifndef NEUTRINOS
-#ifdef PID_FLAG
-                        pid_halo(jj+1:N_p) = pid_halo(jj:N_p-1)
-                        pid_halo(jj) = PID(pp)
-                        xv_halo(:,jj) = xv(:,pp)
-#endif
-#endif
                         exit
                     endif
                 enddo
@@ -283,20 +264,10 @@ subroutine halofind
             !! Subtract shake offset
             hpos = hpos - shake_offset
             x_mean = x_mean - shake_offset
-#ifdef NEUTRINOS 
-            x_mean_nu = x_mean_nu - shake_offset
-#endif
 
-#ifndef NEUTRINOS
-#ifdef PID_FLAG
-            if (halo_write) write(12) hpos(:), mass_vir, mass_odc, r_vir, r_odc, x_mean, v_mean, l_CM, v2_wrt_halo, var_x, pid_halo, xv_halo
-#else
-            if (halo_write) write(12) hpos(:), mass_vir, mass_odc, r_vir, r_odc, x_mean, v_mean, l_CM, v2_wrt_halo, var_x
-#endif
-#else
+            if (a.gt. a_i_nu) x_mean_nu = x_mean_nu - shake_offset
+
             if (halo_write) write(12) hpos(:), mass_vir, mass_odc, r_vir, r_odc, x_mean, v_mean, l_CM, v2_wrt_halo, var_x, I_ij, x_mean_nu, v_mean_nu, n_nu 
-#endif
-
 
         endif !! i_vir/i_odc test 
 
@@ -316,21 +287,13 @@ subroutine halofind
 
     np_halo_local_odc = 0
     do ii = 1, np_local
-#ifdef NEUTRINOS
-       if (PID(ii) == 1 .and. hpart_odc(ii) == 1) np_halo_local_odc = np_halo_local_odc + 1
-#else
-        if (hpart_odc(ii) == 1) np_halo_local_odc = np_halo_local_odc + 1
-#endif
+       if (PID(ii) == pid_dm .and. hpart_odc(ii) == 1) np_halo_local_odc = np_halo_local_odc + 1
     enddo
     call mpi_reduce(np_halo_local_odc, np_halo_odc, 1, mpi_integer8, mpi_sum, 0, mpi_comm_world, ierr)
 
     np_halo_local_vir = 0
     do ii = 1, np_local
-#ifdef NEUTRINOS
-        if (PID(ii) == 1 .and. hpart_vir(ii) == 1) np_halo_local_vir = np_halo_local_vir + 1
-#else
-        if (hpart_vir(ii) == 1) np_halo_local_vir = np_halo_local_vir + 1
-#endif
+        if (PID(ii) == pid_dm .and. hpart_vir(ii) == 1) np_halo_local_vir = np_halo_local_vir + 1
     enddo
     call mpi_reduce(np_halo_local_vir, np_halo_vir, 1, mpi_integer8, mpi_sum, 0, mpi_comm_world, ierr)
 
@@ -699,7 +662,6 @@ end subroutine find_halo_particles
 
 ! -------------------------------------------------------------------------------------------------------
 
-#ifdef NEUTRINOS
 subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU) 
     !
     ! Finds the mean velocity of all neutrinos within a radius of RSEARCH from
@@ -766,7 +728,7 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
     endif
  
 end subroutine neutrino_properties 
-#endif 
+!#endif 
 
 ! -------------------------------------------------------------------------------------------------------
 
@@ -834,11 +796,7 @@ subroutine fine_ngp_mass(pp,tile,thread)
      if (pp == 0) exit
      x(:) = xv(1:3,pp) + offset(:)
      i1(:) = floor(x(:)) + 1
-#ifdef NEUTRINOS
-     if (PID(pp).eq.1) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
-#else
-     rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
-#endif
+     if (PID(pp).eq.pid_dm) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*mass_p_nudm_fac(pid_dm)*omega_m/omega_c
      pp = ll(pp)
   enddo
 

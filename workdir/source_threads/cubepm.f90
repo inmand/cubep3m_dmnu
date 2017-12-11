@@ -14,7 +14,7 @@ program cubep3m_dmnu
   call variable_initialize
   call coarse_kernel
   call fine_kernel
-  call particle_initialize
+  call particle_initialize(pid_dm)
   call link_list
 
   if (rank == 0) write(*,*) 'starting main loop'
@@ -37,6 +37,8 @@ program cubep3m_dmnu
 
        call checkpoint(kill_step)
        if (halofind_step) call halofind
+
+       if (a.eq.a_i_nu) call particle_initialize(pid_nu)
 
        dt = 0.0
 

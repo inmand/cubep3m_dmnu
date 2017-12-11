@@ -1,6 +1,6 @@
 !-*-f90-*-
 ! path to initial conditions (use local scratch space)
-character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test11_1/cubep3m_dmnu/'
+character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test11_2/cubep3m_dmnu/'
 
 ! path to local scratch (for writing temp files)
 character(*), parameter :: scratch_path   = ic_path

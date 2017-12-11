@@ -56,11 +56,7 @@ subroutine particle_mesh
      
      !fine_mass
      !! normalize fine mesh density
-#ifndef NEUTRINOS
-     rho_f(:,:,:,thread)= ratio_omega_nu2m
-#else
-     rho_f(:,:,:,thread)= 0.0
-#endif
+     rho_f(:,:,:,thread)= f_unclustered
 
      !! calculate coarse mesh offsets
      cic_l(:) = nc_tile_dim * tile(:) + 2 - nc_buf
@@ -79,11 +75,7 @@ subroutine particle_mesh
                  do; if (pp_n == 0) exit
                     x_n = xv(1:3, pp_n) + offset_n(:)
                     i1_n(:) = floor(x_n(:)) + 1
-#ifdef NEUTRINOS
                     rho_f(i1_n(1),i1_n(2),i1_n(3),thread) = rho_f(i1_n(1),i1_n(2),i1_n(3),thread)+mass_p*mass_p_nudm_fac(PID(pp_n))
-#else
-                    rho_f(i1_n(1),i1_n(2),i1_n(3),thread) = rho_f(i1_n(1),i1_n(2),i1_n(3),thread)+mass_p*mass_p_nudm_fac(1)
-#endif
                     pp_n = ll(pp_n)
                  enddo !! pp_n
 
@@ -185,9 +177,8 @@ subroutine particle_mesh
                           pp_force_accum(:, :ipl_n(im_n,jm_n,km_n), thread, thread_n) = 0.
                           do ip_n = 1, ipl_n(im_n,jm_n,km_n) - 1
                              pp1_n = llf(ip_n, im_n, jm_n, km_n, thread, thread_n)
-#ifdef NEUTRINOS
                              fpp1_n = mass_p_nudm_fac(PID(pp1_n)) 
-#endif
+
                              do jp_n = ip_n+1, ipl_n(im_n,jm_n,km_n)
                                 pp2_n = llf(jp_n, im_n, jm_n, km_n, thread, thread_n)
                                 sep_n = xv(:3,pp1_n) - xv(:3,pp2_n)                      
@@ -195,23 +186,15 @@ subroutine particle_mesh
                                 if (rmag_n > rsoft) then
 
                                    force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)  !mass_p divides out below
-#ifdef NEUTRINOS
                                    
                                    fpp2_n = mass_p_nudm_fac(PID(pp2_n)) 
                                    
                                    pp_force_accum(:, ip_n, thread, thread_n) = pp_force_accum(:, ip_n, thread, thread_n) - force_pp_n*fpp2_n
                                    pp_force_accum(:, jp_n, thread, thread_n) = pp_force_accum(:, jp_n, thread, thread_n) + force_pp_n*fpp1_n
-#else
-                                   pp_force_accum(:, ip_n, thread, thread_n) = pp_force_accum(:, ip_n, thread, thread_n) - force_pp_n*mass_p_nudm_fac(1)
-                                   pp_force_accum(:, jp_n, thread, thread_n) = pp_force_accum(:, jp_n, thread, thread_n) + force_pp_n*mass_p_nudm_fac(1)
-#endif
-#ifdef NEUTRINOS
+
                                    xv(4:,pp1_n) = xv(4:,pp1_n) - force_pp_n*a_mid*G*dt*fpp2_n
                                    xv(4:,pp2_n) = xv(4:,pp2_n) + force_pp_n*a_mid*G*dt*fpp1_n
-#else
-                                   xv(4:,pp1_n) = xv(4:,pp1_n) - force_pp_n*a_mid*G*dt*mass_p_nudm_fac(1)
-                                   xv(4:,pp2_n) = xv(4:,pp2_n) + force_pp_n*a_mid*G*dt*mass_p_nudm_fac(1)
-#endif
+
                                 endif
                              enddo
                           enddo
@@ -302,9 +285,7 @@ subroutine particle_mesh
                     pp1_n = hoc_fine(i_n, j_n, k_n, thread) 
                     if(pp1_n == 0) cycle 
 
-#ifdef NEUTRINOS
                     fpp1_n = mass_p_nudm_fac(PID(pp1_n))
-#endif
  
                     kp_min_n = k_n
                     kp_max_n = k_n + pp_range
@@ -336,9 +317,7 @@ subroutine particle_mesh
                              pp2_n = hoc_fine(ip_n, jp_n, kp_n, thread) 
                              if(pp2_n == 0) cycle                                                     
 
-#ifdef NEUTRINOS
                              fpp2_n = mass_p_nudm_fac(PID(pp2_n))
-#endif
 
                              n_pairs_n = 0
                                 
@@ -360,13 +339,8 @@ subroutine particle_mesh
                                               (3.0/4.0)*(rmag_n*pp_bias/(nf_cutoff))**5)  !mass_p divides out below
                                       endif
 
-#ifdef NEUTRINOS
                                       pp_ext_force_accum(:, pp1_n, thread) = pp_ext_force_accum(:, pp1_n, thread) - force_pp_n*fpp2_n
                                       pp_ext_force_accum(:, pp2_n, thread) = pp_ext_force_accum(:, pp2_n, thread) + force_pp_n*fpp1_n
-#else
-                                      pp_ext_force_accum(:, pp1_n, thread) = pp_ext_force_accum(:, pp1_n, thread) - force_pp_n*mass_p_nudm_fac(1)
-                                      pp_ext_force_accum(:, pp2_n, thread) = pp_ext_force_accum(:, pp2_n, thread) + force_pp_n*mass_p_nudm_fac(1)
-#endif
                               
                                       if (pp_ext_force_flag) then
                                  
@@ -375,22 +349,16 @@ subroutine particle_mesh
                                               (pp_range<j_n).and.(j_n<=nf_physical_tile_dim+pp_range).and.&
                                               (pp_range<k_n).and.(k_n<=nf_physical_tile_dim+pp_range)) then 
                                                
-#ifdef NEUTRINOS
                                             xv(4:,pp1_n) = xv(4:,pp1_n) - force_pp_n*a_mid*G*dt*fpp2_n
-#else
-                                            xv(4:,pp1_n) = xv(4:,pp1_n) - force_pp_n*a_mid*G*dt*mass_p_nudm_fac(1)
-#endif
+
                                          endif
                                             
                                          if((pp_range<ip_n).and.(ip_n<=nf_physical_tile_dim+pp_range) .and.&
                                               (pp_range<jp_n).and.(jp_n<=nf_physical_tile_dim+pp_range).and.&
                                               (pp_range<kp_n).and.(kp_n<=nf_physical_tile_dim+pp_range)) then 
 
-#ifdef NEUTRINOS
                                             xv(4:,pp2_n)=xv(4:,pp2_n) + force_pp_n*a_mid*G*dt*fpp1_n
-#else
-                                            xv(4:,pp2_n)=xv(4:,pp2_n) + force_pp_n*a_mid*G*dt*mass_p_nudm_fac(1)
-#endif
+
                                          endif
                              
                                       endif !! pp_ext_force_flag
@@ -398,28 +366,23 @@ subroutine particle_mesh
                                    endif !! (rmag_n > rsoft)
                            
                                    pp2_n = ll_fine(pp2_n, thread)                           
-                                      
-#ifdef NEUTRINOS
+
                                    fpp2_n = mass_p_nudm_fac(PID(pp2_n))
-#endif
                            
                                 enddo !! pp2_n
 
                                 pp2_n = hoc_fine(ip_n, jp_n, kp_n, thread)
                                 pp1_n = ll_fine(pp1_n, thread)
 
-#ifdef NEUTRINOS
                                 fpp1_n = mass_p_nudm_fac(PID(pp1_n))
                                 fpp2_n = mass_p_nudm_fac(PID(pp2_n))
-#endif
+
                              enddo !! pp1_n
 
                              ! Restore pp1_n value for the next pp2_n iteration
                              pp1_n = hoc_fine(i_n, j_n, k_n, thread)
 
-#ifdef NEUTRINOS
                              fpp1_n = mass_p_nudm_fac(PID(pp1_n))
-#endif
                         
                           enddo !! ip_n                    
                        enddo !! jp_n

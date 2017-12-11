@@ -13,9 +13,7 @@ subroutine delete_particles
           xv(2,pp) >= nf_physical_node_dim .or. xv(2,pp) < 0.0 .or. &
           xv(3,pp) >= nf_physical_node_dim .or. xv(3,pp) < 0.0) then                    
         xv(:,pp)=xv(:,np_local)
-#ifdef PID_FLAG
         PID(pp)=PID(np_local)
-#endif
         np_local=np_local-1
         goto 42
      endif
