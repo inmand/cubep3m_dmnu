@@ -77,7 +77,7 @@ subroutine timestep
            dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
            call expansion(a,dt,da_1,da_2)
            if (cur_checkpoint == num_checkpoints) final_step=.true.
-           if (a_halofind(cur_halofind) == am .and. cur_halofind <= num_halofinds) halofind_step=.true.
+           halofind_step=.true.
         endif
         
         !! Check to see whether we should perform checkpoint kill
