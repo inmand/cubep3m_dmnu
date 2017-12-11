@@ -55,14 +55,11 @@ subroutine timestep
 
         ! take the minimum of all the limits 
 
-#ifdef PPINT
+
 #ifdef PP_EXT
         dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
 #else
         dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
-#endif
-#else
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_c_acc)
 #endif
 
         dt = dt * dt_scale
@@ -120,14 +117,10 @@ subroutine timestep
         write(*,*) 'Scale factor: ',a,a_mid,a+da
         write(*,*) 'Expansion   : ',ra
 
-#ifdef PPINT
 #ifdef PP_EXT
         write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
 #else
         write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc
-#endif
-#else
-        write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_c_acc
 #endif
 
         tau=tau+dt
@@ -139,14 +132,11 @@ subroutine timestep
         a = 1.0
         a_mid = a
         da = 0.0
-#ifdef PPINT
+
 #ifdef PP_EXT
         dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
 #else
         dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
-#endif
-#else
-        dt = min(1.0,dt_f_acc,dt_vmax,dt_c_acc)
 #endif
 
         t = t + dt

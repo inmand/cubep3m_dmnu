@@ -19,12 +19,12 @@ subroutine variable_initialize
 
   dt_f_acc=1000.0
   dt_c_acc=1000.0
-#ifdef PPINT
+
   dt_pp_acc=1000.0
 #ifdef PP_EXT
   dt_pp_ext_acc=1000.0
 #endif
-#endif
+
   dt_vmax=1000.0
 
   !! zero everything else 
