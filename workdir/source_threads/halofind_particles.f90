@@ -55,6 +55,9 @@ subroutine halofind
     if (rank == 0 .and. g4 < nu_search_radius) write(*,*) "WARNING: Buffer size is only ", g4, " < ", nu_search_radius
 #endif
 
+    sec1a = mpi_wtime(ierr)
+    if (rank.eq.0) write(*,*) 'starting halofind',sec1a
+
     !
     ! Find halo candidates based on local overdensities for each tile
     !
@@ -354,6 +357,10 @@ subroutine halofind
 
     cur_halofind  = cur_halofind + 1
     halofind_step = .false.
+
+    sec2a = mpi_wtime(ierr)
+    if (rank.eq.0) write(*,*) 'stopping halofind',sec2a
+    if (rank.eq.0) write(*,*) 'halofind time: ',sec2a-sec1a
 
 end subroutine halofind 
 

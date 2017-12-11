@@ -104,33 +104,10 @@ subroutine variable_initialize
         write(*,*) 'no checkpoints to be stored'
      endif
 
-     !! read in when to store halo catalogs
-     open(11,file=halofinds, status='old', iostat=fstat)
-     if (fstat /= 0) then
-        write(*,*) 'error opening halo catalog list file'
-        write(*,*) 'rank',rank,'file:',halofinds
-        call mpi_abort(mpi_comm_world,ierr,ierr)
-     endif
-     do num_halofinds=1,max_input
-        read(unit=11,err=81,end=91,fmt='(f8.4)') z_halofind(num_halofinds)
-        print*,'check halofinds ', z_halofind(num_halofinds)
-     enddo
-91   num_halofinds=num_halofinds-1
-81   close(11)
-     
-     if (num_halofinds.eq.max_input) then
-        write(*,*) 'too many halo catalogs to store > ',max_input
-        call mpi_abort(mpi_comm_world,i,ierr)
-     endif
-
-     print*,num_halofinds,' halofinds to do'
-     if (num_halofinds.eq.1) then
-        write(*,*) 'problem reading halofinds '
-     endif
-
-     do i=1,num_halofinds
-        a_halofind(i)=1.0/(1.0+z_halofind(i))
-     enddo
+     !Usually just do halofinds at checkpoints
+     num_halofinds=num_checkpoints
+     z_halofind=z_checkpoint
+     a_halofind=1.0/(1.0+z_halofind)
 
      if (num_halofinds > 0) then
         write(*,*) 'Halo catalogs generated at:'
@@ -142,6 +119,7 @@ subroutine variable_initialize
         a_halofind(1)=100.0
         write(*,*) 'no halo catalogs to be stored'
      endif
+
   endif
 
   cur_halofind=1

@@ -19,6 +19,10 @@ subroutine checkpoint(dokill)
   integer, parameter :: pdm = 1
 #endif
 
+  sec1a = mpi_wtime(ierr)
+  if (rank.eq.0) write(*,*) 'starting checkpoint',sec1a
+  if (rank.eq.0 .and. kill_step) write(*,*) 'checkpoint kill'
+
   !! label files with the same z as in the checkpoints file
   if (rank == 0) then
      if (dokill) then
@@ -151,12 +155,12 @@ subroutine checkpoint(dokill)
   else
      ! Print info to screen
      if (rank==0) then
-        print*, 'current steps recorded in xv file:'
+        print*, 'current steps recorded in xv file:',nts
         print*, 'cur_checkpoint =', cur_checkpoint
         print*, 'cur_halofind   =', cur_halo
-
-        write(*,*) "BPOS: ", minval(xv(1:3,1:np_local)), maxval(xv(1:3,1:np_local))
-        write(*,*) "BVEL: ", minval(abs(xv(4:6,1:np_local))), maxval(abs(xv(4:6,1:np_local)))
+        sec2a = mpi_wtime(ierr)
+        write(*,*) 'stopping checkpoint',sec2a
+        write(*,*) 'checkpoint time: ',sec2a-sec1a
      endif
   end if
 

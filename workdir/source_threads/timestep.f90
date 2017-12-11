@@ -68,31 +68,16 @@ subroutine timestep
 
         da=da_1+da_2 
 
-        ! Check to see if we are checkpointing / halofinding this step 
-
+        ! Check to see if we are checkpointing this step 
         checkpoint_step=.false.
         halofind_step=.false.
-        
-        am=min(a_checkpoint(cur_checkpoint),a_halofind(cur_halofind))
-        
-        if (a_checkpoint(cur_checkpoint)==am) then
-           
-          if (a+da > a_checkpoint(cur_checkpoint)) then
-            checkpoint_step=.true.
-            dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
-            call expansion(a,dt,da_1,da_2)
-            if (cur_checkpoint == num_checkpoints) final_step=.true.
-            if (a_halofind(cur_halofind) == am .and. cur_halofind <= num_halofinds) halofind_step=.true.
-          endif
-
-        elseif (a_halofind(cur_halofind) == am  .and. cur_halofind <= num_halofinds) then
-           
-          if (a+da > a_halofind(cur_halofind)) then
-            halofind_step=.true.
-            dt=dt*(a_halofind(cur_halofind)-a)/da
-            call expansion(a,dt,da_1,da_2)
-          endif
-          
+     
+        if (a+da > a_checkpoint(cur_checkpoint)) then
+           checkpoint_step=.true.
+           dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
+           call expansion(a,dt,da_1,da_2)
+           if (cur_checkpoint == num_checkpoints) final_step=.true.
+           if (a_halofind(cur_halofind) == am .and. cur_halofind <= num_halofinds) halofind_step=.true.
         endif
         
         !! Check to see whether we should perform checkpoint kill
@@ -101,6 +86,7 @@ subroutine timestep
         if (rank == 0) then
            if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
         endif
+        if (kill_step) checkpoint_step=.true.
         call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
 
         !! Calculate timestep parameters to be used
