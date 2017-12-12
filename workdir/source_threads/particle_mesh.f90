@@ -425,7 +425,6 @@ subroutine particle_mesh
        mpi_comm_world,ierr)
   if (rank == 0) then
      dt_f_acc=1.0/sqrt(max(0.0001,dt_f_acc)*a_mid*G)
-     write(*,*) 'maximum timestep from fine force=',dt_f_acc
   endif
   call mpi_bcast(dt_f_acc,1,mpi_real,0,mpi_comm_world,ierr)
 
@@ -435,7 +434,6 @@ subroutine particle_mesh
        mpi_comm_world,ierr)
   if (rank == 0) then
      dt_pp_acc=sqrt(dt_pp_scale*rsoft)/max(sqrt(dt_pp_acc*a_mid*G),1e-3)
-     write(*,*) 'maximum timestep from pp force=',dt_pp_acc
   endif
   call mpi_bcast(dt_pp_acc,1,mpi_real,0,mpi_comm_world,ierr)
 
@@ -445,7 +443,6 @@ subroutine particle_mesh
        mpi_comm_world,ierr)
   if (rank == 0) then
      dt_pp_ext_acc=sqrt(dt_pp_scale*rsoft)/max(sqrt(dt_pp_ext_acc*a_mid*G),1e-3)
-     write(*,*) 'maximum timestep from pp ext force=',dt_pp_ext_acc
   endif
   call mpi_bcast(dt_pp_ext_acc,1,mpi_real,0,mpi_comm_world,ierr)
 #endif

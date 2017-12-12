@@ -42,13 +42,11 @@ subroutine halofind
     integer(8) :: imass_vir, i_vir
     integer(8) :: np_halo_local_vir, np_halo_vir
 
-!#ifdef NEUTRINOS
     real(4), parameter :: nu_search_radius = 2. !! Distance in Mpc/h to search for neutrino properties around each halo  
     real(4), parameter :: nu_search_radius_cells = nu_search_radius * nf_physical_dim / box 
     real(4) :: g4 = box * nf_buf / real(nf_physical_dim) 
     if (rank == 0) write(*,*) "Neutrino search radius: ", nu_search_radius_cells
     if (rank == 0 .and. g4 < nu_search_radius) write(*,*) "WARNING: Buffer size is only ", g4, " < ", nu_search_radius
-!#endif
 
     sec1a = mpi_wtime(ierr)
     if (rank.eq.0) write(*,*) 'starting halofind',sec1a
@@ -134,7 +132,7 @@ subroutine halofind
     !! Exclude neutrinos from being included in halos by
     !! making the halofinder think they have already been inclued in a halo
     do i = 1, np_local
-        if (PID(i) .eq. pid_nu) then
+        if (PID(i) .ne. pid_dm) then
             hpart_odc(i) = 1
             hpart_vir(i) = 1
         endif
@@ -706,7 +704,7 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
                 pp = hoc(i, j, k)
                 do
                     if (pp == 0) exit
-                    if (PID(pp) > 1) then !! this is a neutrino
+                    if (PID(pp) .ne. pid_dm) then !! this is a neutrino
                         p(:) = xv(:3, pp)
                         dr   = HPOS(:) - p(:)
                         r    = sqrt(dr(1)**2 + dr(2)**2 + dr(3)**2)
@@ -771,14 +769,10 @@ subroutine initialize_halofind
 
     isortdist(:ii)=(/ (i,i=1,ii) /)
     call indexedsort(ii,rdist,isortdist)
-    if(rank==0)write(*,*)'debug flag 1'    
-    !idist(:,:ii)=idist(:,isortdist(:ii))
     idist_tmp(:,:ii)=idist(:,isortdist(:ii))
     idist(:,:ii)=idist_tmp(:,:ii)
     deallocate(idist_tmp)
 
-    if(rank==0)write(*,*)'debug flag 2'
-    
 end subroutine initialize_halofind
 
 !fine ngp mass, dm only

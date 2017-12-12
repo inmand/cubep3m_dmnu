@@ -248,7 +248,10 @@ subroutine coarse_kernel
   integer :: mg, dxy, dx
   integer :: ind, ig, jg, kg
 
-  if (rank==0) print *,'inside coarse kernel init'
+  if (rank==0) then
+     write(*,*) 
+     print *,'inside coarse kernel init'
+  end if
 
   hc1=nc_dim/2+1
   ck=0.0

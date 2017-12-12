@@ -20,16 +20,19 @@ subroutine timestep
   enddo
   call mpi_allreduce(vmax_local, vmax, 1, mpi_real, mpi_max, mpi_comm_world, ierr)
 
-  Dx=real(nf_buf)-0.5*mesh_scale ! 5.5 coarse grids
-  !Dx = real(nf_buf)-4.*mesh_scale ! 2.0 coarse grids
+  if (a.lt.a_i_nu) then
+     !dm
+     Dx = real(nf_buf)-4.*mesh_scale ! 2.0 coarse grids 
+  else
+     !nu
+     Dx=real(nf_buf)-0.5*mesh_scale ! 5.5 coarse grids
+  end if
 
   !! fbuf is the fraction of the buffer that the fastest particle is allowed to move. 
   !! As long as the maximum velocity increases no more than zeta = 2/fbuf - 1 compared 
   !! to the previous time step then this method will work.
   dt_vmax = fbuf * Dx / vmax
 
-  if (rank == 0) write(*,*) 'vmax and maximum timestep from vmax=',vmax,dt_vmax
-  
   if (rank == 0) then
      
      if (cosmo) then
@@ -68,13 +71,15 @@ subroutine timestep
         ! Check to see if we are checkpointing this step 
         checkpoint_step=.false.
         halofind_step=.false.
-     
+        injection_step=.false.
+
         if (a+da > a_checkpoint(cur_checkpoint)) then
            checkpoint_step=.true.
            dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
            call expansion(a,dt,da_1,da_2)
            if (cur_checkpoint == num_checkpoints) final_step=.true.
            halofind_step=.true.
+           if (z_checkpoint(cur_checkpoint).eq. z_i_nu) injection_step=.true.
         endif
         
         !! Check to see whether we should perform checkpoint kill
@@ -94,17 +99,22 @@ subroutine timestep
         a_mid=a+(da/2) !da_1
 
         write(*,*)
-        write(*,*) 'Sweep number: ',nts
-        write(*,*) 'Tau         : ',tau,tau+dt
-        write(*,*) 'Redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
-        write(*,*) 'Scale factor: ',a,a_mid,a+da
-        write(*,*) 'Expansion   : ',ra
+        write(*,*) 'sweep number: ',nts
+        write(*,*) 'tau         : ',tau,tau+dt
+        write(*,*) 'redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
+        write(*,*) 'scale factor: ',a,a_mid,a+da
+        write(*,*) 'expansion   : ',ra
 
 #ifdef PP_EXT
-        write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
+        write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
 #else
-        write(*,*) 'Time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc
+        !write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc
+        write(*,*) 'time step   : ',dt,dt_e,dt_vmax
+        write(*,*) '              ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
 #endif
+        write(*,*) 'shake offset: ',shake_offset
+        sec1a = mpi_wtime(ierr)
+        if (rank == 0) write(*,*) "time taken [hrs] = ", (sec1a - sec1) / 3600.
 
         tau=tau+dt
         t=t+dt
@@ -136,10 +146,8 @@ subroutine timestep
   call mpi_bcast(dt,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(dt_gas,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(checkpoint_step,1,mpi_logical,0,mpi_comm_world,ierr)
-    call mpi_bcast(halofind_step,1,mpi_logical,0,mpi_comm_world,ierr)
+  call mpi_bcast(halofind_step,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(final_step,1,mpi_logical,0,mpi_comm_world,ierr)
-
-  if (rank == 0) write(*,*) 'finished particle mesh'
 
 end subroutine timestep
 

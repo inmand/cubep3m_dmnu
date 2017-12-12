@@ -19,8 +19,7 @@ subroutine checkpoint(dokill)
   integer(4) :: np_dm, np_nu, ind_check1, ind_check2
   character (len=max_path) :: ofile_nu, ofile2_nu
 
-  sec1a = mpi_wtime(ierr)
-  if (rank.eq.0) write(*,*) 'starting checkpoint',sec1a
+  if (rank.eq.0) write(*,*) 'starting checkpoint'
   if (rank.eq.0 .and. kill_step) write(*,*) 'checkpoint kill'
 
   !Whether to open neutrino file or not
@@ -95,7 +94,7 @@ subroutine checkpoint(dokill)
      nplow=(i-1)*blocksize+1
      nphigh=min(i*blocksize,np_local)
      do j=nplow,nphigh
-        if (PID(j) == 1) then
+        if (PID(j) == pid_dm) then
            write(12) xv(1:3,j) - shake_offset
            write(12) xv(4:6,j)
            ind_check1 = ind_check1 + 1
@@ -171,7 +170,7 @@ subroutine read_remaining_time
 
      !! Kill the job in this amount of time from now.                                                                                                 
      kill_time = time_left - kill_remaining
-     write(*,*) "Killing job ", kill_time/3600., " hours from now"
+     write(*,*) "Killing CUBEP3M ", kill_time/3600., " hours from now"
 
      !! Consistency check                                                                                                                             
      if (kill_time <= 0.) then

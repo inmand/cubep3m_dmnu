@@ -18,7 +18,11 @@ subroutine particle_initialize(ispec)
   integer(4) :: np_dm
   integer(8) :: np_total_nu
 
-  print*,'particle_initialize'
+  if (rank.eq.0) then
+     write(*,*)
+     print*,'particle_initialize'
+  end if
+
   fstat=0
 
   write(rank_s,'(i6)') rank
@@ -32,11 +36,17 @@ subroutine particle_initialize(ispec)
      write(z_s,'(f7.3)') z_write
      z_s=adjustl(z_s)
   elseif (restart_kill) then
-     !Read in checkpoint kill
+     !Checkpoint kill
      z_s=reskill_prefix
      z_s=adjustl(z_s)
+  elseif (ispec .ne. pid_dm) then
+     !Neutrino IC
+     if (rank==0) z_write = z_checkpoint(cur_checkpoint-1) !checkpoint comes first!
+     call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
+     write(z_s,'(f7.3)') z_write
+     z_s=adjustl(z_s)
   else
-     !Read in IC
+     !Dark matter IC
      write(z_s,'(f7.3)') z_i
      z_s=adjustl(z_s)
   endif
@@ -45,7 +55,7 @@ subroutine particle_initialize(ispec)
   np_nu=0
 
   !Amount of unclustered matter
-  f_unclustered = 1.0-omega_c/omega_m
+  f_unclustered = 1.d0-omega_c/omega_m
 
   if (ispec.eq.pid_dm) then
 
@@ -69,7 +79,7 @@ subroutine particle_initialize(ispec)
         if (rank == 0) print *,'restarting simulation from z=',1./a-1.
      else
         read(21) np_local,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
-        if (rank == 0) print *,'restarting simulation from z=',z_checkpoint(cur_checkpoint-1)
+        if (rank == 0) print *,'starting simulation from z=',z_checkpoint(cur_checkpoint-1)
      endif
      
      if (np_local > max_np) then
@@ -110,7 +120,7 @@ subroutine particle_initialize(ispec)
      enddo
 
      !Set appropriate mass 
-     mass_p_nudm_fac(pid_dm) = (real(nf_physical_dim)**3/np_total/mass_p) * omega_c/omega_m
+     mass_p_nudm_fac(pid_dm) = (real(nf_physical_dim,kind=8)**3/np_total/mass_p) * omega_c/omega_m
 
   else
 
@@ -155,6 +165,12 @@ subroutine particle_initialize(ispec)
      enddo
 
      !! calculate total number of particles 
+     npl8=int(np_local,kind=8)
+     call mpi_reduce(npl8,np_total,1,MPI_INTEGER8, &
+          mpi_sum,0,mpi_comm_world,ierr)
+     if (rank == 0) write(*,*) 'number of particles =', np_total
+     call mpi_bcast(np_total,1,MPI_INTEGER8,0,mpi_comm_world,ierr)
+
      npl8=int(np_nu,kind=8)
      call mpi_reduce(npl8,np_total_nu,1,MPI_INTEGER8, &
           mpi_sum,0,mpi_comm_world,ierr)
@@ -162,10 +178,10 @@ subroutine particle_initialize(ispec)
      call mpi_bcast(np_total_nu,1,MPI_INTEGER8,0,mpi_comm_world,ierr)     
 
      !Set appropriate mass
-     mass_p_nudm_fac(pid_nu) = (real(nf_physical_dim)**3/np_nu/mass_p) * omega_nu/omega_m
+     mass_p_nudm_fac(pid_nu) = (real(nf_physical_dim,kind=8)**3/np_nu/mass_p) * omega_nu/omega_m
 
      !Correct unclustered amount
-     f_unclustered = 1.0-omega_c/omega_m-omega_nu/omega_m     
+     f_unclustered = 1.d0-omega_c/omega_m-omega_nu/omega_m     
 
   end if
 
@@ -183,10 +199,10 @@ subroutine particle_initialize(ispec)
      write(*,*) "mass_p_nudm_fac: dm = ",mass_p_nudm_fac(pid_dm)
      write(*,*) "mass_p_nudm_fac: nu = ",mass_p_nudm_fac(pid_nu)
 
-     write(*,*) 'DM mass on grid',np_total*mass_p*mass_p_nudm_fac(pid_dm)/real(nf_physical_dim*1.d0)**3
-     write(*,*) 'DM mass on grid',np_total_nu*mass_p*mass_p_nudm_fac(pid_nu)/real(nf_physical_dim*1.d0)**3
-     write(*,*) 'DM mass on grid',f_unclustered
-     write(*,*) 'Total=1: ',f_unclustered+(np_total*mass_p_nudm_fac(pid_dm)+np_total_nu*mass_p_nudm_fac(pid_nu))/real(nf_physical_dim*1.d0)**3
+     write(*,*) 'Dark matter mass on grid',np_total*mass_p*mass_p_nudm_fac(pid_dm)/real(nf_physical_dim*1.d0)**3
+     write(*,*) 'Neutrino mass on grid',np_total_nu*mass_p*mass_p_nudm_fac(pid_nu)/real(nf_physical_dim*1.d0)**3
+     write(*,*) 'Unclustered mass on grid',f_unclustered
+     write(*,*) 'Total=1: ',f_unclustered+(np_total*mass_p_nudm_fac(pid_dm)+np_total_nu*mass_p_nudm_fac(pid_nu))*mass_p/real(nf_physical_dim*1.d0)**3
   endif
 
   if (rank == 0) write(*,*) 'finished initializing particles'

@@ -13,11 +13,13 @@ subroutine update_position
        
      call random_number(offset)
 
-     offset=(offset-0.5)*mesh_scale ! no shake offset
-     !offset=(offset-0.5)*mesh_scale*4.0  - shake_offset
+     if (a.gt.a_i_nu) then
+        offset=(offset-0.5)*mesh_scale ! no shake offset
+     else
+        offset=(offset-0.5)*mesh_scale*4.0  - shake_offset
+     end if
 
      shake_offset=shake_offset+offset
-     print*,'current shake offset:',shake_offset
   
   endif
 

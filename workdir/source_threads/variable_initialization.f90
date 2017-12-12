@@ -51,6 +51,7 @@ subroutine variable_initialize
   np_buf=0
   final_step=.false.
   kill_step=.false.
+  injection_step=a_i.eq.a_i_nu
   shake_offset=0.0
 
   PID=0
@@ -68,12 +69,10 @@ subroutine variable_initialize
      endif
      do num_checkpoints=1,max_input
         read(unit=11,err=51,end=41,fmt='(f8.4)') z_checkpoint(num_checkpoints)
-        print*,'checkoints', z_checkpoint(num_checkpoints)
      enddo
 41   num_checkpoints=num_checkpoints-1
 51   close(11)
 
-     print*,num_checkpoints,' checkpoints to do'
      if (num_checkpoints.eq.1) then
         write(*,*) 'problem reading checkpoints '
      endif
@@ -92,10 +91,12 @@ subroutine variable_initialize
         a_checkpoint(i)=1.0/(1.0+z_checkpoint(i))
      enddo
 
+     write(*,*)
      write(*,*) 'Starting simulation at:'
      write(*,*) 'z      a'
      write(*,'(f8.4,2x,f8.4)') z_i,a_i
      if (num_checkpoints > 0) then
+        write(*,*)
         write(*,*) 'Checkpointing performed at:'
         do i=1,num_checkpoints
            write(*,'(f8.4,2x,f8.4)') z_checkpoint(i),a_checkpoint(i)
@@ -110,6 +111,7 @@ subroutine variable_initialize
      a_halofind=1.0/(1.0+z_halofind)
 
      if (num_halofinds > 0) then
+        write(*,*)
         write(*,*) 'Halo catalogs generated at:'
         write(*,*) 'z        a'
         do i=1,num_halofinds
@@ -139,10 +141,16 @@ subroutine variable_initialize
   ! Initialize halo finding arrays
   call initialize_halofind
 
-  if (rank == 0) write(*,*) 'finished variable init'
-
   call omp_set_num_threads(cores*nested_threads)
   call omp_set_nested(.true.)
-  if (rank == 0) write(*,*) 'finished omp call'
+  if (rank == 0) then
+     write(*,*)
+     write(*,*) 'omp setup'
+  end if
+
+  if (rank == 0) then
+     write(*,*)
+     write(*,*) 'finished variable init'
+  end if
 
 end subroutine variable_initialize

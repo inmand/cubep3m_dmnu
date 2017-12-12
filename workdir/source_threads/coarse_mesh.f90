@@ -330,15 +330,12 @@ subroutine coarse_max_dt
      enddo
   enddo
   !$omp end parallel do
-  if (rank == 0) write(*,*)  'Max coarse force= ', max_force
 
   call mpi_reduce(max_force,dt_c_acc,1,mpi_real,mpi_max,0, &
        mpi_comm_world,ierr)
   dt_c_acc=sqrt(real(mesh_scale,kind=4)/(dt_c_acc*a_mid*G))
   call mpi_bcast(dt_c_acc,1,mpi_real,0,mpi_comm_world,ierr)
   
-  if (rank == 0) write(*,*) 'maximum dt from coarse grid=',dt_c_acc
-   
 end subroutine coarse_max_dt
 
 !! update coarse mesh velocity

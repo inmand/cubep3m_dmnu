@@ -18,6 +18,7 @@ subroutine cubepm_fftw2(c, thread)
   if (firstfftw_nest) then
      call sfftw_init_threads(ierr)
      if (ierr /= 0 .and. rank == 0) then
+        write(*,*)
         write(*,*) "sfftw_init_threads worked with threads: ", fft_threads
      elseif (ierr == 0) then
         write(*,*) "ERROR returned in sfftw_init_threads: ", rank, ierr
@@ -42,7 +43,7 @@ subroutine cubepm_fftw2(c, thread)
      call sfftw_destroy_plan(fftw2_plan(thread))
      call sfftw_destroy_plan(fftw2_iplan(thread))
   elseif (c .eq. 'o') then
-     if (rank == 0 .and. thread == 1) write(*,*) "Initializing fine grid FFT plans" 
+     if (rank == 0 .and. thread == 1) write(*,*) "initializing fine grid FFT plans" 
   else 
      write(*,*) 'FFT direction error'
   endif
