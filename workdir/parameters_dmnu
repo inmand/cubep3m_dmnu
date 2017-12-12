@@ -1,4 +1,8 @@
 !-*-f90-*-
+
+! Simulation variables
+#include "simulation"
+
 ! path to initial conditions (use local scratch space)
 character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test12_3/cubep3m_dmnu/'
 

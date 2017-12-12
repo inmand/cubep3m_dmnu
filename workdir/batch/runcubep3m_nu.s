@@ -13,7 +13,7 @@ source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/DMNU/Test12_3/cubep3m_dmnu
+RUNDIR=$SCRATCH/DMNU/Test13/cubep3m_dmnu
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch
@@ -28,7 +28,7 @@ source dobuild_nyu >& ${RUNDIR}/p3dfft${LOG}
 
 cd ${SUBDIR}
 cd ..
-ln -s parameters_dmnu parameters
+ln -s p_dmnu parameters
 cd  ./batch/
 source ./COMPILE_ALL.csh >& ${RUNDIR}/compile${LOG}
 
