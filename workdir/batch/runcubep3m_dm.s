@@ -28,7 +28,7 @@ source dobuild_nyu >& ${RUNDIR}/p3dfft${LOG}
 
 cd ${SUBDIR}
 cd ..
-ln -s p_dm parameters
+ln -s parameters_dm parameters
 cd  ./batch/
 source ./COMPILE_ALL.csh >& ${RUNDIR}/compile${LOG}
 

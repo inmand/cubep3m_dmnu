@@ -1,88 +1,76 @@
 !-*-f90-*-
-! path to initial conditions (use local scratch space)
-character(*), parameter :: ic_path        = '/scratch/dbi208/DMNU/Test12_3/cubep3m_dm/'
 
-! path to local scratch (for writing temp files)
-character(*), parameter :: scratch_path   = ic_path
-
-! path to simulation output (use local scratch space)
-character(*), parameter :: output_path    = ic_path
-
-! path to cubepm root directory 
+!------------------------------------!
+!!file IO
+! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
+! path to simulation output
+character(*), parameter :: output_path    = '/scratch/dbi208/DMNU/Test13/cubep3m_dm/'
+! path to local scratch
+character(*), parameter :: scratch_path   = output_path
+! path to initial conditions
+character(*), parameter :: ic_path        = output_path
+! transfer functions
+integer, parameter      :: nk             = 1675
+character(len=*), parameter :: fntf       = cubepm_root//'transfer/mnu000_onu0/mnu000_onu0_transfer_out_z10.dat'
+character(len=*), parameter :: vfntf      = '' !unused
 
+!------------------------------------!
+!!Simulation parameters
 ! nodes / dimension, total nodes = nodes_dim**3
 integer(4),   parameter :: nodes_dim      = 1
-
 ! fine mesh tiles / node / dimension
 integer(4),   parameter :: tiles_node_dim = 2
-
 ! cores / node
-integer(4),   parameter :: cores = 4
+integer(4),   parameter :: cores          = 4
+! nested threads
 integer(4),   parameter :: nested_threads = 1
-
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
-real(4), parameter :: density_buffer = 2.25
-
-! size of fine mesh tile in cells / dimension
-! this must be set as:
-!  nf_tile = I*mesh_scale*(nodes_dim)**2 / tiles_node_dim + 2*nf_buf
-!   -- where I is an integer 
-! run batch/mem_usage to calculate
-
+real(4), parameter :: density_buffer      = 2.25
+! size of fine mesh tile in cells / dimension 
 integer(4),   parameter :: nf_tile        = 176
-
-! boxsize of simulation in Mpc/h
-real(4),      parameter :: box            = 300.0*nodes_dim 
-
-! initial redshift
-real(4),      parameter :: z_i            = 75.0
-real(4),      parameter :: z_i_nu         = -0.1 !<0 for no neutrinos
-real(4),      parameter :: z_tf           = 10.0
-
-! parameters to change between dm and dmnu
-!!dm
-real(4),     parameter :: N_massive_nu   = 0.0
-real(4),     parameter :: sigma_8 = 0.0950
-character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu000_onu0/mnu000_onu0_transfer_out_z10.dat'
-character(len=*), parameter :: vfntf = ''
-integer, parameter      :: nk=1675
-
-!!dmnu
-!!$real(4),     parameter :: N_massive_nu   = 3.0
-!!$real(4),     parameter :: sigma_8 = 0.0900
-!!$character(len=*), parameter :: fntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10.dat'
-!!$character(len=*), parameter :: vfntf = cubepm_root//'transfer/mnu100_onu3/mnu100_onu3_transfer_out_z10_v.dat'
-!!$integer, parameter      :: nk=1675
-
-! neutrino parameters
-real(4),      parameter :: H0             = 67.
-integer(4),   parameter :: ratio_nudm_dim = 1
-real(4),      parameter :: mass_neutrino  = 0.1
-real(4),      parameter :: omega_nu = N_massive_nu*mass_neutrino/93.14/(H0/100.)/(H0/100.)
-
-! omega fractions 
-real(4),      parameter :: omega_c        = 0.27+0.05
-real(4),      parameter :: omega_b        = 0.0 !0.05
-real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
-real(4),      parameter :: omega_l        = 1.0-omega_m
-real(4),      parameter :: wde            = -1.0
-real(4),      parameter :: power_index    = 2.0 ! 1.0,1.5 and 2.0 for power law transfer function in initial condition generator.
-
-! initial conditions parameters
-real(4),      parameter :: n_s            = 0.96
-real(4),      parameter :: scalar_amp     = 2.46e-9
-real(4),      parameter :: k_pivot_scalar = 0.02 ! 1/Mpc
-
-! Fine mesh force cut-off in fine mesh cells (determined by kernel)
+! fine mesh force cut-off in fine mesh cells (determined by kernel)
 integer(4),   parameter :: nf_cutoff      = 16
-
-! Fine mesh buffer size in fine mesh cells
+! fine mesh buffer size in fine mesh cells
 integer(4),   parameter :: nf_buf         = nf_cutoff + 8
-
+! number of fine cells
 #ifndef COARSE_HACK
 integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim
 #else
+! used in cic_*.f90 to compute on smaller grids
 integer, parameter :: coarsen_factor = 2
 integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim / coarsen_factor
 #endif
+! controls number of cdm particles relative to neutrinos
+integer(4),   parameter :: ratio_nudm_dim = 1
+
+!------------------------------------!
+!!cosmology parameters
+! box size / dim (Mpc/h)
+real(4),      parameter :: box            = 300.0*nodes_dim
+! initial redshifts
+real(4),      parameter :: z_i            = 75.0
+real(4),      parameter :: z_i_nu         = -0.1
+real(4),      parameter :: z_tf           = 10.0
+! hubble rate
+real(4),      parameter :: H0             = 67.
+! initial conditions
+real(4),     parameter :: sigma_8         = 0.095 !specify at z_tf
+real(4),     parameter :: n_s             = 0.96
+! matter
+!  cold dark matter
+real(4),      parameter :: omega_c        = 0.27+0.05
+!  baryons: homogeneous only, no hydro
+real(4),      parameter :: omega_b        = 0. 
+!  neutrino parameters
+real(4),      parameter :: N_massive_nu   = 0.0
+real(4),      parameter :: mass_neutrino  = 0.0
+real(4),      parameter :: omega_nu       = N_massive_nu*mass_neutrino/93.14/(H0/100.)/(H0/100.)
+!  total matter
+real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
+! radiation
+real(4),      parameter :: N_eff          = 0.
+real(4),      parameter :: omega_r        = 0.
+! dark energy
+real(4),      parameter :: omega_l        = 1.0-omega_m-omega_r
+real(4),      parameter :: wde            = -1.
