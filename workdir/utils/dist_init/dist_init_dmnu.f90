@@ -890,10 +890,10 @@ end subroutine di_fftw
       !! Set dm transfer function = neutrino one
       !! This step makes sure that the neutrinos have the correct
       !! sigma8 normalization
-      tf(2,:)=tf(6,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_i_nu))**2
+      tf(2,:)=tf(6,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_tf))**2
 #else
-      tf(2,:)=tf(8,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_i_nu))**2
-      tf(3,:)=tf(3,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_i_nu))**2
+      tf(2,:)=tf(8,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_tf))**2
+      tf(3,:)=tf(3,:)*(s8**2/v8)*Dgrow(scalefactor,1./(1.+z_tf))**2
 #endif
     endif
 
