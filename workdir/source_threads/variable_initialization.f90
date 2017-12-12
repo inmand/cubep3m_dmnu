@@ -36,7 +36,6 @@ subroutine variable_initialize
   np_local=0
   mass_p=0.0
   mass_p_nudm_fac=0.0
-  cur_sep=min_sep 
     
   rho_f=0.0
   kern_f=0.0

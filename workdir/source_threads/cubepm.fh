@@ -21,7 +21,7 @@ logical, dimension(cores) :: firstfftw2
 
 integer(4) :: wc_counter, count_i,count_f,count_r,nts, np_local
 real(4) :: a, a_mid, t, tau, dt, dt_old, dt_gas, mass_p, dt_f_acc, dt_vmax, da, dt_c_acc, freeze
-real(4) :: shake_offset(3), cur_sep, dt_pp_acc,dt_pp_ext_acc, dt_max_v, kill_time
+real(4) :: shake_offset(3), dt_pp_acc,dt_pp_ext_acc, dt_max_v, kill_time
 real(8) :: sec1,sec1a,sec2,sec2a
 
 ! :: checkpoint and halofind variables
@@ -151,7 +151,7 @@ common / rvar / a, a_mid, t, tau, dt, dt_old, dt_gas, mass_p, mass_p_nudm_fac, k
                 dt_f_acc, dt_vmax, dt_pp_acc, dt_pp_ext_acc, da, dt_c_acc, a_checkpoint, &
                 z_checkpoint, a_halofind, z_halofind, kill_time, ps_c, ps_c_sum, freeze, &
                 den_peak, rdist, cmplx_rho_c, &
-                shake_offset, cur_sep, dt_max_v, pp_force_accum, &
+                shake_offset, dt_max_v, pp_force_accum, &
                 pos, halo_mesh_mass, finegrid
 
 common / reportforcevar / halo_x_mean, halo_imass

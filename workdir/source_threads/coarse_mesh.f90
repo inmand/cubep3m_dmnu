@@ -11,7 +11,7 @@ subroutine coarse_mesh
   call coarse_force
   call coarse_force_buffer
   call coarse_max_dt
-  if (coarse_vel_update) call coarse_velocity
+  call coarse_velocity
 
 end subroutine coarse_mesh
 

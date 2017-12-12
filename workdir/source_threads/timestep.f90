@@ -35,108 +35,89 @@ subroutine timestep
 
   if (rank == 0) then
      
-     if (cosmo) then
+     dt_e=dt_max
+     
+     n=0
+     do
+        n=n+1
+        call expansion(a,dt_e,da_1,da_2)
+        da=da_1+da_2
+        ra=da/(a+da)
+        if (ra.gt.ra_max) then
+           dt_e=dt_e*(ra_max/ra)
+        else
+           exit
+        endif
+        if (n .gt. 10) exit
+     enddo
 
-        dt_e=dt_max
-
-        n=0
-        do
-           n=n+1
-           call expansion(a,dt_e,da_1,da_2)
-           da=da_1+da_2
-           ra=da/(a+da)
-           if (ra.gt.ra_max) then
-              dt_e=dt_e*(ra_max/ra)
-           else
-              exit
-           endif
-           if (n .gt. 10) exit
-        enddo
-
-        ! take the minimum of all the limits 
+     ! take the minimum of all the limits 
 
 
 #ifdef PP_EXT
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
+     dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
 #else
-        dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
+     dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
 #endif
 
-        dt = dt * dt_scale
+     dt = dt * dt_scale
 
+     call expansion(a,dt,da_1,da_2)
+
+     da=da_1+da_2 
+
+     ! Check to see if we are checkpointing this step 
+     checkpoint_step=.false.
+     halofind_step=.false.
+     injection_step=.false.
+
+     if (a+da > a_checkpoint(cur_checkpoint)) then
+        checkpoint_step=.true.
+        dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
         call expansion(a,dt,da_1,da_2)
-
-        da=da_1+da_2 
-
-        ! Check to see if we are checkpointing this step 
-        checkpoint_step=.false.
-        halofind_step=.false.
-        injection_step=.false.
-
-        if (a+da > a_checkpoint(cur_checkpoint)) then
-           checkpoint_step=.true.
-           dt=dt*(a_checkpoint(cur_checkpoint)-a)/da
-           call expansion(a,dt,da_1,da_2)
-           if (cur_checkpoint == num_checkpoints) final_step=.true.
-           halofind_step=.true.
-           if (z_checkpoint(cur_checkpoint).eq. z_i_nu) injection_step=.true.
-        endif
+        if (cur_checkpoint == num_checkpoints) final_step=.true.
+        halofind_step=.true.
+        if (z_checkpoint(cur_checkpoint).eq. z_i_nu) injection_step=.true.
+     endif
         
-        !! Check to see whether we should perform checkpoint kill
-        kill_step = .false.
-        sec1a = mpi_wtime(ierr)
-        if (rank == 0) then
-           if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
-        endif
-        if (kill_step) checkpoint_step=.true.
-        call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
+     !! Check to see whether we should perform checkpoint kill
+     kill_step = .false.
+     sec1a = mpi_wtime(ierr)
+     if (rank == 0) then
+        if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
+     endif
+     if (kill_step) checkpoint_step=.true.
+     call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
 
-        !! Calculate timestep parameters to be used
+     !! Calculate timestep parameters to be used
 
-        dt_gas=dt/4      
-        da=da_1+da_2 
-        ra=da/(a+da)
-        a_mid=a+(da/2) !da_1
+     dt_gas=dt/4      
+     da=da_1+da_2 
+     ra=da/(a+da)
+     a_mid=a+(da/2) !da_1
 
-        write(*,*)
-        write(*,*) 'sweep number: ',nts
-        write(*,*) 'tau         : ',tau,tau+dt
-        write(*,*) 'redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
-        write(*,*) 'scale factor: ',a,a_mid,a+da
-        write(*,*) 'expansion   : ',ra
+     write(*,*)
+     write(*,*) 'sweep number: ',nts
+     write(*,*) 'tau         : ',tau,tau+dt
+     write(*,*) 'redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
+     write(*,*) 'scale factor: ',a,a_mid,a+da
+     write(*,*) 'expansion   : ',ra
 
 #ifdef PP_EXT
-        write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
+     write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
 #else
         !write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc
-        write(*,*) 'time step   : ',dt,dt_e,dt_vmax
-        write(*,*) '              ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
+     write(*,*) 'time step   : ',dt,dt_e,dt_vmax
+     write(*,*) '              ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
 #endif
-        write(*,*) 'shake offset: ',shake_offset
-        sec1a = mpi_wtime(ierr)
-        if (rank == 0) write(*,*) "time taken [hrs] = ", (sec1a - sec1) / 3600.
+     write(*,*) 'shake offset: ',shake_offset
+     sec1a = mpi_wtime(ierr)
+     write(*,*) 'time [hrs]  : ', (sec1a - sec1) / 3600.
 
-        tau=tau+dt
-        t=t+dt
-        a=a+da
+     tau=tau+dt
+     t=t+dt
+     a=a+da
         
-     else ! not cosmo
-   
-        a = 1.0
-        a_mid = a
-        da = 0.0
-
-#ifdef PP_EXT
-        dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
-#else
-        dt = min(1.0,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc)
-#endif
-
-        t = t + dt
-        if (rank == 0) write(*,*) 'nts=',nts,'t=',t,'dt=',dt,dt_f_acc,dt_vmax,dt_pp_acc, dt_pp_ext_acc,dt_c_acc,dt_max_v,0.1/sqrt(G*mass_p/cur_sep**2)
-  
-     endif
-
   endif
 
   ! broadcast timestep variables 
@@ -151,8 +132,6 @@ subroutine timestep
 
 end subroutine timestep
 
-!! Expansion subroutine :: Hy Trac -- trac@cita.utoronto.ca
-!! Added Equation of State for Dark Energy :: Pat McDonald -- pmcdonal@cita.utoronto.ca
 subroutine expansion(a0,dt0,da1,da2)
   implicit none    
 # include "cubepm.par"
