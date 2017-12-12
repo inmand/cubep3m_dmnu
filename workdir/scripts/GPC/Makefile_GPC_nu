@@ -75,5 +75,5 @@ variable_initialization.o: variable_initialization.f90
 	$(FC) $(FFLAGS) -c $<
 
 clean:
-	rm -f *.o *.pc *~
+	rm -f *.o *.pc *~ cubep3m
 
