@@ -313,8 +313,6 @@ subroutine coarse_max_dt
   integer(kind=4) :: i,j,k
   real(kind=4) :: force,max_force
 
-  call system_clock(count=count_i)
-
   max_force=0.0
 
   !$omp parallel do default(shared) &
@@ -347,8 +345,6 @@ subroutine coarse_velocity
   integer(4) :: i,j,k,pp
   integer(4), dimension(3) :: i1,i2
   real(4), dimension(3) :: x,dx1,dx2,dV
-
-  call system_clock(count=count_i)
 
   !$omp parallel do default(shared) private(i,j,k,pp,x,i1,i2,dx1,dx2,dV)
   do k=1,nc_node_dim

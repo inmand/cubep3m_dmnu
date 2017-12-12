@@ -91,7 +91,6 @@ subroutine timestep
 
      !! Calculate timestep parameters to be used
 
-     dt_gas=dt/4      
      da=da_1+da_2 
      ra=da/(a+da)
      a_mid=a+(da/2) !da_1
@@ -125,7 +124,6 @@ subroutine timestep
   call mpi_bcast(a,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(a_mid,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(dt,1,mpi_real,0,mpi_comm_world,ierr)
-  call mpi_bcast(dt_gas,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(checkpoint_step,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(halofind_step,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(final_step,1,mpi_logical,0,mpi_comm_world,ierr)

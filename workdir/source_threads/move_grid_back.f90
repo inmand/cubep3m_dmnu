@@ -12,7 +12,6 @@ subroutine move_grid_back(force_grid_back)
   real(4), parameter :: maxshake = 16. 
 
   call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
-  call system_clock(count=count_i)
 
   remove_offset(:) = 0.
   doremove = .false.
