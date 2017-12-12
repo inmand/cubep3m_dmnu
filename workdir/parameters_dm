@@ -63,17 +63,12 @@ real(4),      parameter :: omega_nu = N_massive_nu*mass_neutrino/93.14/(H0/100.)
 ! omega fractions 
 real(4),      parameter :: omega_c        = 0.27
 real(4),      parameter :: omega_b        = 0.05
-real(4),      parameter :: omega_cb	  = omega_c+omega_b
-real(4),      parameter :: omega_m        = omega_nu+omega_cb
+real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
 real(4),      parameter :: omega_l        = 1.0-omega_m
 real(4),      parameter :: wde            = -1.0
-real(4),      parameter :: omega_ch       = 0.7
-real(4),      parameter :: bias           = 1
 real(4),      parameter :: power_index    = 2.0 ! 1.0,1.5 and 2.0 for power law transfer function in initial condition generator.
 
-! non-gaussian initial conditions parameters
-real(4),      parameter :: f_nl           = 0.0
-real(4),      parameter :: g_nl           = 0.0
+! initial conditions parameters
 real(4),      parameter :: n_s            = 0.96
 real(4),      parameter :: scalar_amp     = 2.46e-9
 real(4),      parameter :: k_pivot_scalar = 0.02 ! 1/Mpc
