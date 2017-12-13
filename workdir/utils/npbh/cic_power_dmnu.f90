@@ -48,11 +48,11 @@ program cic_power_dmnu
   integer(4), parameter :: nt = 16
 
   logical, parameter :: correct_kernel=.false.
-#ifndef INITCONDITIONS
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints0'
-#else
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints10'
-#endif
+!#ifndef INITCONDITIONS
+!  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_npbh'
+!#else
+!  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_npbh'
+!#endif
   !! nc is the number of cells per box length
   integer, parameter :: hc=nc/2
   real, parameter    :: ncr=nc

@@ -3,7 +3,6 @@
 #include "../parameters"
 
 !! files / paths 
-character(*), parameter :: checkpoints=cubepm_root//'input/checkpoints'
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 character(*), parameter :: killtime_path=cubepm_root//'batch/killtime.txt' 
 

@@ -18,7 +18,7 @@ subroutine halofind
     integer(4) :: num_candidates
 
     character (len=max_path) :: ofile
-    character (len=7) :: z_s
+    character (len=100) :: z_s
     character (len=3) :: t_s
     character (len=5) :: r_s
 
@@ -94,7 +94,7 @@ subroutine halofind
 
     z_write = z_halofind(cur_halofind)
     call mpi_bcast(z_write, 1, mpi_real, 0, mpi_comm_world, ierr)
-    write(z_s ,"(f7.3)") z_write 
+    write(z_s ,"(f10.3)") z_write 
     z_s = adjustl(z_s)
     
     write(r_s, "(i5)") rank

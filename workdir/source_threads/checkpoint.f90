@@ -10,7 +10,7 @@ subroutine checkpoint(dokill)
 
   character (len=max_path) :: ofile,ofile2
   character (len=6) :: rank_s
-  character (len=7) :: z_s  
+  character (len=100) :: z_s  
 
   integer(kind=4) :: i,j,fstat,blocksize,num_writes,nplow,nphigh
   integer(kind=4) :: cur_halo
@@ -56,7 +56,7 @@ subroutine checkpoint(dokill)
   write(rank_s,'(i6)') rank
   rank_s=adjustl(rank_s)
 
-  write(z_s,'(f7.3)') z_write
+  write(z_s,'(f10.3)') z_write
   z_s=adjustl(z_s)
 
   ! Open checkpoint files

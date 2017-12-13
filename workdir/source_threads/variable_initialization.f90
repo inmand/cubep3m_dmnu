@@ -59,6 +59,13 @@ subroutine variable_initialize
   
   if (rank == 0) then
 
+     !! print cosmology
+     write(*,*) 'cosmology: '
+     write(*,*) '>>omega_m: ',omega_m
+     write(*,*) '>>omega_r: ',omega_r
+     write(*,*) '>>omega_l: ',omega_l
+     write(*,*) '>>omega_k: ',1.-omega_m-omega_r-omega_l
+
      !! read in when to store checkpoints
      open(11,file=checkpoints,status='old',iostat=fstat)
      if (fstat /= 0) then
@@ -67,10 +74,15 @@ subroutine variable_initialize
         call mpi_abort(mpi_comm_world,ierr,ierr)
      endif
      do num_checkpoints=1,max_input
-        read(unit=11,err=51,end=41,fmt='(f8.4)') z_checkpoint(num_checkpoints)
+        read(unit=11,err=51,end=41,fmt='(f10.4)') z_checkpoint(num_checkpoints)
      enddo
 41   num_checkpoints=num_checkpoints-1
 51   close(11)
+
+     if (z_checkpoint(1).eq.z_i) then
+        z_checkpoint(1:num_checkpoints-1) = z_checkpoint(2:num_checkpoints)
+        num_checkpoints=num_checkpoints-1
+     end if
 
      if (num_checkpoints.eq.1) then
         write(*,*) 'problem reading checkpoints '
@@ -93,12 +105,12 @@ subroutine variable_initialize
      write(*,*)
      write(*,*) 'Starting simulation at:'
      write(*,*) 'z      a'
-     write(*,'(f8.4,2x,f8.4)') z_i,a_i
+     write(*,'(f10.3,2x,f10.3)') z_i,a_i
      if (num_checkpoints > 0) then
         write(*,*)
         write(*,*) 'Checkpointing performed at:'
         do i=1,num_checkpoints
-           write(*,'(f8.4,2x,f8.4)') z_checkpoint(i),a_checkpoint(i)
+           write(*,'(f10.3,2x,f10.3)') z_checkpoint(i),a_checkpoint(i)
         enddo
      else
         write(*,*) 'no checkpoints to be stored'
@@ -114,7 +126,7 @@ subroutine variable_initialize
         write(*,*) 'Halo catalogs generated at:'
         write(*,*) 'z        a'
         do i=1,num_halofinds
-           write(*,'(f8.4,2x,f8.4)') z_halofind(i),a_halofind(i)
+           write(*,'(f10.3,2x,f10.3)') z_halofind(i),a_halofind(i)
         enddo
      else
         a_halofind(1)=100.0

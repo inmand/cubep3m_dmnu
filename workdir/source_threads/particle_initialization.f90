@@ -12,7 +12,7 @@ subroutine particle_initialize(ispec)
   integer*8 :: np_total,npl8
   character(len=max_path) :: ofile
   character(len=6) :: rank_s
-  character(len=7) :: z_s, z_s2
+  character(len=100) :: z_s, z_s2
   integer(4) :: np_nu
 
   integer(4) :: np_dm
@@ -33,7 +33,7 @@ subroutine particle_initialize(ispec)
      !Checkpoint
      if (rank == 0) z_write = z_checkpoint(restart_checkpoint)
      call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
-     write(z_s,'(f7.3)') z_write
+     write(z_s,'(f10.3)') z_write
      z_s=adjustl(z_s)
   elseif (restart_kill) then
      !Checkpoint kill
@@ -41,13 +41,13 @@ subroutine particle_initialize(ispec)
      z_s=adjustl(z_s)
   elseif (ispec .ne. pid_dm) then
      !Neutrino IC
-     if (rank==0) z_write = z_checkpoint(cur_checkpoint-1) !checkpoint comes first!
+     if (rank==0) z_write = z_i_nu!z_checkpoint(cur_checkpoint-1) !checkpoint comes first!
      call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
-     write(z_s,'(f7.3)') z_write
+     write(z_s,'(f10.3)') z_write
      z_s=adjustl(z_s)
   else
      !Dark matter IC
-     write(z_s,'(f7.3)') z_i
+     write(z_s,'(f10.3)') z_i
      z_s=adjustl(z_s)
   endif
   

@@ -14,6 +14,8 @@ character(*), parameter :: ic_path        = output_path
 integer, parameter      :: nk             = 1675
 character(len=*), parameter :: fntf       = cubepm_root//'transfer/mnu000_onu0/mnu000_onu0_transfer_out_z10.dat'
 character(len=*), parameter :: vfntf      = '' !unused
+! file containing checkpoints
+character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_dmnu'
 
 !------------------------------------!
 !!Simulation parameters

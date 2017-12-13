@@ -143,7 +143,7 @@ subroutine expansion(a0,dt0,da1,da2)
   a_x=a0
   omHsq=4.0/9.0
   a3rlm=a_x**(-3*wde)*omega_l/omega_m
-  arkm=a_x*(1.0-omega_m-omega_l)/omega_m
+  arkm=a_x*(1.0-omega_m-omega_l-omega_r)/omega_m
   am1rrm=a_x**(-1.)*omega_r/omega_m
 
   adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm+am1rrm))
@@ -155,7 +155,7 @@ subroutine expansion(a0,dt0,da1,da2)
   a_x=a0+da1
   omHsq=4.0/9.0
   a3rlm=a_x**(-3*wde)*omega_l/omega_m
-  arkm=a_x*(1.0-omega_m-omega_l)/omega_m
+  arkm=a_x*(1.0-omega_m-omega_l-omega_r)/omega_m
   am1rrm=a_x**(-1.)*omega_r/omega_m
 
   adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm+am1rrm))

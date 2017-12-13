@@ -19,7 +19,7 @@ program init_pbh
   close(11)
   call random_seed(put=iseed)
 
-  write(str,*) z_i
+  write(str,'(f10.3)') z_i
   str=scratch_path//'/node0/'//trim(adjustl(str))//'xv0_nu.dat'
   write(*,*) 'Writing to file: '//trim(adjustl(str))
   open(unit=11,file=trim(adjustl(str)),status='replace',iostat=stat,access='stream')
