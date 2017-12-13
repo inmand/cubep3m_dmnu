@@ -45,7 +45,7 @@ program cic_crossvel
   include 'mpif.h'
 #  include "../../parameters"
 
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_nu'
+  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints10'
   logical, parameter :: turn_off_halos = .false.  !! Can set this True if halo portion is slow
     
   !! Threading
@@ -59,13 +59,13 @@ program cic_crossvel
 
   !! Matter and velocity transfer functions for redshifts 0, 1, and 10
   character(*), parameter :: cubepm_batch=cubepm_root//'batch/'
-  character(*), parameter :: fntf0 = cubepm_batch//'ith2_mnu0p05_z0p05_tk.dat'
+  character(*), parameter :: fntf0 = fntf!cubepm_batch//'ith2_mnu0p05_z0p05_tk.dat'
   character(*), parameter :: fntf1 = fntf0
   character(*), parameter :: fntf10 = fntf0
-  character(*), parameter :: vfntf0 = cubepm_batch//'ith2_mnu0p05_z0p05_v_tk.dat'
-  character(*), parameter :: vfntf1 = vfntf0
-  character(*), parameter :: vfntf10 = vfntf0
-  integer, parameter :: nk = 1000
+  character(*), parameter :: vfntf0 = fntf!cubepm_batch//'ith2_mnu0p05_z0p05_v_tk.dat'
+  character(*), parameter :: vfntf1 = fntf0
+  character(*), parameter :: vfntf10 = fntf0
+  !integer, parameter :: nk = 1000
   integer, parameter :: dmcol = 2
   integer, parameter :: nucol = 6
 
@@ -329,6 +329,35 @@ program cic_crossvel
     call init_cell_search(0)
     call init_cell_search(2)
 
+    ! --------------------------------------------------------------------------------
+    ! Read, pass, and sort dark matter particles into two separate groups
+    ! --------------------------------------------------------------------------------
+
+    if (rank == 0) write(*,*) "Reading, passing, and sorting dark matter particles ... "
+    call read_particles(1)
+    call pass_particles(1)
+!    call order_xvp_groups(1)
+!    call buffer_particles_groups(1, g0)
+!    call buffer_particles_groups(1, g1)
+!    call order_xvp_ll(1, g0)
+!    call order_xvp_ll(1, g1)
+!    if (rank == 0) write(*,*)
+
+!    call clear_groups
+!    call order_xvp_ll(1, g0)
+    
+    call velocity_density(cur_dimension, 1, g0, N_closest_dm)
+!#ifdef write_vel
+!    call writevelocityfield_totpop(1, -1)
+!#endif
+    call darkmatter(0)
+    !call swap_slab12(0)
+    call powerspectrum(slab, slab, pkvel(cur_dimension,:,:,2), 0)
+
+    call writepowerspectra(0, 2)
+
+    cycle
+
 #ifdef EID
     ! --------------------------------------------------------------------------------
     ! Read velocity bins for neutrino mass reconstructions
@@ -353,20 +382,6 @@ program cic_crossvel
     call order_xvp_ll(0, g1)
     if (rank == 0) write(*,*)
        
-    ! --------------------------------------------------------------------------------
-    ! Read, pass, and sort dark matter particles into two separate groups
-    ! --------------------------------------------------------------------------------
-
-    if (rank == 0) write(*,*) "Reading, passing, and sorting dark matter particles ... "
-    call read_particles(1)
-    call pass_particles(1)
-    call order_xvp_groups(1)
-    call buffer_particles_groups(1, g0)
-    call buffer_particles_groups(1, g1)
-    call order_xvp_ll(1, g0)
-    call order_xvp_ll(1, g1)
-    if (rank == 0) write(*,*)
-
     ! --------------------------------------------------------------------------------
     ! Read, pass, and sort halo particles into two separate groups
     ! --------------------------------------------------------------------------------
@@ -428,7 +443,7 @@ program cic_crossvel
         call writevelocityfield(1, g1)
 #endif
         call darkmatter(0)
-        call powerspectrum(slab, slab2, pkvel(cur_dimension,:,:,2), 0)
+
         if (rank == 0) write(*,*)
 
         ! --------------------------------------------------------------------------------                                                            
@@ -542,7 +557,7 @@ program cic_crossvel
             enddo
         else
             call writepowerspectra(0, 1)
-            call writepowerspectra(0, 2)
+
             call writepowerspectra(0, 4)
         endif
     endif
@@ -1036,10 +1051,6 @@ program cic_crossvel
     ! and reconstructed velocity fields for dmdm, nunu, and nudm.
     ! --------------------------------------------------------------------------------
 
-     call clear_groups
-     call order_xvp_ll(0, g0)
-     call order_xvp_ll(1, g0)
-     call order_xvp_ll(2, g0)
 
 #if defined(EID) && defined(MOMENTUM) && defined(write_vel)
     ! ---------------------------------------------------------------------------------------------------
@@ -1062,13 +1073,6 @@ program cic_crossvel
     if (rank == 0) write(*,*) "Computing cross correlation between dm real and reconstructed fields..." 
     do cur_dimension = 1, 3 !! Each x, y, z dimension
 
-        !! Actual first
-        call velocity_density(cur_dimension, 1, g0, N_closest_dm)
-#ifdef write_vel
-        call writevelocityfield_totpop(1, -1)
-#endif
-        call darkmatter(0)
-        call swap_slab12(0)
 
         !! Reconstructed from halos
         call matter_density(2, g0)
@@ -1684,7 +1688,7 @@ subroutine read_particles(command)
     real z_write
     integer(8) :: np_total
     integer j, fstat
-    character(len=7) :: z_string
+    character(len=100) :: z_string
     character(len=4) :: rank_string
     character(len=200) :: check_name
     integer(4) :: command
@@ -1731,7 +1735,7 @@ subroutine read_particles(command)
     call mpi_bcast(z_write, 1, mpi_real, 0, mpi_comm_world, ierr)
 
     !! Determine the file name
-    write(z_string,'(f7.3)') z_write
+    write(z_string,'(f10.3)') z_write
     z_string=adjustl(z_string)
 
     write(rank_string,'(i4)') rank
@@ -2433,7 +2437,7 @@ subroutine writepowerspectra(command, index)
     integer      :: i, j, k, ii
     character*180 :: fn
     character*3  :: prefix
-    character*7  :: z_write
+    character*100  :: z_write
 #ifdef EID
     character(len=7) :: rec_write
 #endif
@@ -2498,7 +2502,7 @@ subroutine writepowerspectra(command, index)
         fn = '_recdm_div'//fn
     endif
 
-    write(z_write,'(f7.3)') z_checkpoint(cur_checkpoint)
+    write(z_write,'(f10.3)') z_checkpoint(cur_checkpoint)
     z_write=adjustl(z_write)
     
 #ifdef NGP 
@@ -5573,7 +5577,7 @@ subroutine writevelocityfield(command, glook)
     ! Checkpoint and rank strings
     !
 
-    write(z_write, '(f7.3)') zcur
+    write(z_write, '(f10.3)') zcur
     z_write = adjustl(z_write)
 
     write(rank_string, '(i4)') rank
@@ -5661,7 +5665,7 @@ subroutine writevelocityfield_totpop(command, command2)
     ! Checkpoint and rank strings
     !
 
-    write(z_write, '(f7.3)') zcur
+    write(z_write, '(f10.3)') zcur
     z_write = adjustl(z_write)
 
     write(rank_string, '(i4)') rank

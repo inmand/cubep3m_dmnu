@@ -288,17 +288,20 @@ program cic_power_dmnu
         ! ---------------------------------------------------------------------------------------------------
 
         !! Neutrino and dark matter particle numbers are known in advance
+#ifdef NEUTRINOS
         call PoissonNoise(0) 
         call powerspectrum(slab,slab,poisson_nu)
+#endif
         call PoissonNoise(1) 
         call powerspectrum(slab,slab,poisson_dm)
         
         !! Halo files must be read in order to determine the number of halos
-        call read_particles(2)
-        call PoissonNoise(2)
-        call powerspectrum(slab,slab,poisson_h)
+!        call read_particles(2)
+!        call PoissonNoise(2)
+!        call powerspectrum(slab,slab,poisson_h)
 #endif
 
+#ifdef NEUTRINOS
         ! ---------------------------------------------------------------------------------------------------
         ! NEUTRINO AUTO POWER
         ! ---------------------------------------------------------------------------------------------------
@@ -316,37 +319,40 @@ program cic_power_dmnu
         call powerspectrum(slab,slab,pkdm)
 #endif
         if (rank == 0) call writepowerspectra(0)
-!!$
-!!$#ifdef EID
-!!$        ! ---------------------------------------------------------------------------------------------------
-!!$        ! RECONSTRUCTED NEUTRINO AUTO POWER
-!!$        ! ---------------------------------------------------------------------------------------------------
-!!$
-!!$        do cur_nurec = 1, num_eid_masses
-!!$            
-!!$            !! Neutrino mass to reconstruct
-!!$            mnu_rec = eid_masses(cur_nurec)
-!!$
-!!$#ifdef GROUPS
-!!$            call darkmatter(100, 0, 0)
-!!$            call swap_slab12
-!!$            call darkmatter(100, 1, 0)
-!!$            call powerspectrum(slab,slab2,pkdm)
-!!$#else
-!!$            call darkmatter(100)
-!!$            call powerspectrum(slab,slab,pkdm)
-!!$#endif
-!!$
-!!$            !! Write power spectra to file
-!!$            if (rank == 0) call writepowerspectra(100)
-!!$
-!!$        enddo
-!!$#endif
-!!$    
+
+
+#ifdef EID
+        ! ---------------------------------------------------------------------------------------------------
+        ! RECONSTRUCTED NEUTRINO AUTO POWER
+        ! ---------------------------------------------------------------------------------------------------
+
+        do cur_nurec = 1, num_eid_masses
+            
+            !! Neutrino mass to reconstruct
+            mnu_rec = eid_masses(cur_nurec)
+
+#ifdef GROUPS
+            call darkmatter(100, 0, 0)
+            call swap_slab12
+            call darkmatter(100, 1, 0)
+            call powerspectrum(slab,slab2,pkdm)
+#else
+            call darkmatter(100)
+            call powerspectrum(slab,slab,pkdm)
+#endif
+
+            !! Write power spectra to file
+            if (rank == 0) call writepowerspectra(100)
+
+        enddo
+#endif
+#endif
+    
         ! ---------------------------------------------------------------------------------------------------
         ! DARK MATTER AUTO POWER
         ! ---------------------------------------------------------------------------------------------------
- 
+
+
         call read_particles(1)
         call pass_particles(1)
 #ifdef GROUPS
@@ -365,51 +371,54 @@ program cic_power_dmnu
         ! HALO AUTO POWER
         ! ---------------------------------------------------------------------------------------------------
 
-        call read_particles(2)
-        call pass_particles(2)
-#ifdef GROUPS
-        call assign_groups(2)
-        call darkmatter(2, 0, 0)
-        call swap_slab12
-        call darkmatter(2, 1, 0)
-        call powerspectrum(slab,slab2,pkdm)
-#else
-        call darkmatter(2)
-        call powerspectrum(slab,slab,pkdm)
-#endif
-        if (rank == 0) call writepowerspectra(2)
+!        call read_particles(2)
+!        call pass_particles(2)
+!#ifdef GROUPS
+!        call assign_groups(2)
+!        call darkmatter(2, 0, 0)
+!        call swap_slab12
+!        call darkmatter(2, 1, 0)
+!        call powerspectrum(slab,slab2,pkdm)
+!#else
+!        call darkmatter(2)
+!        call powerspectrum(slab,slab,pkdm)
+!#endif
+!        if (rank == 0) call writepowerspectra(2)
 
-#if defined(SPLITHALOS) && defined(GROUPS)
-        if (writeHaloFields) then
-            ! ---------------------------------------------------------------------------------------------------
-            ! WRITE OUT HALO DENSITY FIELDS FOR HALOS IN DIFFERENT MASS RANGES
-            ! ---------------------------------------------------------------------------------------------------
-            
-            call get_halo_mass_bins(numHaloFields) 
-            do kt = 1, numHaloFields 
-                call cic_halomass(kt)
-            enddo
-        endif
-
-        ! ---------------------------------------------------------------------------------------------------
-        ! HALO AUTO POWER BASED ON LOW AND HIGH MASS POPULATIONS
-        ! ---------------------------------------------------------------------------------------------------
-
-        call assign_groups(-1)
-        call darkmatter(2, 0, -1)
-        call swap_slab12
-        call darkmatter(2, 1, -1)
-        call powerspectrum(slab,slab2,pkdm)
-        if (rank == 0) call writepowerspectra(-1)
-#endif
-
+!!$#if defined(SPLITHALOS) && defined(GROUPS)
+!!$        if (writeHaloFields) then
+!!$            ! ---------------------------------------------------------------------------------------------------
+!!$            ! WRITE OUT HALO DENSITY FIELDS FOR HALOS IN DIFFERENT MASS RANGES
+!!$            ! ---------------------------------------------------------------------------------------------------
+!!$            
+!!$            call get_halo_mass_bins(numHaloFields) 
+!!$            do kt = 1, numHaloFields 
+!!$                call cic_halomass(kt)
+!!$            enddo
+!!$        endif
+!!$
 !!$        ! ---------------------------------------------------------------------------------------------------
-!!$        ! NEUTRINO-DARK MATTER CROSS SPECTRA
+!!$        ! HALO AUTO POWER BASED ON LOW AND HIGH MASS POPULATIONS
 !!$        ! ---------------------------------------------------------------------------------------------------
 !!$
+!!$        call assign_groups(-1)
+!!$        call darkmatter(2, 0, -1)
+!!$        call swap_slab12
+!!$        call darkmatter(2, 1, -1)
+!!$        call powerspectrum(slab,slab2,pkdm)
+!!$        if (rank == 0) call writepowerspectra(-1)
+!!$#endif
+
+        !Clear groups for cross power
 #ifdef GROUPS
         call clear_groups
 #endif
+
+
+#ifdef NEUTRINOS
+        ! ---------------------------------------------------------------------------------------------------
+        ! NEUTRINO-DARK MATTER CROSS SPECTRA
+        ! ---------------------------------------------------------------------------------------------------
 
 #ifdef GROUPS
         call darkmatter(0, 0, 1)
@@ -438,35 +447,35 @@ program cic_power_dmnu
 #endif
         call powerspectrum(slab,slab2,pkdm)
         if (rank == 0) call writepowerspectra(4)
-
-        ! ---------------------------------------------------------------------------------------------------
-        ! DARK MATTER-HALO CROSS SPECTRA
-        ! ---------------------------------------------------------------------------------------------------
-
-#ifdef GROUPS
-        call darkmatter(1, 0, 1)
-        call swap_slab12
-        call darkmatter(2, 0, 1)
-#else
-        call darkmatter(1)
-        call swap_slab12
-        call darkmatter(2)
 #endif
-        call powerspectrum(slab,slab2,pkdm)
-        if (rank == 0) call writepowerspectra(5)
-
-
-!!$#if defined(EID) && defined(write_den_eid) && defined(GROUPS)
 !!$        ! ---------------------------------------------------------------------------------------------------
-!!$        ! WRITE RECONSTRUCTED NEUTRINO FIELDS TO FILE 
+!!$        ! DARK MATTER-HALO CROSS SPECTRA
 !!$        ! ---------------------------------------------------------------------------------------------------
-!!$        cleardup = .true.
-!!$        do cur_nurec = 1, num_eid_masses
-!!$            mnu_rec = eid_masses(cur_nurec)
-!!$            call darkmatter(100, 0, 1)
-!!$        enddo
+!!$
+!!$#ifdef GROUPS
+!!$        call darkmatter(1, 0, 1)
+!!$        call swap_slab12
+!!$        call darkmatter(2, 0, 1)
+!!$#else
+!!$        call darkmatter(1)
+!!$        call swap_slab12
+!!$        call darkmatter(2)
 !!$#endif
+!!$        call powerspectrum(slab,slab2,pkdm)
+!!$        if (rank == 0) call writepowerspectra(5)
 
+#ifdef NEUTRINOS
+#if defined(EID) && defined(write_den_eid) && defined(GROUPS)
+        ! ---------------------------------------------------------------------------------------------------
+        ! WRITE RECONSTRUCTED NEUTRINO FIELDS TO FILE 
+        ! ---------------------------------------------------------------------------------------------------
+        cleardup = .true.
+        do cur_nurec = 1, num_eid_masses
+            mnu_rec = eid_masses(cur_nurec)
+            call darkmatter(100, 0, 1)
+        enddo
+#endif
+#endif
     enddo
 
     !! Output timing stats
@@ -609,7 +618,7 @@ contains
     real z_write
     integer(8) :: np_total
     integer i,j,fstat, blocksize, nplow, nphigh, num_writes
-    character(len=7) :: z_string
+    character(len=100) :: z_string
     character(len=4) :: rank_string
     character(len=200) :: check_name
     integer :: command
@@ -653,7 +662,7 @@ contains
 
     call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-    write(z_string,'(f7.3)') z_write
+    write(z_string,'(f10.3)') z_write
     z_string=adjustl(z_string)
 
     write(rank_string,'(i4)') rank
@@ -914,11 +923,13 @@ contains
             read(21) garbage3 !! angular momentum
             read(21) garbage3 !! var in vel
             read(21) garbage3 !! var in pos
+#ifdef NEUTRINOS
             read(21) garbage3 !! moment of inertia
             read(21) garbage3 !! moment of inertia
             read(21) garbage3 !! xbar nu
             read(21) garbage3 !! vbar nu
             read(21) garbage1 !! nbr nu
+#endif
         enddo
         !! Convert global halo coordinates to local node coordinates
         do j=1 , np_local_h
@@ -1340,7 +1351,7 @@ end subroutine cp_fftw
     real         :: kr
     character*180 :: fn
     character*5  :: prefix
-    character*7  :: z_write
+    character*10  :: z_write
 #ifdef EID
     character(len=7) :: rec_write
 #endif
@@ -1354,7 +1365,7 @@ end subroutine cp_fftw
     !! 2nd is dm d2(k)
     !! 3rd is standard deviation
 
-    write(z_write,'(f7.3)') z_checkpoint(cur_checkpoint)
+    write(z_write,'(f10.3)') z_checkpoint(cur_checkpoint)
     z_write=adjustl(z_write)
     
 #ifdef NGP 
@@ -1455,7 +1466,7 @@ subroutine darkmatter(command)
     real    :: d,dmin,dmax,sum_dm,sum_dm_local,dmint,dmaxt,z_write
     real*8  :: dsum,dvar,dsumt,dvart
     real, dimension(3) :: dis
-    character(len=7) :: z_string
+    character(len=100) :: z_string
     character(len=4) :: rank_string
     character(len=200) :: check_name
     integer :: command
@@ -1498,7 +1509,7 @@ subroutine darkmatter(command)
 
         call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-        write(z_string,'(f7.3)') z_write
+        write(z_string,'(f10.3)') z_write
         z_string=adjustl(z_string)
         write(rank_string,'(i4)') rank
         rank_string=adjustl(rank_string)
@@ -1535,7 +1546,7 @@ subroutine darkmatter(command)
 
         call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-        write(z_string,'(f7.3)') z_write
+        write(z_string,'(f10.3)') z_write
         z_string=adjustl(z_string)
         write(rank_string,'(i4)') rank
         rank_string=adjustl(rank_string)
@@ -1574,7 +1585,7 @@ subroutine darkmatter(command)
 
         call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-        write(z_string,'(f7.3)') z_write
+        write(z_string,'(f10.3)') z_write
         z_string=adjustl(z_string)
         write(rank_string,'(i4)') rank
         rank_string=adjustl(rank_string)
@@ -1681,7 +1692,7 @@ subroutine darkmatter(command)
     real    :: d,dmin,dmax,sum_dm,sum_dm_local,dmint,dmaxt,z_write
     real*8  :: dsum,dvar,dsumt,dvart
     real, dimension(3) :: dis
-    character(len=7) :: z_string
+    character(len=100) :: z_string
     character(len=4) :: rank_string
     character(len=100) :: check_name
     integer :: command
@@ -1737,7 +1748,7 @@ subroutine darkmatter(command)
 
     call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-    write(z_string,'(f7.3)') z_write
+    write(z_string,'(f10.3)') z_write
     z_string=adjustl(z_string)
     write(rank_string,'(i4)') rank
     rank_string=adjustl(rank_string)
@@ -2920,7 +2931,7 @@ subroutine cic_halomass(nh)
     real(4) :: m1, m2, mh, mp, z_write
     integer(8) :: nn_loc, nn_global
     character(len=2) :: i_string
-    character(len=7) :: z_string
+    character(len=100) :: z_string
     character(len=4) :: rank_string
     character(len=200) :: check_name
 
@@ -3016,7 +3027,7 @@ subroutine cic_halomass(nh)
 
         call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
-        write(z_string,'(f7.3)') z_write
+        write(z_string,'(f10.3)') z_write
         z_string=adjustl(z_string)
         write(rank_string,'(i4)') rank
         rank_string=adjustl(rank_string)
@@ -3066,14 +3077,14 @@ end subroutine cic_halomass
 #ifdef GROUPS
         mp = ncr**3 / np_groups_dm(glook)
 #else
-        mp = (ncr/(np/ratio_nudm_dim))**3
+        mp = (ncr/(np/ratio_nudm_dim))**3/(1+bcc)
 #endif
         np_total = np_local_dm
     else if (command == 0) then
 #ifdef GROUPS
         mp = ncr**3 / np_groups(glook)
 #else
-        mp = (ncr/np)**3
+        mp = (ncr/np)**3/(1+bcc)
 #endif
         np_total = np_local
 #ifdef EID

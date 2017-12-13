@@ -1,0 +1,84 @@
+!-*-f90-*-
+
+!------------------------------------!
+!!file IO
+! path to cubepm root directory
+character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
+! path to simulation output
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test_Clean/'
+! path to local scratch
+character(*), parameter :: scratch_path   = output_path
+! path to initial conditions
+character(*), parameter :: ic_path        = output_path
+! transfer functions
+integer, parameter      :: nk             = 1000
+character(len=*), parameter :: fntf       = cubepm_root//'transfer/cpbh/tk_fine.dat'
+character(len=*), parameter :: vfntf      = ''
+
+!------------------------------------!
+!!Simulation parameters
+! nodes / dimension, total nodes = nodes_dim**3
+integer(4),   parameter :: nodes_dim      = 1
+! fine mesh tiles / node / dimension
+integer(4),   parameter :: tiles_node_dim = 2
+! cores / node
+integer(4),   parameter :: cores          = 4
+! nested threads
+integer(4),   parameter :: nested_threads = 1
+! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
+real(4), parameter :: density_buffer      = 2.25
+! size of fine mesh tile in cells / dimension 
+integer(4),   parameter :: nf_tile        = 176
+! Fine mesh force cut-off in fine mesh cells (determined by kernel)
+integer(4),   parameter :: nf_cutoff      = 16
+! Fine mesh buffer size in fine mesh cells
+integer(4),   parameter :: nf_buf         = nf_cutoff + 8
+! Number of fine cells
+#ifndef COARSE_HACK
+integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim
+#else
+! Used in cic_*.f90 to compute on smaller grids
+integer, parameter :: coarsen_factor = 2
+integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim / coarsen_factor
+#endif
+! body centered(1) or simple cubic(0) lattice
+integer(4),   parameter :: bcc            = 1
+! number of primordial black holes
+integer(4),   parameter :: npbh           = 1000
+
+!------------------------------------!
+!!cosmology parameters
+! box size / dim (Mpc/h)
+real(4),      parameter :: box            = 0.020*nodes_dim
+! initial redshifts
+real(4),      parameter :: z_i            = 20000.0
+real(4),      parameter :: z_i_nu         = z_i
+! hubble rate
+real(4),      parameter :: H0             = 67.
+! initial conditions
+real(4),     parameter :: A_s             = 2.215e-9
+real(4),     parameter :: n_s             = 0.9619
+real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
+! matter
+!  primordial black holes
+real(4),      parameter :: f_pbh          = 0.0 !Fraction of "omega_c" in pbh
+real(4),      parameter :: omega_pbh      = f_pbh*0.27
+!  cold dark matter
+real(4),      parameter :: omega_cdm      = 0.27*(1.-f_pbh)
+!  baryons: homogeneous only, no hydro
+real(4),      parameter :: omega_bar      = 0.05 
+!  neutrino parameters
+real(4),      parameter :: N_massive_nu   = 0.0
+real(4),      parameter :: mass_neutrino  = 0.0
+real(4),      parameter :: omega_nu       = omega_pbh !We map pbh onto neutrinos in cubep3m
+!  total matter
+real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
+! radiation
+!  photons
+real(4),      parameter :: omega_g        = 2.471*10.0**(-5.)/(H0/100.)/(H0/100.)
+!  massless neutrinos
+real(4),      parameter :: N_eff          = 3.046
+real(4),      parameter :: omega_r        = omega_g*(1.+N_eff*(7./8.)*(4./11.)**(4./3.))
+! dark energy
+real(4),      parameter :: omega_l        = 1.0-omega_m-omega_r
+real(4),      parameter :: wde            = -1.

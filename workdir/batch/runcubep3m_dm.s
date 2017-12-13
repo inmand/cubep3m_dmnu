@@ -30,9 +30,9 @@ cd ${SUBDIR}
 cd ..
 ln -s parameters_dm parameters
 cd  ./batch/
-source ./COMPILE_ALL.csh >& ${RUNDIR}/compile${LOG}
+source ./COMPILE_dmnu.csh >& ${RUNDIR}/compile${LOG}
 
-mpirun ../utils/dist_init/dist_init_dmnu_dm >& ${RUNDIR}/dist_init_dmnu_dm${LOG}
+mpirun ../utils/dist_init_dmnu/dist_init_dmnu_dm >& ${RUNDIR}/dist_init_dmnu_dm${LOG}
 mpirun ../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
 mpirun ../utils/cic_power/ngp_power_dm >& ${RUNDIR}/ngp_power_dm${LOG}
 mpirun ../utils/cic_power/ngp_power_dm_init >& ${RUNDIR}/ngp_power_dm_init${LOG}
