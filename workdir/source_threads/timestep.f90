@@ -135,7 +135,7 @@ subroutine expansion(a0,dt0,da1,da2)
 # include "cubepm.par"
 
   real(4) :: a0,dt0,dt_x,da1,da2
-  real(8) :: a_x,adot,addot,atdot,arkm,a3rlm,omHsq
+  real(8) :: a_x,adot,addot,atdot,arkm,a3rlm,am1rrm,omHsq
   real(8), parameter :: e = 2.718281828459046
   
   !! Expand Friedman equation to third order and integrate
@@ -144,10 +144,11 @@ subroutine expansion(a0,dt0,da1,da2)
   omHsq=4.0/9.0
   a3rlm=a_x**(-3*wde)*omega_l/omega_m
   arkm=a_x*(1.0-omega_m-omega_l)/omega_m
+  am1rrm=a_x**(-1.)*omega_r/omega_m
 
-  adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm))
-  addot=a_x**2*omHsq*(1.5+2.0*arkm+1.5*(1.0-wde)*a3rlm)
-  atdot=a_x*adot*omHsq*(3.0+6.0*arkm+1.5*(2.0-3.0*wde)*(1.0-wde)*a3rlm)
+  adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm+am1rrm))
+  addot=a_x**2*omHsq*(1.5+2.0*arkm+1.5*(1.0-wde)*a3rlm+am1rrm)
+  atdot=a_x*adot*omHsq*(3.0+6.0*arkm+1.5*(2.0-3.0*wde)*(1.0-wde)*a3rlm+am1rrm)
 
   da1=adot*dt_x+(addot*dt_x**2)/2.0+(atdot*dt_x**3)/6.0
 
@@ -155,10 +156,11 @@ subroutine expansion(a0,dt0,da1,da2)
   omHsq=4.0/9.0
   a3rlm=a_x**(-3*wde)*omega_l/omega_m
   arkm=a_x*(1.0-omega_m-omega_l)/omega_m
+  am1rrm=a_x**(-1.)*omega_r/omega_m
 
-  adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm))
-  addot=a_x**2*omHsq*(1.5+2.0*arkm+1.5*(1.0-wde)*a3rlm)
-  atdot=a_x*adot*omHsq*(3.0+6.0*arkm+1.5*(2.0-3.0*wde)*(1.0-wde)*a3rlm)
+  adot=sqrt(omHsq*a_x**3*(1.0+arkm+a3rlm+am1rrm))
+  addot=a_x**2*omHsq*(1.5+2.0*arkm+1.5*(1.0-wde)*a3rlm+am1rrm)
+  atdot=a_x*adot*omHsq*(3.0+6.0*arkm+1.5*(2.0-3.0*wde)*(1.0-wde)*a3rlm+am1rrm)
   
   da2=adot*dt_x+(addot*dt_x**2)/2.0+(atdot*dt_x**3)/6.0
 

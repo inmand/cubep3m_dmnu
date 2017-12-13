@@ -10,6 +10,7 @@ run: ic_cdm ic_pbh ngp_power ngp_veldivg
 	@echo "compiled npbh"
 
 ic_cdm: ic_cdm.f90
+	$(FC) $(FLAGS) -I$(FFTW_INC) -I$(P3DFFT_INC) -o $@ $< -L$(FFTW_LIB) -L$(P3DFFT_LIB) $(LDLIBS)
 
 ic_pbh: ic_pbh.f90
 	$(FC) $(FLAGS) -o $@ $<
