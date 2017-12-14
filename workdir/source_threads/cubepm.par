@@ -9,7 +9,7 @@ character(*), parameter :: killtime_path=cubepm_root//'batch/killtime.txt'
 !! timestep parameters
 real(4), parameter      :: dt_scale = 1.0
 real(4), parameter 	:: dt_max = 1.0
-real(4), parameter 	:: ra_max = 0.001!0.01
+real(4), parameter 	:: ra_max = 0.01
 real(4), parameter      :: a_i = 1.0 / ( z_i + 1.0)
 real(4), parameter      :: a_i_nu = 1.0 / ( z_i_nu + 1.0)
 
@@ -27,7 +27,7 @@ real(4), parameter :: kill_remaining = 30.*60.
 
 !! particle-particle interaction parameters
 ! softening length (if (|r1-r2| < rsoft) then no force)
-real(4), parameter      :: rsoft = 0.1
+real(4), parameter      :: rsoft = 0.05!0.1
 ! arbitrary timescale limiting parameter :: dt_max_pp=sqrt(dt_pp_scale*rsoft/max_pp_acceleration)
 real(4), parameter      :: dt_pp_scale = 0.05
 ! arbitrary pp bias (set to increase the force interaction)
