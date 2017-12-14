@@ -9,7 +9,7 @@ character(*), parameter :: killtime_path=cubepm_root//'batch/killtime.txt'
 !! timestep parameters
 real(4), parameter      :: dt_scale = 1.0
 real(4), parameter 	:: dt_max = 1.0
-real(4), parameter 	:: ra_max = 0.01
+real(4), parameter 	:: ra_max = 0.001!0.01
 real(4), parameter      :: a_i = 1.0 / ( z_i + 1.0)
 real(4), parameter      :: a_i_nu = 1.0 / ( z_i_nu + 1.0)
 
