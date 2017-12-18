@@ -7,17 +7,17 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test9/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test10/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
 character(*), parameter :: ic_path        = output_path
 ! transfer functions
 integer, parameter      :: nk             = 1000
-character(len=*), parameter :: fntf       = cubepm_root//'transfer/npbh/tk_fine.dat'
+character(len=*), parameter :: fntf       = cubepm_root//'transfer/dmbh/tk_fine.dat'
 character(len=*), parameter :: vfntf      = ''
 ! file containing checkpoints
-character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_npbh'
+character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_dmbh'
 
 !------------------------------------!
 !!Simulation parameters
@@ -26,9 +26,9 @@ integer(4),   parameter :: nodes_dim      = 1
 ! fine mesh tiles / node / dimension
 integer(4),   parameter :: tiles_node_dim = 2
 ! cores / node
-integer(4),   parameter :: cores          = 8!@4
+integer(4),   parameter :: cores          = 4
 ! nested threads
-integer(4),   parameter :: nested_threads = 2!@1
+integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 2.25
 ! size of fine mesh tile in cells / dimension 
@@ -49,8 +49,8 @@ integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*no
 integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
-! number of primordial black holes
-integer(4),   parameter :: npbh           = 10000
+! number of primordial black holes (total)
+integer(4),   parameter :: npbh           = 10000*nodes_dim**3 
 
 !------------------------------------!
 !!cosmology parameters
@@ -69,7 +69,7 @@ real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0900 !not used
 ! matter
 !  primordial black holes
-real(4),      parameter :: f_pbh          = 0.05 !Fraction of "omega_c" in pbh
+real(4),      parameter :: f_pbh          = 0.001 !Fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p        = f_pbh*0.27
 !  cold dark matter
 real(4),      parameter :: omega_c        = 0.27*(1.-f_pbh)

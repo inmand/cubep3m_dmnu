@@ -79,7 +79,7 @@ subroutine particle_initialize(ispec)
         if (rank == 0) print *,'restarting simulation from z=',1./a-1.
      else
         read(21) np_local,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
-        if (rank == 0) print *,'starting simulation from z=',z_checkpoint(cur_checkpoint-1)
+        if (rank == 0) print *,'starting simulation from z=',z_i
      endif
      
      if (np_local > max_np) then

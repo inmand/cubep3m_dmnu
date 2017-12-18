@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #initial conditions and power codes
-cd ../utils/npbh
+cd ../utils/dist_init_dmbh
 make clean
 make
 cd ../../batch

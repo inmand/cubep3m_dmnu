@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=cubep3m_npbh
+#SBATCH --job-name=cubep3m_dmbh
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=16
@@ -13,7 +13,7 @@ source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/PBH/Test9
+RUNDIR=$SCRATCH/PBH/Test10
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch
@@ -28,12 +28,12 @@ source dobuild_nyu >& ${RUNDIR}/p3dfft${LOG}
 
 cd ${SUBDIR}
 cd ..
-ln -s parameters_npbh parameters
+ln -s parameters_dmbh parameters
 cd  ./batch/
-source ./COMPILE_npbh.csh >& ${RUNDIR}/compile${LOG}
+source ./COMPILE_dmbh.csh >& ${RUNDIR}/compile${LOG}
 
-srun ../utils/npbh/ic_cdm >& ${RUNDIR}/ic_cdm${LOG}
-srun ../utils/npbh/ic_pbh >& ${RUNDIR}/ic_pbh${LOG}
+srun ../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
+srun ../utils/dist_init_dmbh/ic_pbh >& ${RUNDIR}/ic_pbh${LOG}
 srun ../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
 srun ../utils/npbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
 srun ../utils/npbh/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}
