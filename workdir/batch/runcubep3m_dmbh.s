@@ -33,8 +33,8 @@ cd  ./batch/
 source ./COMPILE_dmbh.csh >& ${RUNDIR}/compile${LOG}
 
 srun ../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
-srun ../utils/dist_init_dmbh/ic_pbh >& ${RUNDIR}/ic_pbh${LOG}
+#srun ../utils/dist_init_dmbh/ic_pbh >& ${RUNDIR}/ic_pbh${LOG}
 srun ../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
-srun ../utils/npbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
-srun ../utils/npbh/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}
+srun ../utils/dist_init_dmbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
+srun ../utils/dist_init_dmbh/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}
 

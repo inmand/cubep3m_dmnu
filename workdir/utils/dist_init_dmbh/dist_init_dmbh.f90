@@ -75,6 +75,10 @@ program dist_init
   !! Particles arrays for subroutine dm
   real, dimension(6,np_node_dim,np_node_dim*(1+bcc),num_threads) :: xvp
 
+  !! Primordial black hole array
+  real, dimension(6, npbh) :: xvpbh
+  integer :: npbh_local
+
   !! Timing variables
   real(8) :: sec1, sec2
 
@@ -104,10 +108,14 @@ program dist_init
   call deltafield
   call potentialfield
 
+  call generate_bh
+
   call dm(0)
   if (rank == 0) call writepowerspectra
   call veltransfer
   call dm(1)
+
+  call write_bh
 
   call di_fftw(0)
 
@@ -1131,6 +1139,101 @@ end subroutine veltransfer
     return
   end subroutine dm
 !!------------------------------------------------------------------!!
+
+!!------------------------------------------------------------------!!
+!!Black Hole Subroutines
+!!------------------------------------------------------------------!!
+  subroutine generate_bh
+    implicit none
+    integer :: p,n,k,j,i,stat
+    real, dimension(3,2) :: xyz
+
+    xvpbh=0
+
+    !Head node generates all bh in global coordinates
+    if (rank.eq.0) then
+       call random_number(xvpbh(1:3,:))
+       xvpbh(1:3,:) = xvpbh(1:3,:)*nc ! now in global coordinates
+    end if
+
+    !Now broadcast to all other nodes
+    call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_bcast(xvpbh(1:3,:),size(xvpbh(1:3,:)),mpi_real,0,mpi_comm_world,ierr)
+    npbh_local=npbh
+
+    !Each node determines which black holes it contains
+    do k=1,nodes_dim
+       do j=1,nodes_dim
+          do i=1,nodes_dim
+
+             n=(i-1)+(j-1)*nodes_dim+(k-1)*nodes_dim**2
+
+             if (n.eq.rank) then
+                xyz(1,1) = 1.0*(i-1)*nc/nodes_dim
+                xyz(1,2) = 1.0*i*nc/nodes_dim
+
+                xyz(2,1) = 1.0*(j-1)*nc/nodes_dim
+                xyz(2,2) = 1.0*j*nc/nodes_dim
+                
+                xyz(3,1) = 1.0*(k-1)*nc/nodes_dim
+                xyz(3,2) = 1.0*k*nc/nodes_dim
+                exit
+             end if
+             
+          end do
+       end do
+    end do
+
+    do p=1,npbh
+       
+       if (  xvpbh(1,p).lt.xyz(1,1) .or. xvpbh(1,p).ge.xyz(1,2) .or. &
+            &xvpbh(2,p).lt.xyz(2,1) .or. xvpbh(2,p).ge.xyz(2,2) .or. &
+            &xvpbh(3,p).lt.xyz(3,1) .or. xvpbh(3,p).ge.xyz(3,2) ) then
+          !bh not on this node
+          xvpbh(:,p)=xvpbh(:,npbh_local)
+          npbh_local=npbh_local-1
+       end if
+
+    end do
+
+    do n=1,nodes_dim**3
+       
+       if (n.eq.rank) then
+          write(*,*) 'rank,npbh_local',rank,npbh_local
+       end if
+
+       call mpi_barrier(mpi_comm_world,ierr)
+
+    end do
+
+  end subroutine generate_bh
+
+  subroutine write_bh
+    implicit none
+    integer :: stat,p
+    character(len=1000) :: z_str,rank_str,f_str
+
+    write(rank_str,'(i6)') rank
+    write(z_str,'(f10.3)') z_i
+
+    f_str=scratch_path//'/node'//trim(adjustl(rank_str))//'xv'//trim(adjustl(z_str))//'_nu.dat'
+    if (rank.eq.0) write(*,*) 'Writing bh to file: '//trim(adjustl(f_str))
+    open(unit=11,file=trim(adjustl(f_str)),status='replace',iostat=stat,access='stream')
+    write(11) npbh_local,1.0/(1.0+z_i),0.0,-3./sqrt(1.0/(1.0+z_i)),0,1000.,1000.,1000.,1,1,1,1. !Header garbage
+    
+    do p=1,npbh_local
+       write(11) xvpbh(:,p)
+    end do
+
+    close(11)
+
+  end subroutine write_bh
+
+!!$  subroutine bh(COMMAND)
+!!$    implicit none
+!!$    integer, intent(in) :: COMMAND ! either position or velocity displacements
+!!$
+!!$  end subroutine bh
 
 !!--------------------------------------------------------------!!
 
