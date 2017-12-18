@@ -76,7 +76,7 @@ program dist_init
   real, dimension(6,np_node_dim,np_node_dim*(1+bcc),num_threads) :: xvp
 
   !! Primordial black hole array
-  real, dimension(6, npbh) :: xvpbh
+  real, dimension(6, npbh) :: xvpbh,xvpbh0
   integer :: npbh_local
 
   !! Timing variables
@@ -109,13 +109,16 @@ program dist_init
   call potentialfield
 
   call generate_bh
+  call write_bh(0) !Without displacements
 
   call dm(0)
+  call bh(0)
   if (rank == 0) call writepowerspectra
   call veltransfer
   call dm(1)
+  call bh(1)
 
-  call write_bh
+  call write_bh(1) !With displacements
 
   call di_fftw(0)
 
@@ -373,7 +376,7 @@ end subroutine di_fftw
     !! 7th is noise standard deviation
     fn=output_path//'pk.init'
 
-    write(*,*) 'Writing ',fn
+    write(*,*) 'Writing ',trim(adjustl(fn))
     open(11,file=fn,recl=500)
     do k=2,hc+1
        kr=2*pi*(k-1)/box
@@ -384,7 +387,7 @@ end subroutine di_fftw
     !! Output cmbfast power spectrum
     fn=output_path//'pk0.init'
 
-    write(*,*) 'Writing ',fn
+    write(*,*) 'Writing ',trim(adjustl(fn))
     open(11,file=fn,recl=500)
     do k=2,2*nc+1
        kr=2*pi*(k-1)/(2*box)
@@ -1152,11 +1155,13 @@ end subroutine veltransfer
 
     !Head node generates all bh in global coordinates
     if (rank.eq.0) then
+       write(*,*) 'Creating bh on head node'
        call random_number(xvpbh(1:3,:))
        xvpbh(1:3,:) = xvpbh(1:3,:)*nc ! now in global coordinates
     end if
 
     !Now broadcast to all other nodes
+    if (rank.eq.0) write(*,*) '>Passing bh to other nodes'
     call mpi_barrier(mpi_comm_world,ierr)
     call mpi_bcast(xvpbh(1:3,:),size(xvpbh(1:3,:)),mpi_real,0,mpi_comm_world,ierr)
     npbh_local=npbh
@@ -1196,27 +1201,36 @@ end subroutine veltransfer
 
     end do
 
+    xvpbh0 = xvpbh
+
     do n=1,nodes_dim**3
        
        if (n.eq.rank) then
-          write(*,*) 'rank,npbh_local',rank,npbh_local
+          write(*,*) '>rank,npbh_local',rank,npbh_local
        end if
 
        call mpi_barrier(mpi_comm_world,ierr)
 
     end do
 
+    if (rank.eq.0) write(*,*) 'Finished generate_bh'
+
   end subroutine generate_bh
 
-  subroutine write_bh
+  subroutine write_bh(COMMAND)
     implicit none
+    integer, intent(in) :: COMMAND
     integer :: stat,p
     character(len=1000) :: z_str,rank_str,f_str
 
     write(rank_str,'(i6)') rank
     write(z_str,'(f10.3)') z_i
 
-    f_str=scratch_path//'/node'//trim(adjustl(rank_str))//'xv'//trim(adjustl(z_str))//'_nu.dat'
+    if (COMMAND==0) then
+       f_str=scratch_path//'node'//trim(adjustl(rank_str))//'/'//trim(adjustl(z_str))//'xv'//trim(adjustl(rank_str))//'_nu0.dat'
+    else
+       f_str=scratch_path//'node'//trim(adjustl(rank_str))//'/'//trim(adjustl(z_str))//'xv'//trim(adjustl(rank_str))//'_nu.dat'
+    end if
     if (rank.eq.0) write(*,*) 'Writing bh to file: '//trim(adjustl(f_str))
     open(unit=11,file=trim(adjustl(f_str)),status='replace',iostat=stat,access='stream')
     write(11) npbh_local,1.0/(1.0+z_i),0.0,-3./sqrt(1.0/(1.0+z_i)),0,1000.,1000.,1000.,1,1,1,1. !Header garbage
@@ -1229,11 +1243,50 @@ end subroutine veltransfer
 
   end subroutine write_bh
 
-!!$  subroutine bh(COMMAND)
-!!$    implicit none
-!!$    integer, intent(in) :: COMMAND ! either position or velocity displacements
-!!$
-!!$  end subroutine bh
+  subroutine bh(COMMAND)
+    implicit none
+    integer, intent(in) :: COMMAND ! either position or velocity displacements
+
+    integer :: p
+    integer, dimension(3) :: ix
+    real, dimension(3) :: dx,psi
+    real(8) :: spsi
+
+    if (rank.eq.0) write(*,*) 'Computing displacements',COMMAND
+    spsi=0
+    !! Adiabatic displacements of bh
+    do p=1,npbh_local
+          
+       ix=1+floor(xvpbh0(1:3,p)) !Cell that bh is in
+       dx=1+xvpbh0(1:3,p)-ix-0.5 !Displacement from cell centre
+
+       psi(1)=phi(ix(1)+1,ix(2),ix(3)) - phi(ix(1)-1,ix(2),ix(3)) + &
+            & dx(1)*( phi(ix(1)+1,ix(2),ix(3)) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1)-1,ix(2),ix(3)) )
+       
+       psi(2)=phi(ix(1),ix(2)+1,ix(3)) - phi(ix(1),ix(2)-1,ix(3)) + &
+            & dx(2)*( phi(ix(1),ix(2)+1,ix(3)) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1),ix(2)-1,ix(3)) ) 
+       
+       psi(3)=phi(ix(1),ix(2),ix(3)+1) - phi(ix(1),ix(2),ix(3)-1) + &
+            & dx(3)*( phi(ix(1),ix(2),ix(3)+1) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1),ix(2),ix(3)-1) )
+
+       psi=psi/2./(4.*pi)
+
+       if (COMMAND==0) then
+          !Coordinate displacements
+          xvpbh(1:3,p) = xvpbh0(1:3,p) - psi
+       else
+          !Velocity displacements
+          xvpbh(4:6,p) = -psi
+       end if
+
+       spsi=spsi+sum(psi**2)
+
+    end do
+    
+    if (rank.eq.0) write(*,*) 'Mean bh displacement',sqrt(spsi)
+    if (rank.eq.0) write(*,*) 'Finished computing displacements',COMMAND
+
+  end subroutine bh
 
 !!--------------------------------------------------------------!!
 

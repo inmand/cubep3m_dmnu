@@ -7,7 +7,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test10/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test10_1/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
