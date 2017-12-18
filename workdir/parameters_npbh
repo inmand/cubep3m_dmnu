@@ -7,7 +7,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test6/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test9/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -26,9 +26,9 @@ integer(4),   parameter :: nodes_dim      = 1
 ! fine mesh tiles / node / dimension
 integer(4),   parameter :: tiles_node_dim = 2
 ! cores / node
-integer(4),   parameter :: cores          = 4
+integer(4),   parameter :: cores          = 8!@4
 ! nested threads
-integer(4),   parameter :: nested_threads = 1
+integer(4),   parameter :: nested_threads = 2!@1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 2.25
 ! size of fine mesh tile in cells / dimension 
@@ -50,7 +50,7 @@ integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes
-integer(4),   parameter :: npbh           = 1000
+integer(4),   parameter :: npbh           = 10000
 
 !------------------------------------!
 !!cosmology parameters
@@ -69,7 +69,7 @@ real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0900 !not used
 ! matter
 !  primordial black holes
-real(4),      parameter :: f_pbh          = 0.0 !Fraction of "omega_c" in pbh
+real(4),      parameter :: f_pbh          = 0.05 !Fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p        = f_pbh*0.27
 !  cold dark matter
 real(4),      parameter :: omega_c        = 0.27*(1.-f_pbh)

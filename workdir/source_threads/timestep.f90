@@ -81,10 +81,11 @@ subroutine timestep
      endif
         
      !! Check to see whether we should perform checkpoint kill
+     !! Code checks time remaining and number of timesteps
      kill_step = .false.
      sec1a = mpi_wtime(ierr)
      if (rank == 0) then
-        if ((sec1a - sec1) .ge. kill_time) kill_step = .true.
+        if ((sec1a - sec1) .ge. kill_time .or. nts == max_nts ) kill_step = .true.
      endif
      if (kill_step) checkpoint_step=.true.
      call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
@@ -102,13 +103,9 @@ subroutine timestep
      write(*,*) 'scale factor: ',a,a_mid,a+da
      write(*,*) 'expansion   : ',ra
 
-#ifdef PP_EXT
-     write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc
-#else
-        !write(*,*) 'time step   : ',dt,dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_c_acc
      write(*,*) 'time step   : ',dt,dt_e,dt_vmax
      write(*,*) '              ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
-#endif
+
      write(*,*) 'shake offset: ',shake_offset
      sec1a = mpi_wtime(ierr)
      write(*,*) 'time [hrs]  : ', (sec1a - sec1) / 3600.
