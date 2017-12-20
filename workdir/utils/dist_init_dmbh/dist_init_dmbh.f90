@@ -1182,31 +1182,38 @@ end subroutine veltransfer
                 
                 xyz(3,1) = 1.0*(k-1)*nc/nodes_dim
                 xyz(3,2) = 1.0*k*nc/nodes_dim
-                exit
              end if
              
           end do
        end do
     end do
 
-    do p=1,npbh
-       
+    p=1
+    do 
        if (  xvpbh(1,p).lt.xyz(1,1) .or. xvpbh(1,p).ge.xyz(1,2) .or. &
             &xvpbh(2,p).lt.xyz(2,1) .or. xvpbh(2,p).ge.xyz(2,2) .or. &
             &xvpbh(3,p).lt.xyz(3,1) .or. xvpbh(3,p).ge.xyz(3,2) ) then
           !bh not on this node
           xvpbh(:,p)=xvpbh(:,npbh_local)
           npbh_local=npbh_local-1
+       else
+          !convert to local coordinates
+          xvpbh(1:3,p)=xvpbh(1:3,p)-xyz(1:3,1)
+          p=p+1
        end if
-
+       if (p.eq.npbh_local+1) exit
     end do
 
     xvpbh0 = xvpbh
 
-    do n=1,nodes_dim**3
+    do n=0,nodes_dim**3-1
        
        if (n.eq.rank) then
-          write(*,*) '>rank,npbh_local',rank,npbh_local
+          write(*,*) '>rank',rank
+          write(*,*) '>>npbh_local',npbh_local
+          write(*,*) '>>mean x: ',sum(xvpbh(:,:npbh_local),dim=2)/npbh_local
+          write(*,*) '>>max x: ',maxval(xvpbh(1:3,:npbh_local))
+          write(*,*) '>>min x: ',minval(xvpbh(1:3,:npbh_local))
        end if
 
        call mpi_barrier(mpi_comm_world,ierr)
@@ -1271,6 +1278,8 @@ end subroutine veltransfer
 
        psi=psi/2./(4.*pi)
 
+       psi=0.!No displacements
+
        if (COMMAND==0) then
           !Coordinate displacements
           xvpbh(1:3,p) = xvpbh0(1:3,p) - psi
@@ -1282,8 +1291,9 @@ end subroutine veltransfer
        spsi=spsi+sum(psi**2)
 
     end do
+    spsi=spsi/npbh_local
     
-    if (rank.eq.0) write(*,*) 'Mean bh displacement',sqrt(spsi)
+    if (rank.eq.0) write(*,*) 'Variance bh displacement',sqrt(spsi)
     if (rank.eq.0) write(*,*) 'Finished computing displacements',COMMAND
 
   end subroutine bh

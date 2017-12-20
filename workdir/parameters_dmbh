@@ -7,7 +7,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test10_1/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/TestPSI/million/Test0_1/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -30,7 +30,7 @@ integer(4),   parameter :: cores          = 4
 ! nested threads
 integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
-real(4), parameter :: density_buffer      = 2.25
+real(4), parameter :: density_buffer      = 2.5
 ! size of fine mesh tile in cells / dimension 
 integer(4),   parameter :: nf_tile        = 176
 ! Fine mesh force cut-off in fine mesh cells (determined by kernel)
@@ -50,7 +50,7 @@ integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes (total)
-integer(4),   parameter :: npbh           = 10000*nodes_dim**3 
+integer(4),   parameter :: npbh           = 1000000*nodes_dim**3 
 
 !------------------------------------!
 !!cosmology parameters
@@ -66,19 +66,21 @@ real(4),      parameter :: H0             = 67.
 real(4),     parameter :: A_s             = 2.215e-9
 real(4),     parameter :: n_s             = 0.9619
 real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
-real(4),     parameter :: sigma_8         = 0.0900 !not used
+real(4),     parameter :: sigma_8         = 0.0 !not used
 ! matter
 !  primordial black holes
-real(4),      parameter :: f_pbh          = 0.001 !Fraction of "omega_c" in pbh
-real(4),      parameter :: omega_p        = f_pbh*0.27
+real(4),      parameter :: omega_cp       = 0.27
+real(4),      parameter :: e_pbh          = npbh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
+real(4),      parameter :: f_pbh          = e_pbh/(1.0+e_pbh) !fraction of "omega_c" in pbh
+real(4),      parameter :: omega_p        = f_pbh*omega_cp
 !  cold dark matter
-real(4),      parameter :: omega_c        = 0.27*(1.-f_pbh)
+real(4),      parameter :: omega_c        = (1.-f_pbh)*omega_cp
 !  baryons: homogeneous only, no hydro
 real(4),      parameter :: omega_b        = 0.05 
 !  neutrino parameters
 real(4),      parameter :: N_massive_nu   = 0.0
 real(4),      parameter :: mass_neutrino  = 0.0
-real(4),      parameter :: omega_nu       = omega_p !We map pbh onto neutrinos in cubep3m
+real(4),      parameter :: omega_nu       = omega_p !we map pbh onto neutrinos in cubep3m
 !  total matter
 real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
 ! radiation

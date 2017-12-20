@@ -60,7 +60,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+nppx,np_local0,'+x pass')
+  call check_par_num(np_local,nppx,np_local0,'+x pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(6), &
        tag,mpi_comm_world,srequest,sierr)
@@ -120,7 +120,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+npmx,np_local0,'-x pass')
+  call check_par_num(np_local,npmx,np_local0,'-x pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(5), &
        tag,mpi_comm_world,srequest,sierr)
@@ -210,7 +210,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+npmy,np_local0,'-y pass')
+  call check_par_num(np_local,npmy,np_local0,'-y pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(3), &
        tag,mpi_comm_world,srequest,sierr)
@@ -279,7 +279,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+nppy,np_local0,'+y pass')
+  call check_par_num(np_local,nppy,np_local0,'+y pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(4), &
        tag,mpi_comm_world,srequest,sierr)
@@ -358,7 +358,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+nppz,np_local0,'+z pass')
+  call check_par_num(np_local,nppz,np_local0,'+z pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(2), &
        tag,mpi_comm_world,srequest,sierr)
@@ -418,7 +418,7 @@ subroutine particle_pass
        status,ierr)
 
   !! Check to see if we need to checkpoint kill
-  call check_par_num(np_local+npmz,np_local0,'-z pass')
+  call check_par_num(np_local,npmz,np_local0,'-z pass')
 
   call mpi_isend(send_buf,np_buf*6,mpi_real,cart_neighbor(1), &
        tag,mpi_comm_world,srequest,sierr)
@@ -509,17 +509,20 @@ subroutine check_buf_num(npl0,astr)
 
 end subroutine check_buf_num
 
-subroutine check_par_num(np_check,npl0,astr)
+subroutine check_par_num(npl,npb,npl0,astr)
   implicit none
   include 'mpif.h'
 # include "cubepm.fh"
   character(len=*), intent(in) :: astr
-  integer(4), intent(in) :: np_check,npl0
-  integer(4) :: ikill, ikill_loc
+  integer(4), intent(in) :: npl,npb,npl0
+  integer(4) :: ikill, ikill_loc,np_check
   ikill_loc = 0
 
+  np_check=npl+npb
   if (np_check > max_np) then
      write(*,*) 'rank:',rank,'exceeded max_np in pass',np_check,max_np
+     write(*,*) 'rank:',rank,'particles in node/buffer',npl,npb
+     write(*,*) 'rank:',rank,'dm particles in buffer',count(send_buf_PID(:npb).eq.pid_dm)
      ikill_loc = 1
   endif
   call mpi_allreduce(ikill_loc, ikill, 1, mpi_integer, mpi_sum, mpi_comm_world, ierr)
