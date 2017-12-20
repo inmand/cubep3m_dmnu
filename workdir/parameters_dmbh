@@ -7,7 +7,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/TestPSI/million/Test0_1/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test11_2/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -50,7 +50,7 @@ integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes (total)
-integer(4),   parameter :: npbh           = 1000000*nodes_dim**3 
+integer(4),   parameter :: n_bh           = 1000!*nodes_dim**3 
 
 !------------------------------------!
 !!cosmology parameters
@@ -68,13 +68,14 @@ real(4),     parameter :: n_s             = 0.9619
 real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0 !not used
 ! matter
-!  primordial black holes
+!  non-baryonic matter
 real(4),      parameter :: omega_cp       = 0.27
-real(4),      parameter :: e_pbh          = npbh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
-real(4),      parameter :: f_pbh          = e_pbh/(1.0+e_pbh) !fraction of "omega_c" in pbh
-real(4),      parameter :: omega_p        = f_pbh*omega_cp
-!  cold dark matter
-real(4),      parameter :: omega_c        = (1.-f_pbh)*omega_cp
+!   primordial black holes
+real(4),      parameter :: e_bh          = n_bh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
+real(4),      parameter :: f_bh          = e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
+real(4),      parameter :: omega_p       = f_bh*omega_cp
+!   cold dark matter
+real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
 !  baryons: homogeneous only, no hydro
 real(4),      parameter :: omega_b        = 0.05 
 !  neutrino parameters

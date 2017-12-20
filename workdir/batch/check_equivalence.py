@@ -8,10 +8,10 @@ import numpy
 # These ones are usually changed
 #
 
-nodes_dim      = 2
-tiles_node_dim = 6
-nf_tile        = 240
-density_buffer = 1.5
+nodes_dim      = 1
+tiles_node_dim = 8
+nf_tile        = 176
+density_buffer = 2.5
 
 # Factor to reduce max_buf by in cubepm.par 
 srfac = 1
@@ -22,27 +22,27 @@ pencil_ICs = True
 slab_fftw3_ICs = False 
 
 # Set this true if using ZIP checkpointing method
-zip = True
+zip = False
 
 # Set this true if using neutrinos
-neutrinos = True
+neutrinos = False
 ratio_nudm_dim = 2
 
 # Set this true if not using extended pp
-no_extpp = True 
+no_extpp = False 
 
 # Set this true if not using projections
 no_proj = True
 
 # Set this true if not using PIDs (ignored if neutrinos is True)
-no_pid = True 
+no_pid = False
 
 # Set this true if you are turning off openmp in ICs
 no_openmp_ICs = False
 
 # These set the total number of threads
 cores          = 8
-nested_threads = 2
+nested_threads = 1
 
 #
 # These ones are usually not changed

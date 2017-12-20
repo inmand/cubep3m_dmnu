@@ -76,8 +76,8 @@ program dist_init
   real, dimension(6,np_node_dim,np_node_dim*(1+bcc),num_threads) :: xvp
 
   !! Primordial black hole array
-  real, dimension(6, npbh) :: xvpbh,xvpbh0
-  integer :: npbh_local
+  real, dimension(6, n_bh) :: xvpbh,xvpbh0
+  integer :: n_bh_local
 
   !! Timing variables
   real(8) :: sec1, sec2
@@ -1164,7 +1164,7 @@ end subroutine veltransfer
     if (rank.eq.0) write(*,*) '>Passing bh to other nodes'
     call mpi_barrier(mpi_comm_world,ierr)
     call mpi_bcast(xvpbh(1:3,:),size(xvpbh(1:3,:)),mpi_real,0,mpi_comm_world,ierr)
-    npbh_local=npbh
+    n_bh_local=n_bh
 
     !Each node determines which black holes it contains
     do k=1,nodes_dim
@@ -1194,14 +1194,14 @@ end subroutine veltransfer
             &xvpbh(2,p).lt.xyz(2,1) .or. xvpbh(2,p).ge.xyz(2,2) .or. &
             &xvpbh(3,p).lt.xyz(3,1) .or. xvpbh(3,p).ge.xyz(3,2) ) then
           !bh not on this node
-          xvpbh(:,p)=xvpbh(:,npbh_local)
-          npbh_local=npbh_local-1
+          xvpbh(:,p)=xvpbh(:,n_bh_local)
+          n_bh_local=n_bh_local-1
        else
           !convert to local coordinates
           xvpbh(1:3,p)=xvpbh(1:3,p)-xyz(1:3,1)
           p=p+1
        end if
-       if (p.eq.npbh_local+1) exit
+       if (p.eq.n_bh_local+1) exit
     end do
 
     xvpbh0 = xvpbh
@@ -1210,10 +1210,10 @@ end subroutine veltransfer
        
        if (n.eq.rank) then
           write(*,*) '>rank',rank
-          write(*,*) '>>npbh_local',npbh_local
-          write(*,*) '>>mean x: ',sum(xvpbh(:,:npbh_local),dim=2)/npbh_local
-          write(*,*) '>>max x: ',maxval(xvpbh(1:3,:npbh_local))
-          write(*,*) '>>min x: ',minval(xvpbh(1:3,:npbh_local))
+          write(*,*) '>>n_bh_local',n_bh_local
+          write(*,*) '>>mean x: ',sum(xvpbh(:,:n_bh_local),dim=2)/n_bh_local
+          write(*,*) '>>max x: ',maxval(xvpbh(1:3,:n_bh_local))
+          write(*,*) '>>min x: ',minval(xvpbh(1:3,:n_bh_local))
        end if
 
        call mpi_barrier(mpi_comm_world,ierr)
@@ -1240,9 +1240,9 @@ end subroutine veltransfer
     end if
     if (rank.eq.0) write(*,*) 'Writing bh to file: '//trim(adjustl(f_str))
     open(unit=11,file=trim(adjustl(f_str)),status='replace',iostat=stat,access='stream')
-    write(11) npbh_local,1.0/(1.0+z_i),0.0,-3./sqrt(1.0/(1.0+z_i)),0,1000.,1000.,1000.,1,1,1,1. !Header garbage
+    write(11) n_bh_local,1.0/(1.0+z_i),0.0,-3./sqrt(1.0/(1.0+z_i)),0,1000.,1000.,1000.,1,1,1,1. !Header garbage
     
-    do p=1,npbh_local
+    do p=1,n_bh_local
        write(11) xvpbh(:,p)
     end do
 
@@ -1262,7 +1262,7 @@ end subroutine veltransfer
     if (rank.eq.0) write(*,*) 'Computing displacements',COMMAND
     spsi=0
     !! Adiabatic displacements of bh
-    do p=1,npbh_local
+    do p=1,n_bh_local
           
        ix=1+floor(xvpbh0(1:3,p)) !Cell that bh is in
        dx=1+xvpbh0(1:3,p)-ix-0.5 !Displacement from cell centre
@@ -1291,7 +1291,7 @@ end subroutine veltransfer
        spsi=spsi+sum(psi**2)
 
     end do
-    spsi=spsi/npbh_local
+    spsi=spsi/n_bh_local
     
     if (rank.eq.0) write(*,*) 'Variance bh displacement',sqrt(spsi)
     if (rank.eq.0) write(*,*) 'Finished computing displacements',COMMAND

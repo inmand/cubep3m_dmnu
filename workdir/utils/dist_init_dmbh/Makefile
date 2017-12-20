@@ -6,7 +6,7 @@ P3DFFT_INC=${HOME}/lib/p3dfft_2.5.1/include
 LDLIBS= -lp3dfft -lfftw3f 
 FLAGS=-mcmodel=medium -shared-intel -fpp -g -O3 -xhost -qopenmp
 
-run: dist_init_dmbh ic_pbh ngp_power ngp_veldivg
+run: dist_init_dmbh ngp_power ngp_veldivg
 	@echo "compiled dmbh"
 
 dist_init_dmbh: dist_init_dmbh.f90
