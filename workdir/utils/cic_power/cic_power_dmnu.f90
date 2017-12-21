@@ -49,9 +49,9 @@ program cic_power_dmnu
 
   logical, parameter :: correct_kernel=.false.
 #ifndef INITCONDITIONS
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints0'
+  character(len=*), parameter :: checkpoints_pow=cubepm_root//'/input/checkpoints0'
 #else
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints10'
+  character(len=*), parameter :: checkpoints_pow=cubepm_root//'/input/checkpoints10'
 #endif
   !! nc is the number of cells per box length
   integer, parameter :: hc=nc/2
@@ -588,10 +588,10 @@ contains
     integer :: i,fstat
 
     if (rank == 0) then
-      open(11,file=checkpoints,status='old',iostat=fstat)
+      open(11,file=checkpoints_pow,status='old',iostat=fstat)
       if (fstat /= 0) then
         print *,'error opening checkpoint list file'
-        print *,'rank',rank,'file:',checkpoints
+        print *,'rank',rank,'file:',checkpoints_pow
         call mpi_abort(mpi_comm_world,ierr,ierr)
       endif
       do num_checkpoints=1,max_checkpoints

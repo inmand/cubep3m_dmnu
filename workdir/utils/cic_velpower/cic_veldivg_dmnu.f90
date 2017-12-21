@@ -45,7 +45,7 @@ program cic_crossvel
   include 'mpif.h'
 #  include "../../parameters"
 
-  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_nu'
+!  character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_nu'
   logical, parameter :: turn_off_halos = .false.  !! Can set this True if halo portion is slow
     
   !! Threading

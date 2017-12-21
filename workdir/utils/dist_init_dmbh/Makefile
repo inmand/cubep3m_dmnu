@@ -12,7 +12,7 @@ run: dist_init_dmbh ngp_power ngp_veldivg
 dist_init_dmbh: dist_init_dmbh.f90
 	$(FC) $(FLAGS) -I$(FFTW_INC) -I$(P3DFFT_INC) -o $@ $< -L$(FFTW_LIB) -L$(P3DFFT_LIB) $(LDLIBS)
 
-ic_pbh: ic_pbh.f90
+correct_dmbh: correct_dmbh.f90
 	$(FC) $(FLAGS) -o $@ $<
 
 ngp_power: cic_power_dmnu.f90

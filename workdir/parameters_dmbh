@@ -7,7 +7,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test11_2/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test11_0_0/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -72,7 +72,7 @@ real(4),     parameter :: sigma_8         = 0.0 !not used
 real(4),      parameter :: omega_cp       = 0.27
 !   primordial black holes
 real(4),      parameter :: e_bh          = n_bh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
-real(4),      parameter :: f_bh          = e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
+real(4),      parameter :: f_bh          = 0*e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p       = f_bh*omega_cp
 !   cold dark matter
 real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
