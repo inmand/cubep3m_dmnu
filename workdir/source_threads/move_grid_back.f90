@@ -11,6 +11,10 @@ subroutine move_grid_back(force_grid_back)
   logical :: doremove
   real(4), parameter :: maxshake = 16. 
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: move grid back'
+# endif
+
   call mpi_bcast(shake_offset,3,MPI_REAL,0,MPI_COMM_WORLD,ierr)
 
   remove_offset(:) = 0.

@@ -3,17 +3,17 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=1:00:00
+#SBATCH --time=2:00:00
 #SBATCH --mem=4GB
 
 export OMP_STACKSIZE="100M"
-export OMP_NUM_THREADS="8"
+export OMP_NUM_THREADS="4"
 
 source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/PBH/Test11_0_0
+RUNDIR=$SCRATCH/PBH/Test13
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch

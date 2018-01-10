@@ -6,6 +6,10 @@ subroutine delete_particles
 
   integer(4) :: pp,i
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: delete particles'
+# endif
+
   pp=1
   do
 42   if (pp > np_local) exit

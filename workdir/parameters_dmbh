@@ -1,13 +1,14 @@
 !-*-f90-*-
 
 #define PP_EXT
+#define VERBOSITY 1
 
 !------------------------------------!
 !!file IO
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test11_0_0/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test13/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions

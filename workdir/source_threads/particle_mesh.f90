@@ -30,6 +30,10 @@ subroutine particle_mesh
   real(4) :: pp_force_mag_n, force_mag_n, rmag_n, dVc_n, pp_ext_sum_k_n
   real(4) :: fpp1_n, fpp2_n !! Only used for neutrino simulations
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) 'particle mesh'
+# endif
+
   !! start of particle mesh.  All particles are within (1:nc_node_dim]
   call update_position
 
@@ -38,6 +42,10 @@ subroutine particle_mesh
   call mpi_barrier(mpi_comm_world, ierr)
   call particle_pass
   call mpi_barrier(mpi_comm_world, ierr)
+
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: fine + pp forces'
+# endif
 
   !$omp  parallel num_threads(cores) default(shared) &
   !$omp& private(cur_tile, i, j, k, k0, tile, thread, i3, cic_l, cic_h, offset, force_mag, pp_ext_sum)

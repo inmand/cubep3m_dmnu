@@ -7,6 +7,10 @@ subroutine coarse_mesh
   include 'mpif.h'
 # include "cubepm.fh"
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: coarse forces'
+# endif
+
   call coarse_mass
   call coarse_force
   call coarse_force_buffer

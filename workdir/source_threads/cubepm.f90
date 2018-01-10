@@ -28,33 +28,33 @@ program cubep3m_dmnu
   
   do 
 
-    call timestep
-    call particle_mesh
+     call timestep
+     call particle_mesh
 
-    if (checkpoint_step) then
+     if (checkpoint_step) then
 
-       dt_old = 0.0
-       call update_position
+        dt_old = 0.0
+        call update_position
 
-       call move_grid_back(.true.)
-       call link_list
+        call move_grid_back(.true.)
+        call link_list
 
-       call checkpoint(kill_step)
-       if (halofind_step) call halofind
+        call checkpoint(kill_step)
+        if (halofind_step) call halofind
 
-       if (injection_step) call particle_initialize(pid_nu)
+        if (injection_step) call particle_initialize(pid_nu)
 
-       dt = 0.0
+        dt = 0.0
 
-    endif
+     endif
 
-    if (nts == max_nts .or. final_step .or. a .gt. 1.0) exit
-
- enddo
+     if (nts == max_nts .or. final_step .or. a .gt. 1.0) exit
+     
+  enddo
 
   call cubepm_fftw(0)
   do ierr=1,cores 
-    call cubepm_fftw2('q',ierr)
+     call cubepm_fftw2('q',ierr)
   enddo
 
   sec2 = mpi_wtime(ierr)

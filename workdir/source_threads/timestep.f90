@@ -10,6 +10,11 @@ subroutine timestep
   real(4) :: vmax, vmax_local
   real(4) :: Dx
 
+  if (rank.eq.0) write(*,*)
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) 'timestep'
+# endif
+
   nts = nts + 1
   if (nts /= 1) dt_old = dt
 
@@ -34,7 +39,7 @@ subroutine timestep
   dt_vmax = fbuf * Dx / vmax
 
   if (rank == 0) then
-     
+
      dt_e=dt_max
      
      n=0
@@ -52,8 +57,6 @@ subroutine timestep
      enddo
 
      ! take the minimum of all the limits 
-
-
 #ifdef PP_EXT
      dt = min(dt_e,dt_f_acc,dt_vmax,dt_pp_acc,dt_pp_ext_acc,dt_c_acc)
 #else
@@ -61,9 +64,7 @@ subroutine timestep
 #endif
 
      dt = dt * dt_scale
-
      call expansion(a,dt,da_1,da_2)
-
      da=da_1+da_2 
 
      ! Check to see if we are checkpointing this step 
@@ -84,31 +85,26 @@ subroutine timestep
      !! Code checks time remaining and number of timesteps
      kill_step = .false.
      sec1a = mpi_wtime(ierr)
-     if (rank == 0) then
-        if ((sec1a - sec1) .ge. kill_time .or. nts == max_nts ) kill_step = .true.
-     endif
+     if ((sec1a - sec1) .ge. kill_time .or. nts == max_nts ) kill_step = .true.
      if (kill_step) checkpoint_step=.true.
-     call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
-
+     
      !! Calculate timestep parameters to be used
-
      da=da_1+da_2 
      ra=da/(a+da)
      a_mid=a+(da/2) !da_1
 
-     write(*,*)
-     write(*,*) 'sweep number: ',nts
-     write(*,*) 'tau         : ',tau,tau+dt
-     write(*,*) 'redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
-     write(*,*) 'scale factor: ',a,a_mid,a+da
-     write(*,*) 'expansion   : ',ra
+     write(*,*) ':: sweep number: ',nts
+     write(*,*) ':: tau         : ',tau,tau+dt
+     write(*,*) ':: redshift    : ',1.0/a-1.0,1.0/(a+da)-1.0
+     write(*,*) ':: scale factor: ',a,a_mid,a+da
+     write(*,*) ':: expansion   : ',ra
 
-     write(*,*) 'time step   : ',dt,dt_e,dt_vmax
-     write(*,*) '              ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
+     write(*,*) ':: time step   : ',dt,dt_e,dt_vmax
+     write(*,*) '                 ',dt_c_acc,dt_f_acc,dt_pp_acc,dt_pp_ext_acc
 
-     write(*,*) 'shake offset: ',shake_offset
+     write(*,*) ':: shake offset: ',shake_offset
      sec1a = mpi_wtime(ierr)
-     write(*,*) 'time [hrs]  : ', (sec1a - sec1) / 3600.
+     write(*,*) ':: time [hrs]  : ', (sec1a - sec1) / 3600.
 
      tau=tau+dt
      t=t+dt
@@ -123,6 +119,8 @@ subroutine timestep
   call mpi_bcast(dt,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(checkpoint_step,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(halofind_step,1,mpi_logical,0,mpi_comm_world,ierr)
+  call mpi_bcast(kill_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
+  call mpi_bcast(injection_step, 1, mpi_logical, 0, mpi_comm_world, ierr)
   call mpi_bcast(final_step,1,mpi_logical,0,mpi_comm_world,ierr)
 
 end subroutine timestep

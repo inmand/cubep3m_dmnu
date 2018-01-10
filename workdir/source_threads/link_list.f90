@@ -9,6 +9,10 @@ subroutine link_list
   integer(4) :: omp_get_thread_num,omp_get_num_threads
   external omp_get_thread_num,omp_get_num_threads
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: link list'
+# endif
+
   hoc(:,:,:)=0
   np_buf=0
 

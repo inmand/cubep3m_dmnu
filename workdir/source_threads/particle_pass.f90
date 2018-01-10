@@ -15,6 +15,10 @@ subroutine particle_pass
   integer(4) :: srequest,rrequest,sierr,rierr
   integer(4) :: ikill, ikill_loc
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: particle pass'
+# endif
+
   np_buf_max_dir = 0
 
   call mpi_barrier(mpi_comm_world,ierr) !necessary?
@@ -471,15 +475,18 @@ subroutine particle_pass
   call mpi_reduce(np_local,np_max,1,mpi_integer, &
        mpi_max,0,mpi_comm_world,ierr)
   min_den_buf = real(np_max)*density_buffer/real(max_np)
-!!$  if(rank==0) write(*,*) '*************** Density_buffer Analysis *************'
-!!$  if(rank==0) write(*,*) '*** max np allowed             = ' , max_np, '    ***'
-!!$  if(rank==0) write(*,*) '*** max np_local (with ghosts) = ' , np_max, '    ***'
-!!$  if(rank==0) write(*,*) '*** min density_buffer allowed = ', min_den_buf, ' ***'
-!!$  
-!!$  if(rank==0) write(*,*) '*************** SendRecv Analysis *******************'
-!!$  if(rank==0) write(*,*) '*** max np_buf                 = ' , np_buf_max, '    ***'
-!!$  if(rank==0) write(*,*) '*** max allowed                = ' , max_buf/6 , '    ***'
-!!$  if(rank==0) write(*,*) '*****************************************************'
+
+# if VERBOSITY>1
+  if(rank==0) write(*,*) '*************** Density_buffer Analysis *************'
+  if(rank==0) write(*,*) '*** max np allowed             = ' , max_np, '    ***'
+  if(rank==0) write(*,*) '*** max np_local (with ghosts) = ' , np_max, '    ***'
+  if(rank==0) write(*,*) '*** min density_buffer allowed = ', min_den_buf, ' ***'
+  
+  if(rank==0) write(*,*) '*************** SendRecv Analysis *******************'
+  if(rank==0) write(*,*) '*** max np_buf                 = ' , np_buf_max, '    ***'
+  if(rank==0) write(*,*) '*** max allowed                = ' , max_buf/6 , '    ***'
+  if(rank==0) write(*,*) '*****************************************************'
+# endif
 
 end subroutine particle_pass
 

@@ -9,6 +9,10 @@ subroutine update_position
 
   real(4), dimension(3) :: offset
 
+# if VERBOSITY>0
+  if (rank.eq.0) write(*,*) ':: update position'
+# endif
+
   if (rank==0) then
        
      call random_number(offset)
