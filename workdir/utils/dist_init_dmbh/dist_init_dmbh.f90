@@ -3,7 +3,7 @@ program dist_init
   implicit none
 
   include 'mpif.h'
-#  include "../../parameters"
+# include "../../parameters"
 
   integer, parameter  :: num_threads = cores*nested_threads 
   logical, parameter :: generate_seeds=.false.
@@ -15,7 +15,9 @@ program dist_init
   real, parameter :: s8 = sigma_8
   real, parameter :: omegal=omega_l 
   real, parameter :: omegam=1.0-omegal 
-
+  real, parameter :: obh=omega_p
+  real, parameter :: odm=omega_c
+  real, parameter :: aeq = a_eq
   real, parameter :: redshift=z_i
   real, parameter :: scalefactor=1/(1+redshift)
 
@@ -69,21 +71,22 @@ program dist_init
   real, dimension(nc_node_dim,nc_node_dim,nc_node_dim) :: cube
   real, dimension(nc, nc_node_dim, nc_pen+2) :: slab, slab_work
   real, dimension(nc_node_dim, nc_node_dim, nc_pen, 0:nodes_pen-1)      :: recv_cube
-  real, dimension(0:nc_node_dim+1,0:nc_node_dim+1,0:nc_node_dim+1) :: phi
+  real, dimension(0:nc_node_dim+1,0:nc_node_dim+1,0:nc_node_dim+1) :: phi,phi_iso
   real, dimension(0:nc_node_dim+1,0:nc_node_dim+1) :: phi_buf
 
   !! Particles arrays for subroutine dm
   real, dimension(6,np_node_dim,np_node_dim*(1+bcc),num_threads) :: xvp
 
   !! Primordial black hole array
-  real, dimension(6, n_bh) :: xvpbh,xvpbh0
+  real, dimension(6, n_bh) :: xvpbh,xvpbh0,xvpbhg
   integer :: n_bh_local
 
   !! Timing variables
   real(8) :: sec1, sec2
 
   !! Equivalence arrays to save memory
-  equivalence (phi,slab_work,recv_cube)
+!  equivalence (phi,slab_work,recv_cube)
+  equivalence(slab_work,recv_cube)
   equivalence (slab,cube)
 
   !! Common block
@@ -109,6 +112,7 @@ program dist_init
   call potentialfield
 
   call generate_bh
+  call isocurvature
   call write_bh(0) !Without displacements
 
   call dm(0)
@@ -191,7 +195,7 @@ contains
 
 !-------------------------------------------------------------------!
 
-subroutine pack_pencils
+  subroutine pack_pencils
     implicit none
 
     integer(4) :: i,j,k,i0,i1,k1
@@ -243,11 +247,11 @@ subroutine pack_pencils
 
     enddo
 
-end subroutine pack_pencils
+  end subroutine pack_pencils
 
 !-------------------------------------------------------------------!
 
-subroutine unpack_pencils
+  subroutine unpack_pencils
     implicit none
 
     integer(4) :: i,j,k,i0,i1,k1
@@ -296,11 +300,11 @@ subroutine unpack_pencils
 
     enddo
 
-end subroutine unpack_pencils
+  end subroutine unpack_pencils
 
 !-------------------------------------------------------------------!
 
-subroutine di_fftw(command)
+  subroutine di_fftw(command)
     use p3dfft
     implicit none
 
@@ -328,7 +332,7 @@ subroutine di_fftw(command)
        call p3dfft_clean
     endif
 
-end subroutine di_fftw
+  end subroutine di_fftw
 
 !-------------------------------------------------------------------!
 
@@ -339,13 +343,21 @@ end subroutine di_fftw
     call cpu_time(time1)
 
     write(*,*) 'nodes   ', nodes
-    write(*,*) 'nc      ', nc
-    write(*,*) 'np      ', np
+    write(*,*) 'nc,nc^3 ', nc,nc**3
+    if (bcc.eq.0) then
+       write(*,*) 'np,np^3 ', np,np**3*(1+bcc)
+    else
+       write(*,*) 'np,2np^3', np,np**3*(1+bcc)
+    end if
     write(*,*)
     write(*,*) 'n_s      ',ns
     write(*,*) 'sigma_8  ',s8
     write(*,*) 'omega_m  ',omegam
     write(*,*) 'omega_l  ',omegal
+    write(*,*) 'omega_bh ',omega_nu
+    write(*,*) 'omega_dm ',omega_c
+    write(*,*) 'omega_r  ',omega_r
+    write(*,*) 'aeq      ',aeq
     write(*,*)
     write(*,*) 'box      ',box
     write(*,*) 'redshift ',redshift
@@ -879,7 +891,7 @@ end subroutine di_fftw
     !! put cube in phi
     phi=0.0
     phi(1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)=cube
-    call mesh_buffer
+    call mesh_buffer(.false.)
 
     call cpu_time(time2)
     time2=(time2-time1)
@@ -889,7 +901,7 @@ end subroutine di_fftw
 
 !!------------------------------------------------------------------!!
 
-subroutine veltransfer
+  subroutine veltransfer
     !
     ! Replacing Fourier density field delta(k) with delta(k)*T_velocity(k)/T_density(k) 
     ! where T_velocity(k) is the neutrino velocity transfer function. 
@@ -994,14 +1006,14 @@ subroutine veltransfer
 
     phi=0.0
     phi(1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)=cube
-    call mesh_buffer
+    call mesh_buffer(.false.)
 
     call cpu_time(time2)
     time2=(time2-time1)
     if (rank == 0) write(*,"(f8.2,a)") time2,'  Called veltransfer'
     return
 
-end subroutine veltransfer
+  end subroutine veltransfer
 
 !!------------------------------------------------------------------!!
     !! Dark matter data
@@ -1152,12 +1164,21 @@ end subroutine veltransfer
     real, dimension(3,2) :: xyz
 
     xvpbh=0
+    xvpbh0=0
+    xvpbhg=0
 
     !Head node generates all bh in global coordinates
     if (rank.eq.0) then
        write(*,*) 'Creating bh on head node'
        call random_number(xvpbh(1:3,:))
        xvpbh(1:3,:) = xvpbh(1:3,:)*nc ! now in global coordinates
+
+       !if only 1 bh, can set it in middle of node to improve performance/simplicity
+       if (n_bh.eq.1) then
+          write(*,*) '>Setting bh to middle of rank 0 volume'
+          xvpbh(1:3,1) = (nc_node_dim/2.0)*(/1.0,1.0,1.0/)
+       end if
+
     end if
 
     !Now broadcast to all other nodes
@@ -1188,6 +1209,12 @@ end subroutine veltransfer
        end do
     end do
 
+    !store all xvpbh for later use in isocurvature, but in local coordinates
+    do p=1,n_bh
+       xvpbhg(1:3,p)=xvpbh(1:3,p)-xyz(1:3,1) 
+    end do
+
+    !find local bh
     p=1
     do 
        if (  xvpbh(1,p).lt.xyz(1,1) .or. xvpbh(1,p).ge.xyz(1,2) .or. &
@@ -1204,7 +1231,7 @@ end subroutine veltransfer
        if (p.eq.n_bh_local+1) exit
     end do
 
-    xvpbh0 = xvpbh
+    xvpbh0(1:3,:n_bh_local) = xvpbh(1:3,:n_bh_local)
 
     do n=0,nodes_dim**3-1
        
@@ -1297,6 +1324,355 @@ end subroutine veltransfer
     if (rank.eq.0) write(*,*) 'Finished computing displacements',COMMAND
 
   end subroutine bh
+
+  subroutine isocurvature
+    implicit none
+
+    !interpolation variables
+    integer :: p,n,d,i,j,k
+    integer, dimension(3) :: ix1,ix2
+    real, dimension(3) :: x,xx,dx1,dx2
+    real(8) :: norm,norm_total
+    logical, parameter :: use_ngp=.false. !ngp or cic
+
+    !fft variables
+    integer :: ind,dx,dxy,kg,mg,jg,ig
+    real    :: kr2,kx,ky,kz
+
+    !cutoff variables
+    real :: xcut,kc
+
+    !interpolate bh to grid
+    cube=0
+    n=0
+    do p=1,n_bh
+       
+       !particle coordinates
+       x(1:3)=xvpbhg(1:3,p)
+
+       !shift
+       xx=x-0.5
+
+       !left cell
+       ix1=1+floor(xx)
+
+       !right cell
+       ix2=ix1+1
+
+       !compute fractional weights
+       if (use_ngp) then
+          !ngp
+          dx1=0.
+          dx2=1.
+       else
+          !cic
+          dx1=ix1-xx
+          dx2=1.-dx1
+       end if
+
+       !check boundaries
+       do d=1,3
+          !lower
+          if (ix1(d).lt.1) then
+             ix1(d)=ix1(d)+nc 
+          end if
+          if (ix2(d).lt.1) then
+             ix2(d)=ix2(d)+nc
+          end if
+          !upper
+          if (ix1(d).gt.nc_node_dim) then
+             ix1(d)=ix1(d)-nc
+          end if
+          if (ix2(d).gt.nc_node_dim) then
+             ix2(d)=ix2(d)-nc
+          end if
+       end do
+    
+       !interpolate if in boundaries
+       if ( check_loc(ix1(1),ix1(2),ix1(3)) ) cube(ix1(1),ix1(2),ix1(3))=&
+            &cube(ix1(1),ix1(2),ix1(3))+dx1(1)*dx1(2)*dx1(3)
+       if ( check_loc(ix2(1),ix1(2),ix1(3)) ) cube(ix2(1),ix1(2),ix1(3))=&
+            &cube(ix2(1),ix1(2),ix1(3))+dx2(1)*dx1(2)*dx1(3)
+
+       if ( check_loc(ix1(1),ix2(2),ix1(3)) ) cube(ix1(1),ix2(2),ix1(3))=&
+            &cube(ix1(1),ix2(2),ix1(3))+dx1(1)*dx2(2)*dx1(3)
+       if ( check_loc(ix2(1),ix2(2),ix1(3)) ) cube(ix2(1),ix2(2),ix1(3))=&
+            &cube(ix2(1),ix2(2),ix1(3))+dx2(1)*dx2(2)*dx1(3)
+
+       if ( check_loc(ix1(1),ix1(2),ix2(3)) ) cube(ix1(1),ix1(2),ix2(3))=&
+            &cube(ix1(1),ix1(2),ix2(3))+dx1(1)*dx1(2)*dx2(3)
+       if ( check_loc(ix2(1),ix1(2),ix2(3)) ) cube(ix2(1),ix1(2),ix2(3))=&
+            &cube(ix2(1),ix1(2),ix2(3))+dx2(1)*dx1(2)*dx2(3)
+
+       if ( check_loc(ix1(1),ix2(2),ix2(3)) ) cube(ix1(1),ix2(2),ix2(3))=&
+            &cube(ix1(1),ix2(2),ix2(3))+dx1(1)*dx2(2)*dx2(3)
+       if ( check_loc(ix2(1),ix2(2),ix2(3)) ) cube(ix2(1),ix2(2),ix2(3))=&
+            &cube(ix2(1),ix2(2),ix2(3))+dx2(1)*dx2(2)*dx2(3)
+
+    end do
+    
+    !normalize
+    cube=cube*((1.d0*nc)**3/n_bh)
+    !check sum
+    norm=sum(cube*1.d0)
+    call mpi_reduce(norm,norm_total,1,MPI_REAL8, &
+          mpi_sum,0,mpi_comm_world,ierr)
+    if (rank.eq.0) then
+       write(*,*) '<1+delta_bh>: ',norm_total/(nc*1.d0)**3
+       write(*,*) 'max cube   : ',maxval(cube)
+       write(*,*) 'min cube   : ',minval(cube)
+    end if
+
+    !cosmic mean
+    cube=cube*(1.d0*omega_nu/omega_m)
+
+    !check cutoff
+    call cutoff_scale(xcut)
+
+    !forward fft
+    call di_fftw(1)
+
+    !invert laplacian
+    dx  = fsize(1)
+    dxy = dx * fsize(2)
+    ind = 0
+    do k=1,nc_pen+mypadd
+       do j=1,nc_node_dim
+          do i=1,nc,2
+             kg = ind / dxy
+             mg = ind - kg * dxy
+             jg = mg / dx
+             ig = mg - jg * dx
+             kg = fstart(3) + kg
+             jg = fstart(2) + jg
+             ig = 2 * (fstart(1) + ig) - 1
+             ind = ind + 1
+             if (kg < hc+2) then
+                kz=kg-1
+             else
+                kz=kg-1-nc
+             endif
+             if (jg < hc+2) then
+                ky=jg-1
+             else
+                ky=jg-1-nc
+             endif
+             kx = (ig-1)/2
+
+             kc=sqrt(kx**2.+ky**2.+kz**2.)
+             kc=kc*xcut/nc
+
+             kx=2.*sin(pi*kx/ncr)
+             ky=2.*sin(pi*ky/ncr)
+             kz=2.*sin(pi*kz/ncr)
+             kr2=kx**2.+ky**2.+kz**2.
+             slab(i:i+1,j,k)=slab(i:i+1,j,k)*(-1./kr2)*exp(-4.*kc**2) !-slab/k^2
+             if (kr2.eq.0) then
+                slab(i:i+1,j,k)=0
+                !write(*,*) 'dc mode',rank,k,j,i,kx,ky,kz,kr2
+             end if
+          end do
+       end do
+    end do
+
+    !inverse fft, cube now holds phi_iso on this node
+    call di_fftw(-1)
+
+    !store in phi_iso
+    phi_iso=0
+    phi_iso(1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)=cube
+
+    !buffer phi_iso
+    call mesh_buffer(.true.)
+
+    if (rank.eq.0) then 
+       write(*,*) 'max phi_iso: ',maxval(phi_iso)
+       write(*,*) 'min phi_iso: ',minval(phi_iso)
+    end if
+
+    !if one bh, call histogram
+    if (n_bh.eq.1 .and. rank.eq.0) call histogram
+
+    !reset cube for veltransfer
+    cube=phi(1:nc_node_dim,1:nc_node_dim,1:nc_node_dim)
+
+  end subroutine isocurvature
+
+  subroutine histogram
+    implicit none
+
+    !loop variables
+    integer :: i,j,k,n,sc,i1,j1,k1
+    real :: r,t
+    real, dimension(3) :: psi,x,x_bh,dx,dv
+
+    !histogram variables
+    integer, parameter :: nr=nc_node_dim/4
+    real, parameter :: rmin=1.0
+    real, parameter :: rmax=nr*1.0
+    real, dimension(nr) :: rbins,rhisto,dxhisto,dvhisto,dx2histo,dv2histo
+    real, dimension(nr) :: tbins,thisto
+    integer, dimension(nr) :: counts
+
+    !output variables
+    integer :: stat
+    character(len=1000) :: z_str,rank_str,f_str
+
+    write(*,*) 'Computing dx,dv histograms',nr
+    x_bh=xvpbhg(1:3,1)
+    write(*,*) '->pbh @ x=',x_bh
+    write(*,*) '->a_eq, a=',aeq,scalefactor
+    write(*,*) '->d_iso(a)=',d_iso(scalefactor)
+    write(*,*) '->v_iso(a)=',v_iso(scalefactor)
+    !setup bins
+    rbins=0;tbins=0;
+    do n=1,nr
+       rbins(n) = rmin+(n-1.0)*(rmax-rmin)/(nr-1.0)
+       tbins(n) = -1.+(n-1.0)*(1.-(-1.))/(nr-1.)
+    end do
+    counts=0;rhisto=0;dxhisto=0;dvhisto=0;dx2histo=0;dv2histo=0;thisto=0
+
+    do k=1,np_node_dim
+       do j=1,np_node_dim
+          do i=1,np_node_dim
+             do sc=0,bcc
+                k1=(nc/np)*(k-1)+1+sc
+                j1=(nc/np)*(j-1)+1+sc
+                i1=(nc/np)*(i-1)+1+sc
+
+                psi(1)=(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2.
+                psi(2)=(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2.
+                psi(3)=(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2.
+
+                x=(/i1,j1,k1/)-0.5
+                r=sqrt(sum( (x-x_bh)**2. ))
+
+                dx=psi*d_iso(scalefactor)
+                dv=psi*v_iso(scalefactor)
+
+                t=sum(psi*(x-x_bh))/r/sqrt(sum(psi**2))
+                if (abs(t).gt.1+1e-5) write(*,*) 'ERROR in t',t,abs(t),1+1e-5
+
+                if ( abs(x(1)-x_bh(1)).lt.1.0 .and. abs(x(2)-x_bh(2)).lt.1.0 &
+                     .and. abs(x(3)-x_bh(3)).lt.1.0) then
+                   write(*,*) 'particle nearby bh'
+                   write(*,*) 'x',x
+                   write(*,*) 'x_bh',x_bh
+                   write(*,*) 'r',r
+                   write(*,*) 'psi',psi
+                   write(*,*) 'dx',dx
+                   write(*,*) 'dv',dv
+                   write(*,*) 't',t
+                end if
+
+                !find bin
+                do n=1,nr
+                   if ( r.lt.rbins(n) ) then
+                      
+                      counts(n)=counts(n)+1
+                      
+                      rhisto(n)=rhisto(n)+r
+                      dxhisto(n)=dxhisto(n)+sqrt(sum(dx**2.))
+                      dvhisto(n)=dvhisto(n)+sqrt(sum(dv**2.))
+                      dx2histo(n)=dx2histo(n)+sum(dx**2.)
+                      dv2histo(n)=dv2histo(n)+sum(dv**2.)
+
+                      thisto(n)=thisto(n)+t
+
+                      exit
+                   end if
+                end do !nr
+
+             end do !sc
+          end do !i
+       end do !j
+    end do!k
+
+    where (counts.ne.0)
+       rbins=rbins*box/nc
+       rhisto=rhisto/counts * (1000*box/nc)
+       dxhisto=dxhisto/counts * (1000*box/nc)
+       dx2histo=dx2histo/counts * (1000*box/nc)**2.
+       dvhisto=dvhisto/counts/Vphys2sim
+       dv2histo=dv2histo/counts/(Vphys2sim)**2.
+       thisto=thisto/counts
+    end where
+
+    write(rank_str,'(i6)') rank
+    write(z_str,'(f10.3)') z_i
+
+    f_str=scratch_path//'node'//trim(adjustl(rank_str))//'/'//trim(adjustl(z_str))//'xv'//trim(adjustl(rank_str))//'_histo.txt'
+    if (rank.eq.0) write(*,*) 'Writing histogram to file: '//trim(adjustl(f_str))
+    open(unit=11,file=trim(adjustl(f_str)),status='replace',iostat=stat,recl=5000)
+    do n=1,nr
+       write(11,*) rbins(n),counts(n),rhisto(n),dxhisto(n),dx2histo(n),dvhisto(n),dv2histo(n),thisto(n)
+    end do
+    close(11)    
+
+  end subroutine histogram
+
+  function v_iso(a) 
+    implicit none
+    real, intent(in) :: a
+    real :: v_iso
+
+    v_iso = (2.*sqrt(aeq))*a*(sqrt(1.+a/aeq)-1.)
+    
+  end function v_iso
+
+  function d_iso(a)
+    implicit none
+    real, intent(in) :: a
+    real :: d_iso
+
+    d_iso=6.*log(0.5+0.5*sqrt(1.+a/aeq))
+
+  end function d_iso
+
+  function check_loc(ix,iy,iz) result(ok)
+    implicit none
+    integer, intent(in) :: ix,iy,iz
+    logical :: ok
+    ok =.true.
+    if (ix.lt.1 .or. ix.gt.nc_node_dim) ok=.false.
+    if (iy.lt.1 .or. iy.gt.nc_node_dim) ok=.false.
+    if (iz.lt.1 .or. iz.gt.nc_node_dim) ok=.false.
+    return
+  end function check_loc
+
+  subroutine cutoff_scale(xc)
+    implicit none
+    real, intent(out) :: xc
+    real, parameter :: g1=0.25 !dx/x<g1
+    real, parameter :: g2=sqrt(3.)/2.!0.25 !dx<g2 cells
+    real, parameter :: gc=1. ! min cutoff
+    real :: s=scalefactor/aeq
+    real :: ndm=npr**3*(1.+bcc)
+    real :: nbh=n_bh
+    real :: x1,x2,x3
+    
+    if (rank.eq.0) then
+
+       x1=( (s/g1)*(3./8./pi)*(1.0/ndm)*(odm/omegam)*(1.+(f_bh/(1.+f_bh))*ndm/nbh) )**(1./3.)*nc
+
+       x2=( (s/g2)*(3./8./pi)*(nc/ndm)*(odm/omegam)*(1.+(f_bh/(1.+f_bh))*ndm/nbh) )**(1./2.)*nc
+
+       x3=( (s/(1.+s))*(3./4./pi)*(obh/omegam) )**(1./3.)*nc
+
+       xc=maxval( (/x1,x2,x3,gc/) )
+
+       write(*,*) 'cutoffs: '
+       write(*,*) 'dx/x<g1      ->',x1,g1
+       write(*,*) 'dx<g2 cells  ->',x2,g2
+       write(*,*) 'physical     ->',x3
+       write(*,*) 'encoded min  ->',gc
+       write(*,*) 'selection    ->',xc
+    
+    end if
+    call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_bcast(xc,1,mpi_real,0,mpi_comm_world,ierr)
+   
+  end subroutine cutoff_scale
 
 !!--------------------------------------------------------------!!
 
@@ -1446,79 +1822,120 @@ end subroutine veltransfer
 
 !!------------------------------------------------------------------!!
 
-subroutine mesh_buffer
-  implicit none
+  subroutine mesh_buffer(iso)
+    implicit none
+    logical, intent(in) :: iso
+    integer(4) :: buffer_size
+    integer(4) :: tag
+    integer(4) :: status(MPI_STATUS_SIZE)
 
-  integer(4) :: buffer_size
-  integer(4) :: tag
-  integer(4) :: status(MPI_STATUS_SIZE)
+    buffer_size = (nc_node_dim + 2)**2
 
-  buffer_size = (nc_node_dim + 2)**2
+    if (rank==0) write(*,*) 'buffer_size =', buffer_size
 
-  if (rank==0) write(*,*) 'buffer_size =', buffer_size
+    tag=64
 
+    !! send to node in -x
+    if (iso) then
+       phi_buf(:,:)=phi_iso(1,:,:)
+    else
+       phi_buf(:,:)=phi(1,:,:)
+    end if
+     
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(5),tag,cart_neighbor(6), &
+         tag,mpi_comm_cart,status,ierr)
 
-  tag=64
+    if (iso) then
+       phi_iso(nc_node_dim+1,:,:)=phi_iso(nc_node_dim+1,:,:)+phi_buf(:,:)
+    else
+       phi(nc_node_dim+1,:,:)=phi(nc_node_dim+1,:,:)+phi_buf(:,:)
+    end if
 
-!! send to node in -x
+    !! send to node in +x
+    if (iso) then
+       phi_buf(:,:)=phi_iso(nc_node_dim,:,:)
+    else
+       phi_buf(:,:)=phi(nc_node_dim,:,:)
+    end if
+     
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(6),tag,cart_neighbor(5), &
+         tag,mpi_comm_cart,status,ierr)
 
-      phi_buf(:,:)=phi(1,:,:)
+    if (iso) then
+       phi_iso(0,:,:)=phi_iso(0,:,:)+phi_buf(:,:)
+    else
+       phi(0,:,:)=phi(0,:,:)+phi_buf(:,:)
+    end if
+  
+    !! send to node in -y
+    if (iso) then
+       phi_buf(:,:)=phi_iso(:,1,:)
+    else
+       phi_buf(:,:)=phi(:,1,:)
+    end if
+     
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(3),tag,cart_neighbor(4), &
+         tag,mpi_comm_cart,status,ierr)
 
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(5),tag,cart_neighbor(6), &
-                              tag,mpi_comm_cart,status,ierr)
+    if (iso) then
+       phi_iso(:,nc_node_dim+1,:)=phi_iso(:,nc_node_dim+1,:)+phi_buf(:,:)
+    else
+       phi(:,nc_node_dim+1,:)=phi(:,nc_node_dim+1,:)+phi_buf(:,:)
+    end if
 
-      phi(nc_node_dim+1,:,:)=phi(nc_node_dim+1,:,:)+phi_buf(:,:)
+    !! send to node in +y
+    if (iso) then
+       phi_buf(:,:)=phi_iso(:,nc_node_dim,:)
+    else
+       phi_buf(:,:)=phi(:,nc_node_dim,:)
+    end if
 
-!! send to node in +x
-   
-      phi_buf(:,:)=phi(nc_node_dim,:,:)
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(4),tag,cart_neighbor(3), &
+         tag,mpi_comm_cart,status,ierr)
 
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(6),tag,cart_neighbor(5), &
-                              tag,mpi_comm_cart,status,ierr)
+    if (iso) then
+       phi_iso(:,0,:)=phi_iso(:,0,:)+phi_buf(:,:)
+    else
+       phi(:,0,:)=phi(:,0,:)+phi_buf(:,:)
+    end if
 
-      phi(0,:,:)=phi(0,:,:)+phi_buf(:,:)
+    !! send to node in -z
+    if (iso) then
+       phi_buf(:,:)=phi_iso(:,:,1)
+    else
+       phi_buf(:,:)=phi(:,:,1)
+    end if
+     
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(1),tag,cart_neighbor(2), &
+         tag,mpi_comm_cart,status,ierr)
 
-!! send to node in -y
+    if (iso) then
+       phi_iso(:,:,nc_node_dim+1)=phi_iso(:,:,nc_node_dim+1)+phi_buf(:,:)
+    else
+       phi(:,:,nc_node_dim+1)=phi(:,:,nc_node_dim+1)+phi_buf(:,:)
+    end if
 
-      phi_buf(:,:)=phi(:,1,:)
+    !! send to node in +z
+    if (iso) then
+       phi_buf(:,:)=phi_iso(:,:,nc_node_dim)
+    else
+       phi_buf(:,:)=phi(:,:,nc_node_dim)
+    end if
+     
+    call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
+         cart_neighbor(2),tag,cart_neighbor(1), &
+         tag,mpi_comm_cart,status,ierr)
 
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(3),tag,cart_neighbor(4), &
-                              tag,mpi_comm_cart,status,ierr)
-
-      phi(:,nc_node_dim+1,:)=phi(:,nc_node_dim+1,:)+phi_buf(:,:)
-
-!! send to node in +y
-
-      phi_buf(:,:)=phi(:,nc_node_dim,:)
-
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(4),tag,cart_neighbor(3), &
-                              tag,mpi_comm_cart,status,ierr)
-
-      phi(:,0,:)=phi(:,0,:)+phi_buf(:,:)
-
-!! send to node in -z
-    
-      phi_buf(:,:)=phi(:,:,1)
-
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(1),tag,cart_neighbor(2), &
-                              tag,mpi_comm_cart,status,ierr)
-
-      phi(:,:,nc_node_dim+1)=phi(:,:,nc_node_dim+1)+phi_buf(:,:)
-
-!! send to node in +z
-
-      phi_buf(:,:)=phi(:,:,nc_node_dim)
-
-      call mpi_sendrecv_replace(phi_buf,buffer_size,mpi_real, &
-                              cart_neighbor(2),tag,cart_neighbor(1), &
-                              tag,mpi_comm_cart,status,ierr)
-
-      phi(:,:,0)=phi(:,:,0)+phi_buf(:,:)
+    if (iso) then
+       phi_iso(:,:,0)=phi_iso(:,:,0)+phi_buf(:,:)
+    else
+       phi(:,:,0)=phi(:,:,0)+phi_buf(:,:)
+    end if
 
   end subroutine mesh_buffer
 

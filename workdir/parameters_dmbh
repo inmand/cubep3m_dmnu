@@ -1,7 +1,7 @@
 !-*-f90-*-
 
 #define PP_EXT
-#define VERBOSITY 1
+#define VERBOSITY 0
 
 !------------------------------------!
 !!file IO
@@ -25,9 +25,9 @@ character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_dmbh
 ! nodes / dimension, total nodes = nodes_dim**3
 integer(4),   parameter :: nodes_dim      = 1
 ! fine mesh tiles / node / dimension
-integer(4),   parameter :: tiles_node_dim = 2
+integer(4),   parameter :: tiles_node_dim = 2!2
 ! cores / node
-integer(4),   parameter :: cores          = 4
+integer(4),   parameter :: cores          = 1!4
 ! nested threads
 integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
@@ -51,7 +51,7 @@ integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes (total)
-integer(4),   parameter :: n_bh           = 1000!*nodes_dim**3 
+integer(4),   parameter :: n_bh           = 1!000!*nodes_dim**3 
 
 !------------------------------------!
 !!cosmology parameters
@@ -73,7 +73,7 @@ real(4),     parameter :: sigma_8         = 0.0 !not used
 real(4),      parameter :: omega_cp       = 0.27
 !   primordial black holes
 real(4),      parameter :: e_bh          = n_bh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
-real(4),      parameter :: f_bh          = 0*e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
+real(4),      parameter :: f_bh          = 0.0001!0*e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p       = f_bh*omega_cp
 !   cold dark matter
 real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
@@ -91,6 +91,7 @@ real(4),      parameter :: omega_g        = 2.471*10.0**(-5.)/(H0/100.)/(H0/100.
 !  massless neutrinos
 real(4),      parameter :: N_eff          = 3.046
 real(4),      parameter :: omega_r        = omega_g*(1.+N_eff*(7./8.)*(4./11.)**(4./3.))
+real(4),      parameter :: a_eq           = omega_r/omega_m
 ! dark energy
 real(4),      parameter :: omega_l        = 1.0-omega_m-omega_r
 real(4),      parameter :: wde            = -1.

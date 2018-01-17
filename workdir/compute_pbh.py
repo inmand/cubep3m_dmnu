@@ -5,12 +5,12 @@ nd=1
 L=0.02*nd
 
 #particle number
-NPBH=1000000*nd**3
+NPBH=1*nd**3
 NCDM=2*(128*nd)**3
 
 eps=1.0*NPBH/NCDM
 
-fpbh=eps/(1.+eps)
+fpbh=0.00001#eps/(1.+eps)
 omega_c=0.27*(1.-fpbh)
 omega_b=0.05
 omega_p=0.27*fpbh
