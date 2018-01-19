@@ -10,7 +10,7 @@ NCDM=2*(128*nd)**3
 
 eps=1.0*NPBH/NCDM
 
-fpbh=0.00001#eps/(1.+eps)
+fpbh=0.0001#eps/(1.+eps)
 omega_c=0.27*(1.-fpbh)
 omega_b=0.05
 omega_p=0.27*fpbh

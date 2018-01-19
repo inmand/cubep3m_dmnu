@@ -14,7 +14,7 @@ program dist_init
   real, parameter :: ko = k_o
   real, parameter :: s8 = sigma_8
   real, parameter :: omegal=omega_l 
-  real, parameter :: omegam=1.0-omegal 
+  real, parameter :: omegam=omega_m
   real, parameter :: obh=omega_p
   real, parameter :: odm=omega_c
   real, parameter :: aeq = a_eq
@@ -352,12 +352,12 @@ contains
     write(*,*)
     write(*,*) 'n_s      ',ns
     write(*,*) 'sigma_8  ',s8
-    write(*,*) 'omega_m  ',omegam
     write(*,*) 'omega_l  ',omegal
+    write(*,*) 'omega_m  ',omegam
     write(*,*) 'omega_bh ',omega_nu
     write(*,*) 'omega_dm ',omega_c
     write(*,*) 'omega_r  ',omega_r
-    write(*,*) 'aeq      ',aeq
+    write(*,*) 'aeq,zeq  ',aeq,1./aeq-1.
     write(*,*)
     write(*,*) 'box      ',box
     write(*,*) 'redshift ',redshift
@@ -1035,11 +1035,15 @@ contains
     integer(4) :: thread
     integer(4), parameter :: xsize1 = 4*3*np_node_dim**2*(bcc+1) 
     integer(4), parameter :: xsize2 = 2*xsize1
+    real(4) :: diso,viso
 
     integer :: COMMAND
 
     real time1,time2
     call cpu_time(time1)
+
+    diso=d_iso(scalefactor)
+    viso=v_iso(scalefactor)
 
     write(z_s,'(f10.3)') redshift
     z_s=adjustl(z_s)
@@ -1105,9 +1109,23 @@ contains
                        j1=(nc/np)*(j-1)+1+sc
                        i1=(nc/np)*(i-1)+1+sc
 
-                       xvp(1,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+(i1-0.5)
-                       xvp(2,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+(j1-0.5)
-                       xvp(3,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+(k1-0.5)
+                       !grid+adiabatic+isocurvature
+
+                       xvp(1,i,j+np_node_dim*sc,thread)=(i1-0.5)+& 
+                            &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
+                            &diso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2. 
+
+                       xvp(2,i,j+np_node_dim*sc,thread)=(j1-0.5)+& 
+                            &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+& 
+                            &diso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2. 
+
+                       xvp(3,i,j+np_node_dim*sc,thread)=(k1-0.5)+& 
+                            &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+& 
+                            &diso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2. 
+
+                       !xvp(1,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+(i1-0.5)
+                       !xvp(2,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+(j1-0.5)
+                       !xvp(3,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+(k1-0.5)
 
                  end do
 
@@ -1131,9 +1149,23 @@ contains
                        j1=(nc/np)*(j-1)+1+sc
                        i1=(nc/np)*(i-1)+1+sc
 
-                       xvp(4,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)
-                       xvp(5,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)
-                       xvp(6,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)
+                       !adiabatic+isocurvature
+                       
+                       xvp(4,i,j+np_node_dim*sc,thread)=&
+                            &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
+                            &viso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2.
+
+                       xvp(5,i,j+np_node_dim*sc,thread)=&
+                            &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+&
+                            &viso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2.
+
+                       xvp(6,i,j+np_node_dim*sc,thread)=&
+                            &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+&
+                            &viso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2.
+
+                       !xvp(4,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)
+                       !xvp(5,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)
+                       !xvp(6,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)
 
                     end do
 
@@ -1176,7 +1208,7 @@ contains
        !if only 1 bh, can set it in middle of node to improve performance/simplicity
        if (n_bh.eq.1) then
           write(*,*) '>Setting bh to middle of rank 0 volume'
-          xvpbh(1:3,1) = (nc_node_dim/2.0)*(/1.0,1.0,1.0/)
+          xvpbh(1:3,1) = (nc_node_dim/2.0-0.5)*(/1.0,1.0,1.0/) + (/1.0,0.0,0.0/)
        end if
 
     end if
@@ -1283,44 +1315,74 @@ contains
 
     integer :: p
     integer, dimension(3) :: ix
-    real, dimension(3) :: dx,psi
-    real(8) :: spsi
+    real, dimension(3) :: dx,psi,psi_iso
+    real :: diso,viso
+    real(8) :: spsi,spsi_iso,spsi_tot,spsi_iso_tot
 
     if (rank.eq.0) write(*,*) 'Computing displacements',COMMAND
-    spsi=0
+
+    diso=d_iso(scalefactor)
+    viso=v_iso(scalefactor)
+
+    spsi=0; spsi_tot=0
+    spsi_iso=0; spsi_iso_tot=0
     !! Adiabatic displacements of bh
     do p=1,n_bh_local
           
        ix=1+floor(xvpbh0(1:3,p)) !Cell that bh is in
        dx=1+xvpbh0(1:3,p)-ix-0.5 !Displacement from cell centre
 
-       psi(1)=phi(ix(1)+1,ix(2),ix(3)) - phi(ix(1)-1,ix(2),ix(3)) + &
+       psi(1)= (phi(ix(1)+1,ix(2),ix(3)) - phi(ix(1)-1,ix(2),ix(3)))/2. + &
             & dx(1)*( phi(ix(1)+1,ix(2),ix(3)) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1)-1,ix(2),ix(3)) )
        
-       psi(2)=phi(ix(1),ix(2)+1,ix(3)) - phi(ix(1),ix(2)-1,ix(3)) + &
+       psi(2)= (phi(ix(1),ix(2)+1,ix(3)) - phi(ix(1),ix(2)-1,ix(3)))/2. + &
             & dx(2)*( phi(ix(1),ix(2)+1,ix(3)) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1),ix(2)-1,ix(3)) ) 
        
-       psi(3)=phi(ix(1),ix(2),ix(3)+1) - phi(ix(1),ix(2),ix(3)-1) + &
+       psi(3)= (phi(ix(1),ix(2),ix(3)+1) - phi(ix(1),ix(2),ix(3)-1))/2. + &
             & dx(3)*( phi(ix(1),ix(2),ix(3)+1) - 2.0*phi(ix(1),ix(2),ix(3)) + phi(ix(1),ix(2),ix(3)-1) )
 
-       psi=psi/2./(4.*pi)
+       psi_iso(1)= (phi_iso(ix(1)+1,ix(2),ix(3)) - phi_iso(ix(1)-1,ix(2),ix(3)))/2. + &
+            & dx(1)*( phi_iso(ix(1)+1,ix(2),ix(3)) - 2.0*phi_iso(ix(1),ix(2),ix(3)) + phi_iso(ix(1)-1,ix(2),ix(3)) )
 
-       psi=0.!No displacements
+       psi_iso(2)= (phi_iso(ix(1),ix(2)+1,ix(3)) - phi_iso(ix(1),ix(2)-1,ix(3)))/2. + &
+            & dx(2)*( phi_iso(ix(1),ix(2)+1,ix(3)) - 2.0*phi_iso(ix(1),ix(2),ix(3)) + phi_iso(ix(1),ix(2)-1,ix(3)) )
+
+       psi_iso(3)= (phi_iso(ix(1),ix(2),ix(3)+1) - phi_iso(ix(1),ix(2),ix(3)-1))/2. + &
+            & dx(3)*( phi_iso(ix(1),ix(2),ix(3)+1) - 2.0*phi_iso(ix(1),ix(2),ix(3)) + phi_iso(ix(1),ix(2),ix(3)-1) )
+
+       psi=psi/(4.*pi)
+
+       !psi=0.;psi_iso=0.!No displacements
+
+       if (n_bh.eq.1 .and. rank.eq.0) then
+          write(*,*) 'bh psi_iso: ',psi_iso
+          write(*,*) 'bh dx',dx
+          write(*,*) 'bh dpsi_iso/dx',phi_iso(ix(1)+1,ix(2),ix(3)),phi_iso(ix(1),ix(2),ix(3)),phi_iso(ix(1)-1,ix(2),ix(3))
+       end if
 
        if (COMMAND==0) then
           !Coordinate displacements
-          xvpbh(1:3,p) = xvpbh0(1:3,p) - psi
+          xvpbh(1:3,p) = xvpbh0(1:3,p) -psi -psi_iso*diso
        else
           !Velocity displacements
-          xvpbh(4:6,p) = -psi
+          xvpbh(4:6,p) = -psi -psi_iso*viso
        end if
 
        spsi=spsi+sum(psi**2)
-
+       spsi_iso=spsi_iso+sum((diso*psi_iso)**2)
+       
     end do
-    spsi=spsi/n_bh_local
+
+    call mpi_reduce(spsi,spsi_tot,1,MPI_REAL8, &
+          mpi_sum,0,mpi_comm_world,ierr)
+    call mpi_reduce(spsi_iso,spsi_iso_tot,1,MPI_REAL8, &
+          mpi_sum,0,mpi_comm_world,ierr)
+
+    spsi_tot=spsi_tot/n_bh
+    spsi_iso_tot=spsi_iso_tot/n_bh
     
-    if (rank.eq.0) write(*,*) 'Variance bh displacement',sqrt(spsi)
+    if (rank.eq.0) write(*,*) 'Variance bh displacement: adiabatic',sqrt(spsi_tot)
+    if (rank.eq.0) write(*,*) 'Variance bh displacement: isocurvature',sqrt(spsi_iso_tot)
     if (rank.eq.0) write(*,*) 'Finished computing displacements',COMMAND
 
   end subroutine bh
@@ -1361,9 +1423,9 @@ contains
 
        !compute fractional weights
        if (use_ngp) then
-          !ngp
-          dx1=0.
-          dx2=1.
+          !ngp - check?
+          dx1=1.!0.
+          dx2=0.!1.
        else
           !cic
           dx1=ix1-xx
@@ -1605,7 +1667,7 @@ contains
     if (rank.eq.0) write(*,*) 'Writing histogram to file: '//trim(adjustl(f_str))
     open(unit=11,file=trim(adjustl(f_str)),status='replace',iostat=stat,recl=5000)
     do n=1,nr
-       write(11,*) rbins(n),counts(n),rhisto(n),dxhisto(n),dx2histo(n),dvhisto(n),dv2histo(n),thisto(n)
+       if (counts(n).gt.0) write(11,*) rbins(n),counts(n),rhisto(n),dxhisto(n),dx2histo(n),dvhisto(n),dv2histo(n),thisto(n)
     end do
     close(11)    
 
@@ -1784,6 +1846,7 @@ contains
     !$omp do
     do k=0,nc_node_dim+1
        phi(:,:,k)=0
+       phi_iso(:,:,k)=0
     enddo
     !$omp end do
     !$omp do
