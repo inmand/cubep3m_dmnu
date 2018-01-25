@@ -39,9 +39,10 @@ subroutine checkpoint(dokill)
   call mpi_bcast(z_write,1,mpi_real,0,mpi_comm_world,ierr)
 
   ! Increment checkpoint counter so restart works on next checkpoint
+  cur_halo = cur_halofind
   if (.not. dokill) then
      cur_checkpoint=cur_checkpoint+1
-     cur_halo = cur_halofind
+     !cur_halo = cur_halofind
      if (halofind_step) cur_halo = cur_halo + 1
   end if
 
