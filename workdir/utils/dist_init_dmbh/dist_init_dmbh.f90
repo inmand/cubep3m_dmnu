@@ -9,6 +9,9 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
+  logical, parameter :: turn_off_ad = .false.
+  logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
+
   real, parameter :: ns = n_s
   real, parameter :: As = A_s
   real, parameter :: ko = k_o
@@ -1042,6 +1045,15 @@ contains
     real time1,time2
     call cpu_time(time1)
 
+    if (turn_off_ad) then
+       phi=0
+       if (rank.eq.0) write(*,*) 'Turning off adiabatic displacements in dm'
+    end if
+    
+    if (turn_off_iso) then
+       phi_iso=0
+       if (rank.eq.0) write(*,*) 'Turning off isocurvature displacements in dm'
+    end if
     diso=d_iso(scalefactor)
     viso=v_iso(scalefactor)
 
@@ -1195,6 +1207,9 @@ contains
     integer :: p,n,k,j,i,stat
     real, dimension(3,2) :: xyz
 
+    !Don't bother if no bh
+    if (n_bh.eq.0) return
+
     xvpbh=0
     xvpbh0=0
     xvpbhg=0
@@ -1289,6 +1304,8 @@ contains
     integer :: stat,p
     character(len=1000) :: z_str,rank_str,f_str
 
+    if (n_bh.eq.0) return
+
     write(rank_str,'(i6)') rank
     write(z_str,'(f10.3)') z_i
 
@@ -1319,7 +1336,19 @@ contains
     real :: diso,viso
     real(8) :: spsi,spsi_iso,spsi_tot,spsi_iso_tot
 
+    if (n_bh.eq.0) return
+
     if (rank.eq.0) write(*,*) 'Computing displacements',COMMAND
+
+    if (turn_off_ad) then
+       phi=0
+       if (rank.eq.0) write(*,*) 'Turning off adiabatic displacements in bh'
+    end if
+
+    if (turn_off_iso) then
+       phi_iso=0
+       if (rank.eq.0) write(*,*) 'Turning off isocurvature displacements in bh'
+    end if
 
     diso=d_iso(scalefactor)
     viso=v_iso(scalefactor)
@@ -1403,6 +1432,8 @@ contains
 
     !cutoff variables
     real :: xcut,kc
+
+    if (n_bh.eq.0) return
 
     !interpolate bh to grid
     cube=0
@@ -1651,7 +1682,7 @@ contains
     end do!k
 
     where (counts.ne.0)
-       rbins=rbins*box/nc
+       rbins=rbins*(1000*box/nc)
        rhisto=rhisto/counts * (1000*box/nc)
        dxhisto=dxhisto/counts * (1000*box/nc)
        dx2histo=dx2histo/counts * (1000*box/nc)**2.
@@ -1707,7 +1738,7 @@ contains
     real, intent(out) :: xc
     real, parameter :: g1=0.25 !dx/x<g1
     real, parameter :: g2=sqrt(3.)/2.!0.25 !dx<g2 cells
-    real, parameter :: gc=1. ! min cutoff
+    real, parameter :: gc=0.1 ! min cutoff
     real :: s=scalefactor/aeq
     real :: ndm=npr**3*(1.+bcc)
     real :: nbh=n_bh
