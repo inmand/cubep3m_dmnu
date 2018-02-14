@@ -8,7 +8,7 @@
 ! path to cubepm root directory
 character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test16/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/Test25_1/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -28,13 +28,13 @@ integer(4),   parameter :: nodes_dim      = 1
 ! fine mesh tiles / node / dimension
 integer(4),   parameter :: tiles_node_dim = 2
 ! cores / node
-integer(4),   parameter :: cores          = 4
+integer(4),   parameter :: cores          = 8
 ! nested threads
 integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 2.5
 ! size of fine mesh tile in cells / dimension 
-integer(4),   parameter :: nf_tile        = 176
+integer(4),   parameter :: nf_tile        = 240!176
 ! Fine mesh force cut-off in fine mesh cells (determined by kernel)
 integer(4),   parameter :: nf_cutoff      = 16
 ! Fine mesh buffer size in fine mesh cells
@@ -52,15 +52,15 @@ integer(4),   parameter :: ratio_nudm_dim = 1
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes (total)
-integer(4),   parameter :: n_bh           = 1!000!*nodes_dim**3 
+integer(4),   parameter :: n_bh           = 1
 
 !------------------------------------!
 !!cosmology parameters
 ! box size / dim (Mpc/h)
-real(4),      parameter :: box            = 0.020*nodes_dim
+real(4),      parameter :: box            = 0.030 
 ! initial redshifts
-real(4),      parameter :: z_i            = 999999.0!20000.0
-real(4),      parameter :: z_i_nu         = 0!z_i
+real(4),      parameter :: z_i            = 999999.0
+real(4),      parameter :: z_i_nu         = z_i
 real(4),      parameter :: z_tf           = z_i !not used
 ! hubble rate
 real(4),      parameter :: H0             = 67.5
@@ -74,7 +74,7 @@ real(4),     parameter :: sigma_8         = 0.0 !not used
 real(4),      parameter :: omega_cp       = 0.26
 !   primordial black holes
 real(4),      parameter :: e_bh          = n_bh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
-real(4),      parameter :: f_bh          = 0!0.0001!0*e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
+real(4),      parameter :: f_bh          = 0.0001/8.!0*e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p       = f_bh*omega_cp
 !   cold dark matter
 real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
@@ -93,7 +93,7 @@ real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
 !real(4),      parameter :: N_eff          = 3.046
 !real(4),      parameter :: omega_r        = omega_g*(1.+N_eff*(7./8.)*(4./11.)**(4./3.))
 !real(4),      parameter :: a_eq           = omega_r/omega_m
-real(4),       parameter :: z_eq           = 3375.0
+real(4),       parameter :: z_eq           = 3374.0
 real(4),       parameter :: a_eq           = 1./(1.+z_eq)
 real(4),       parameter :: omega_r        = omega_m*a_eq
 ! dark energy

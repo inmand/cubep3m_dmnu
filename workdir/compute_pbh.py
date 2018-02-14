@@ -2,18 +2,18 @@
 nd=1
 
 #box
-L=0.02*nd
+L=0.03*nd
 
 #particle number
 NPBH=1*nd**3
-NCDM=2*(128*nd)**3
+NCDM=2*(192*nd)**3
 
 eps=1.0*NPBH/NCDM
 
-fpbh=0.0001#eps/(1.+eps)
-omega_c=0.27*(1.-fpbh)
+fpbh=1e-5 
+omega_c=0.26*(1.-fpbh)
 omega_b=0.05
-omega_p=0.27*fpbh
+omega_p=0.26*fpbh
 omega_m=omega_c+omega_b+omega_p
 
 M=2.775*10.**11.*omega_m*L**3. #Total mass in box

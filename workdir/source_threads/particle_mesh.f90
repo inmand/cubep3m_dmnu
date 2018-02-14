@@ -418,7 +418,7 @@ subroutine particle_mesh
      !$omp end parallel
 
      pp_ext_force_max(thread) = sqrt(maxval(pp_ext_sum(:)))
-           
+
 #endif
       
   enddo
