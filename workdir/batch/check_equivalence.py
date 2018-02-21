@@ -9,7 +9,7 @@ import numpy
 #
 
 nodes_dim      = 1
-tiles_node_dim = 8
+tiles_node_dim = 4
 nf_tile        = 176
 density_buffer = 2.5
 

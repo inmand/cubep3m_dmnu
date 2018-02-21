@@ -9,7 +9,7 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
-  logical, parameter :: turn_off_ad = .false.
+  logical, parameter :: turn_off_ad = .false. !.false.
   logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
 
   real, parameter :: ns = n_s
@@ -354,7 +354,7 @@ contains
     end if
     write(*,*)
     write(*,*) 'n_s      ',ns
-    write(*,*) 'sigma_8  ',s8
+    write(*,*) 'A_s  ',As
     write(*,*) 'omega_l  ',omegal
     write(*,*) 'omega_m  ',omegam
     write(*,*) 'omega_bh ',omega_nu
