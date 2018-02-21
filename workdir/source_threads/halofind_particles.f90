@@ -51,6 +51,10 @@ subroutine halofind
     sec1a = mpi_wtime(ierr)
     if (rank.eq.0) write(*,*) 'starting halofind',sec1a
 
+    !Buffer particles
+    call particle_pass
+    call mpi_barrier(mpi_comm_world, ierr)
+
     !
     ! Find halo candidates based on local overdensities for each tile
     !
@@ -318,6 +322,10 @@ subroutine halofind
 
     cur_halofind  = cur_halofind + 1
     halofind_step = .false.
+
+    !delete buffer particles
+    call delete_particles
+    call mpi_barrier(mpi_comm_world, ierr)
 
     sec2a = mpi_wtime(ierr)
     if (rank.eq.0) write(*,*) 'stopping halofind',sec2a
