@@ -212,7 +212,8 @@ subroutine halofind
             mass_odc = mass_p * imass_odc
 
             if (a .gt. a_i_nu) then
-               call neutrino_properties(hpos(:), nu_search_radius_cells, x_mean_nu, v_mean_nu, n_nu)
+               !call neutrino_properties(hpos(:), nu_search_radius_cells, x_mean_nu, v_mean_nu, n_nu)
+               call neutrino_properties(hpos(:), r_vir, x_mean_nu, v_mean_nu, n_nu)
                x_mean_nu = x_mean_nu + offset 
             end if
 
