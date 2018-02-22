@@ -50,7 +50,7 @@ subroutine variable_initialize
   np_buf=0
   final_step=.false.
   kill_step=.false.
-  injection_step=a_i.eq.a_i_nu
+  injection_step= (a_i.eq.a_i_nu) .and. (n_bh.gt.0)
   shake_offset=0.0
 
   PID=0
