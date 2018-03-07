@@ -5,12 +5,12 @@ nd=1
 L=0.03*nd
 
 #particle number
-NPBH=1e2#1*nd**3
+NPBH=1e4
 NCDM=2*(192*nd)**3
 
 eps=1.0*NPBH/NCDM
 
-fpbh=1e-3#1e-5 
+fpbh=1e-5*NPBH
 omega_c=0.26*(1.-fpbh)
 omega_b=0.05
 omega_p=0.26*fpbh
@@ -28,7 +28,7 @@ print("CDM Particle Mass (Msun/h): ",M*omega_c/omega_m/NCDM)
 print("PBH Particle Mass (Msun/h): ",M*omega_p/omega_m/NPBH)
 
 print("")
-print("m/f^2/M:    ",omega_p/omega_m/NPBH/fpbh**2)
+print("m/f/M:    ",omega_p/omega_m/NPBH/fpbh)
 
 
 #print("Total box (Mpc/h): ",L)

@@ -6,9 +6,9 @@
 !------------------------------------!
 !!file IO
 ! path to cubepm root directory
-character(*), parameter :: cubepm_root    = '/home/dbi208/src/cubep3m_dmnu/workdir/'
+character(*), parameter :: cubepm_root    = '/scratch/dbi208/PBH/N_BH_SIMS/N_bh_50000/source/workdir/'
 ! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/SCALAR_AMP_SIMS/A_s_x10/'
+character(*), parameter :: output_path    = '/scratch/dbi208/PBH/N_BH_SIMS/N_bh_50000/'
 ! path to local scratch
 character(*), parameter :: scratch_path   = output_path
 ! path to initial conditions
@@ -52,7 +52,7 @@ integer(4),   parameter :: ratio_nudm_dim = 1 !not used
 ! body centered(1) or simple cubic(0) lattice
 integer(4),   parameter :: bcc            = 1
 ! number of primordial black holes (total)
-integer(4),   parameter :: n_bh           = 1
+integer(4),   parameter :: n_bh           = 50000
 
 !------------------------------------!
 !!cosmology parameters
@@ -65,7 +65,7 @@ real(4),      parameter :: z_tf           = z_i !not used
 ! hubble rate
 real(4),      parameter :: H0             = 67.5
 ! initial conditions
-real(4),     parameter :: A_s             = 10*2.15e-9
+real(4),     parameter :: A_s             = 2.15e-9
 real(4),     parameter :: n_s             = 0.966
 real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0 !not used
@@ -74,7 +74,7 @@ real(4),     parameter :: sigma_8         = 0.0 !not used
 real(4),      parameter :: omega_cp       = 0.26
 !   primordial black holes
 real(4),      parameter :: e_bh          = n_bh/((1.0+bcc)*(nc/2.0)**3.0) !for convenience
-real(4),      parameter :: f_bh          = 1e-5 !e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
+real(4),      parameter :: f_bh          = n_bh*1e-5 !e_bh/(1.0+e_bh) !fraction of "omega_c" in pbh
 real(4),      parameter :: omega_p       = f_bh*omega_cp
 !   cold dark matter
 real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
