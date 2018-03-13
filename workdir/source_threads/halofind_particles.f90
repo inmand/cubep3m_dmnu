@@ -799,7 +799,7 @@ subroutine fine_ngp_mass(pp,tile,thread)
      if (pp == 0) exit
      x(:) = xv(1:3,pp) + offset(:)
      i1(:) = floor(x(:)) + 1
-     if (PID(pp).eq.pid_dm) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*mass_p_nudm_fac(pid_dm)*omega_m/omega_c
+     if (PID(pp).eq.pid_dm) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p!*mass_p_nudm_fac(pid_dm)*omega_m/omega_c
      pp = ll(pp)
   enddo
 

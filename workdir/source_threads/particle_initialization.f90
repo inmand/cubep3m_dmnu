@@ -108,7 +108,8 @@ subroutine particle_initialize(ispec)
      call mpi_bcast(np_total,1,MPI_INTEGER8,0,mpi_comm_world,ierr)
   
      if (.not.restart_ic .and. .not.restart_kill) then
-        mass_p = 8 !real(nf_physical_dim)**3 / real(np_total)
+        !Main code does not care about this parameter, but halofinder does
+        mass_p = real(nf_physical_dim)**3 / real(np_total)
      endif
 
      if (rank == 0) write(*,*) 'particle mass=', mass_p
