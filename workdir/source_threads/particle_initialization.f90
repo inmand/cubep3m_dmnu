@@ -109,7 +109,7 @@ subroutine particle_initialize(ispec)
   
      if (.not.restart_ic .and. .not.restart_kill) then
         !Main code does not care about this parameter, but halofinder does
-        mass_p = real(nf_physical_dim)**3 / real(np_total)
+        mass_p = real(nf_physical_dim,kind=8)**3 / real(np_total)
      endif
 
      if (rank == 0) write(*,*) 'particle mass=', mass_p
@@ -179,7 +179,7 @@ subroutine particle_initialize(ispec)
      call mpi_bcast(np_total_nu,1,MPI_INTEGER8,0,mpi_comm_world,ierr)     
 
      !Set appropriate mass
-     mass_p_nudm_fac(pid_nu) = (real(nf_physical_dim,kind=8)**3/np_nu/mass_p) * omega_nu/omega_m
+     mass_p_nudm_fac(pid_nu) = (real(nf_physical_dim,kind=8)**3/np_total_nu/mass_p) * omega_nu/omega_m
 
      !Correct unclustered amount
      f_unclustered = 1.d0-omega_c/omega_m-omega_nu/omega_m     
@@ -200,10 +200,12 @@ subroutine particle_initialize(ispec)
      write(*,*) "mass_p_nudm_fac: dm = ",mass_p_nudm_fac(pid_dm)
      write(*,*) "mass_p_nudm_fac: nu = ",mass_p_nudm_fac(pid_nu)
 
-     write(*,*) 'Dark matter mass on grid',np_total*mass_p*mass_p_nudm_fac(pid_dm)/real(nf_physical_dim*1.d0)**3
-     write(*,*) 'Neutrino mass on grid',np_total_nu*mass_p*mass_p_nudm_fac(pid_nu)/real(nf_physical_dim*1.d0)**3
-     write(*,*) 'Unclustered mass on grid',f_unclustered
-     write(*,*) 'Total=1: ',f_unclustered+(np_total*mass_p_nudm_fac(pid_dm)+np_total_nu*mass_p_nudm_fac(pid_nu))*mass_p/real(nf_physical_dim*1.d0)**3
+     write(*,*) 'Dark matter mass on grid',1.d0*np_total*mass_p*mass_p_nudm_fac(pid_dm)/real(nf_physical_dim,kind=8)**3
+     write(*,*) 'Neutrino mass on grid',1.d0*np_total_nu*mass_p*mass_p_nudm_fac(pid_nu)/real(nf_physical_dim,kind=8)**3
+     write(*,*) 'Unclustered mass on grid',1.d0*f_unclustered
+     write(*,*) 'Total=1: ',real(1.d0*f_unclustered+&
+          &(1.d0*np_total*mass_p_nudm_fac(pid_dm)+1.d0*np_total_nu*mass_p_nudm_fac(pid_nu))&
+          &*mass_p/real(nf_physical_dim,kind=8)**3)
   endif
 
   if (rank == 0) write(*,*) 'finished initializing particles'
