@@ -13,7 +13,7 @@ source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/PBH/N_BH_SIMS/N_bh_50000
+RUNDIR=$SCRATCH/PBH/N_BH_SIMS_HFIX/N_bh_10000_NDC
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch

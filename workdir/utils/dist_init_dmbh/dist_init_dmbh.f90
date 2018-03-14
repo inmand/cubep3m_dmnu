@@ -1220,11 +1220,11 @@ contains
        call random_number(xvpbh(1:3,:))
        xvpbh(1:3,:) = xvpbh(1:3,:)*nc ! now in global coordinates
 
-       !if only 1 bh, can set it in middle of node to improve performance/simplicity
-       if (n_bh.eq.1) then
-          write(*,*) '>Setting bh to middle of rank 0 volume'
-          xvpbh(1:3,1) = (nc_node_dim/2.0-0.5)*(/1.0,1.0,1.0/) + (/1.0,0.0,0.0/)
-       end if
+!!$       !if only 1 bh, can set it in middle of node to improve performance/simplicity
+!!$       if (n_bh.eq.1) then
+!!$          write(*,*) '>Setting bh to middle of rank 0 volume'
+!!$          xvpbh(1:3,1) = (nc_node_dim/2.0-0.5)*(/1.0,1.0,1.0/) + (/1.0,0.0,0.0/)
+!!$       end if
 
     end if
 
@@ -1746,13 +1746,15 @@ contains
     
     if (rank.eq.0) then
 
-       x1=( (s/g1)*(3./8./pi)*(1.0/ndm)*(odm/omegam)*(1.+(f_bh/(1.+f_bh))*ndm/nbh) )**(1./3.)*nc
+       x1=( (s/g1)*(3./8./pi)*(1.0/ndm)*(odm/omegam)*(1.+(f_bh/(1.-f_bh))*ndm/nbh) )**(1./3.)*nc
 
-       x2=( (s/g2)*(3./8./pi)*(nc/ndm)*(odm/omegam)*(1.+(f_bh/(1.+f_bh))*ndm/nbh) )**(1./2.)*nc
+       x2=( (s/g2)*(3./8./pi)*(nc/ndm)*(odm/omegam)*(1.+(f_bh/(1.-f_bh))*ndm/nbh) )**(1./2.)*nc
 
-       x3=( (s/(1.+s))*(3./4./pi)*(obh/omegam) )**(1./3.)*nc
+       x3=( (s/(1.+s))*(3./4./pi)*(obh/omegam)*(1.0/nbh) )**(1./3.)*nc
 
        xc=maxval( (/x1,x2,x3,gc/) )
+
+       if (f_bh.eq.0) xc=0.
 
        write(*,*) 'cutoffs: '
        write(*,*) 'dx/x<g1      ->',x1,g1

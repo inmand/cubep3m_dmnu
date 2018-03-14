@@ -138,7 +138,7 @@ subroutine halofind
     do i = 1, np_local
         if (PID(i) .ne. pid_dm) then
             hpart_odc(i) = 1
-            hpart_vir(i) = 1
+            hpart_vir(i) = 2 !2=nu and not in halo, will shift to 1 if in halo
         endif
     enddo 
 
@@ -713,7 +713,7 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
                 pp = hoc(i, j, k)
                 do
                     if (pp == 0) exit
-                    if (PID(pp) .ne. pid_dm) then !! this is a neutrino
+                    if (PID(pp) .ne. pid_dm .and. hpart_vir(pp).ne.1 ) then !! this is a neutrino
                         p(:) = xv(:3, pp)
                         dr   = HPOS(:) - p(:)
                         r    = sqrt(dr(1)**2 + dr(2)**2 + dr(3)**2)
@@ -721,6 +721,7 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
                             XMEAN(:) = XMEAN(:) + p(:)
                             VMEAN(:) = VMEAN(:) + xv(4:6, pp)
                             NNU = NNU + 1
+                            hpart_vir(pp)=1 !Now will be excluded from subsequent halos
                         endif
                     endif
                     pp = ll(pp)
