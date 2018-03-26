@@ -5,6 +5,8 @@
 ! searching over the local particle distribution around each fine mesh density peak.
 ! -------------------------------------------------------------------------------------------------------
 
+#define LOCAL_COORDS
+
 subroutine halofind 
     use omp_lib
     implicit none
@@ -128,6 +130,10 @@ subroutine halofind
     offset(1) = cart_coords(3)*nf_physical_node_dim
     offset(2) = cart_coords(2)*nf_physical_node_dim
     offset(3) = cart_coords(1)*nf_physical_node_dim
+# ifdef LOCAL_COORDS
+    offset=0 !All halos think they are on head node, hpos in [0,nf_physical_node_dim]
+    if (rank.eq.0) write(*,*) 'Keeping halos in local coordinates'
+# endif
 
     !! Initialize so that no particles are yet part of a halo
     hpart_odc = 0
