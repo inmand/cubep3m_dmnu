@@ -9,7 +9,7 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
-  logical, parameter :: turn_off_ad = .false. !.false.
+  logical, parameter :: turn_off_ad = .true.!.false.
   logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
 
   real, parameter :: ns = n_s
@@ -1220,11 +1220,13 @@ contains
        call random_number(xvpbh(1:3,:))
        xvpbh(1:3,:) = xvpbh(1:3,:)*nc ! now in global coordinates
 
-!!$       !if only 1 bh, can set it in middle of node to improve performance/simplicity
-!!$       if (n_bh.eq.1) then
-!!$          write(*,*) '>Setting bh to middle of rank 0 volume'
-!!$          xvpbh(1:3,1) = (nc_node_dim/2.0-0.5)*(/1.0,1.0,1.0/) + (/1.0,0.0,0.0/)
-!!$       end if
+# ifdef CENTRE_BH
+       !if only 1 bh, can set it in middle of node to improve performance/simplicity
+       if (n_bh.eq.1) then
+          write(*,*) '>Setting bh to middle of rank 0 volume'
+          xvpbh(1:3,1) = (nc_node_dim/2.0-0.5)*(/1.0,1.0,1.0/) + (/1.0,0.0,0.0/)
+       end if
+# endif
 
     end if
 
