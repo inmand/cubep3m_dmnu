@@ -19,9 +19,9 @@ subroutine update_position
 
      if (a.gt.a_i_nu) then
         !offset=(offset-0.5)*mesh_scale ! no shake offset
-        offset=(offset-0.5)*mesh_scale*4.0 ! no shake offset
+        offset=(offset-0.5)*mesh_scale*offset_boost ! no shake offset
      else
-        offset=(offset-0.5)*mesh_scale*4.0  - shake_offset
+        offset=(offset-0.5)*mesh_scale*offset_boost  - shake_offset
      end if
 
      shake_offset=shake_offset+offset

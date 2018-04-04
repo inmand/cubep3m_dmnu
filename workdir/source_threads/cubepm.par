@@ -25,6 +25,10 @@ character(*), parameter :: reskill_prefix = '0.528'
 
 real(4), parameter :: kill_remaining = 30.*60.
 
+!! shake offset parameter
+! controls how much to increase offset; if 1 the scale is mesh_scale
+real(4), parameter      :: offset_boost=4.0
+
 !! particle-particle interaction parameters
 ! softening length (if (|r1-r2| < rsoft) then no force)
 real(4), parameter      :: rsoft = 0.2!0.1
