@@ -8,7 +8,7 @@ import numpy
 # These ones are usually changed
 #
 
-nodes_dim      = 1
+nodes_dim      = 2
 tiles_node_dim = 4
 nf_tile        = 176
 density_buffer = 2.5

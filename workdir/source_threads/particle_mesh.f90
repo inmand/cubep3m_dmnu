@@ -54,6 +54,7 @@ subroutine particle_mesh
   f_mesh_mass(thread)=0.0
   f_force_max(thread, :)=0.0
   pp_force_max(thread, :)=0.0
+  pp_ext_force_max(thread)=0.
   !$omp do schedule(dynamic) 
   do cur_tile=1,tiles_node
      tile(3) = (cur_tile-1) / (tiles_node_dim * tiles_node_dim)

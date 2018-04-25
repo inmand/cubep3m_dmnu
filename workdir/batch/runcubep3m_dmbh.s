@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=cubep3m_dmbh
-#SBATCH --nodes=1
+#SBATCH --nodes=8
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=48:00:00
-#SBATCH --mem=8GB
+#SBATCH --mem=16GB
 
 export OMP_STACKSIZE="100M"
 export OMP_NUM_THREADS="8"
@@ -13,7 +13,7 @@ source /home/dbi208/.bashrc
 iload
 
 ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/PBH/N_BH_SIMS_HFIX/N_bh_10000_NDC
+RUNDIR=$SCRATCH/PBH_STARS/n10000
 
 cp -r $ORGDIR $RUNDIR/source
 SUBDIR=$RUNDIR/source/workdir/batch
@@ -35,5 +35,5 @@ source ./COMPILE_dmbh.csh >& ${RUNDIR}/compile${LOG}
 srun ../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
 srun ../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
 srun ../utils/dist_init_dmbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
-srun ../utils/dist_init_dmbh/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}
+#srun ../utils/dist_init_dmbh/ngp_veldivg >& ${RUNDIR}/ngp_veldivg${LOG}
 

@@ -1,18 +1,19 @@
 !-*-f90-*-
 
+#define CENTRE_BH
 #define PP_EXT
 #define VERBOSITY 0
 
 !------------------------------------!
 !!file IO
-! path to cubepm root directory
-character(*), parameter :: cubepm_root    = '/scratch/dbi208/PBH/N_BH_SIMS_HFIX/N_bh_10000_NDC/source/workdir/'
-! path to simulation output
-character(*), parameter :: output_path    = '/scratch/dbi208/PBH/N_BH_SIMS_HFIX/N_bh_10000_NDC/'
 ! path to local scratch
-character(*), parameter :: scratch_path   = output_path
+character(*), parameter :: scratch_path   = '/scratch/dbi208/PBH_STARS/n10000/'
+! path to cubepm root directory
+character(*), parameter :: cubepm_root    = scratch_path//'source/workdir/'
+! path to simulation output
+character(*), parameter :: output_path    = scratch_path
 ! path to initial conditions
-character(*), parameter :: ic_path        = output_path
+character(*), parameter :: ic_path        = scratch_path
 ! transfer functions
 integer, parameter      :: nk             = 1000
 !character(len=*), parameter :: fntf       = cubepm_root//'transfer/dmbh/tk_fine.dat'
@@ -24,7 +25,7 @@ character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_dmbh
 !------------------------------------!
 !!Simulation parameters
 ! nodes / dimension, total nodes = nodes_dim**3
-integer(4),   parameter :: nodes_dim      = 1
+integer(4),   parameter :: nodes_dim      = 2
 ! fine mesh tiles / node / dimension
 integer(4),   parameter :: tiles_node_dim = 2
 ! cores / node
@@ -34,7 +35,7 @@ integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 2.5
 ! size of fine mesh tile in cells / dimension 
-integer(4),   parameter :: nf_tile        = 240!176
+integer(4),   parameter :: nf_tile        = 176!240,176
 ! Fine mesh force cut-off in fine mesh cells (determined by kernel)
 integer(4),   parameter :: nf_cutoff      = 16
 ! Fine mesh buffer size in fine mesh cells
@@ -57,7 +58,7 @@ integer(4),   parameter :: n_bh           = 10000
 !------------------------------------!
 !!cosmology parameters
 ! box size / dim (Mpc/h)
-real(4),      parameter :: box            = 0.030 
+real(4),      parameter :: box            = 0.030
 ! initial redshifts
 real(4),      parameter :: z_i            = 999999.0
 real(4),      parameter :: z_i_nu         = z_i
