@@ -190,6 +190,12 @@ subroutine particle_mesh
 
                              do jp_n = ip_n+1, ipl_n(im_n,jm_n,km_n)
                                 pp2_n = llf(jp_n, im_n, jm_n, km_n, thread, thread_n)
+
+#                               ifdef MASSLESS_PARTICLES
+                                !Don't include massless-massless interactions
+                                if (mass_p_nudm_fac(PID(pp1_n)).eq.0 .and. mass_p_nudm_fac(PID(pp2_n)).eq.0) cycle
+#                               endif                              
+
                                 sep_n = xv(:3,pp1_n) - xv(:3,pp2_n)                      
                                 rmag_n = sqrt(sep_n(1)*sep_n(1) + sep_n(2)*sep_n(2) + sep_n(3)*sep_n(3))
                                 if (rmag_n > rsoft) then
@@ -333,6 +339,15 @@ subroutine particle_mesh
                              do; if(pp1_n == 0)exit
                                    
                                 do ; if(pp2_n == 0)exit
+
+#                                  ifdef MASSLESS_PARTICLES
+                                   !Don't include massless-massless interactions
+                                   if (mass_p_nudm_fac(PID(pp1_n)).eq.0 .and. mass_p_nudm_fac(PID(pp2_n)).eq.0) then
+                                      pp2_n = ll_fine(pp2_n, thread)
+                                      fpp2_n = mass_p_nudm_fac(PID(pp2_n))
+                                      cycle
+                                   end if
+#                                  endif
                                       
                                    n_pairs_n = n_pairs_n + 1
                            
