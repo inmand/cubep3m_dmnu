@@ -9,7 +9,7 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
-  logical, parameter :: turn_off_ad = .true.!.false.
+  logical, parameter :: turn_off_ad = .false.
   logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
 
   real, parameter :: ns = n_s
@@ -1518,6 +1518,17 @@ contains
        write(*,*) 'min cube   : ',minval(cube)
     end if
 
+    cube=cube-1.
+    !check sum
+    norm=sum(cube*1.d0)
+    call mpi_reduce(norm,norm_total,1,MPI_REAL8, &
+         mpi_sum,0,mpi_comm_world,ierr)
+    if (rank.eq.0) then
+       write(*,*) '<delta_bh>: ',norm_total/(nc*1.d0)**3
+       write(*,*) 'max cube   : ',maxval(cube)
+       write(*,*) 'min cube   : ',minval(cube)
+    end if
+
     !cosmic mean
     cube=cube*(1.d0*omega_nu/omega_m)
 
@@ -1711,7 +1722,7 @@ contains
     real, intent(in) :: a
     real :: v_iso
 
-    v_iso = (2.*sqrt(aeq))*a*(sqrt(1.+a/aeq)-1.)
+    v_iso = (2.*sqrt(aeq))*(sqrt(1.+a/aeq)-1.)
     
   end function v_iso
 
