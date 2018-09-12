@@ -3,7 +3,7 @@
 #SBATCH --nodes=8
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --time=48:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mem=16GB
 
 export OMP_STACKSIZE="100M"
@@ -12,19 +12,17 @@ export OMP_NUM_THREADS="8"
 source /home/dbi208/.bashrc
 iload
 
-ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/PBH_STARS/n10000
-
-cp -r $ORGDIR $RUNDIR/source
-SUBDIR=$RUNDIR/source/workdir/batch
+cd $SLURM_SUBMIT_DIR
+SUBDIR=$SLURM_SUBMIT_DIR
+RUNDIR=$SUBDIR/../../
 
 echo ${SLURM_JOB_NODELIST} > $RUNDIR/list_of_nodes
 cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
 
 LOG=_log
 
-cd /home/dbi208/src/p3dfft.2.5.1_fix
-source dobuild_nyu >& ${RUNDIR}/p3dfft${LOG}
+#cd /home/dbi208/src/p3dfft.2.5.1_fix
+#source dobuild_nyu >& ${RUNDIR}/p3dfft${LOG}
 
 cd ${SUBDIR}
 cd ..
