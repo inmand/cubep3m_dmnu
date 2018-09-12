@@ -31,7 +31,7 @@ real(4), parameter      :: offset_boost=4.0
 
 !! particle-particle interaction parameters
 ! softening length (if (|r1-r2| < rsoft) then no force)
-real(4), parameter      :: rsoft = 0.2!0.1
+real(4), parameter      :: rsoft = 0.1
 ! arbitrary timescale limiting parameter :: dt_max_pp=sqrt(dt_pp_scale*rsoft/max_pp_acceleration)
 real(4), parameter      :: dt_pp_scale = 0.05
 ! arbitrary pp bias (set to increase the force interaction)
