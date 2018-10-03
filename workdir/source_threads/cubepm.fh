@@ -61,15 +61,17 @@ real(4), dimension(nc_node_dim,nc_node_dim, nc_pen, 0:nodes_pen-1)      :: recv_
 real(4), dimension(max_buf) 						:: send_buf,recv_buf
 real(4), dimension(max_buf)						:: fast_buf
 integer(4), dimension(max_buf/2)					:: fast_pos
-integer(1), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
 
 ! :: particle arrays
 real(4), dimension(6,max_np) 						:: xv
 integer(4), dimension(max_np) 						:: ll
-integer(1), dimension(max_np)                       :: PID
 integer(4), dimension(hoc_nc_l:hoc_nc_h,hoc_nc_l:hoc_nc_h,hoc_nc_l:hoc_nc_h) :: hoc
 integer(4) 								:: np_buf
 real(4) :: min_den_buf
+
+! :: PID arrays
+integer(kind=pid_int_kind), dimension(max_np)                       :: PID
+integer(kind=pid_int_kind), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
 
 ! :: arrays storing modification to mass_p when omega_i not equal to omega_m
 real(4), dimension(pid_dm:pid_nu) :: mass_p_nudm_fac

@@ -73,9 +73,9 @@ subroutine particle_pass
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(6), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(6), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppx,MPI_integer1,cart_neighbor(5), &
+  call mpi_irecv(recv_buf_PID,nppx,pid_mpi_kind,cart_neighbor(5), &
        tag,mpi_comm_world,rrequest,rierr)
 
   call mpi_wait(srequest,sstatus,sierr)
@@ -133,9 +133,9 @@ subroutine particle_pass
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(5), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(5), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmx,MPI_integer1,cart_neighbor(6), &
+  call mpi_irecv(recv_buf_PID,npmx,pid_mpi_kind,cart_neighbor(6), &
        tag,mpi_comm_world,rrequest,rierr)
     
   call mpi_wait(srequest,sstatus,sierr)
@@ -223,9 +223,9 @@ subroutine particle_pass
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(3), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(3), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmy,MPI_integer1,cart_neighbor(4), &
+  call mpi_irecv(recv_buf_PID,npmy,pid_mpi_kind,cart_neighbor(4), &
        tag,mpi_comm_world,rrequest,rierr)
 
   call mpi_wait(srequest,sstatus,sierr)
@@ -292,9 +292,9 @@ subroutine particle_pass
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(4), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(4), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppy,MPI_integer1,cart_neighbor(3), &
+  call mpi_irecv(recv_buf_PID,nppy,pid_mpi_kind,cart_neighbor(3), &
        tag,mpi_comm_world,rrequest,rierr)
 
   call mpi_wait(srequest,sstatus,sierr)
@@ -371,9 +371,9 @@ subroutine particle_pass
   call mpi_wait(srequest,sstatus,sierr)
   call mpi_wait(rrequest,rstatus,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(2), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(2), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,nppz,MPI_integer1,cart_neighbor(1), &
+  call mpi_irecv(recv_buf_PID,nppz,pid_mpi_kind,cart_neighbor(1), &
        tag,mpi_comm_world,rrequest,rierr)
 
   call mpi_wait(srequest,sstatus,sierr)
@@ -428,9 +428,9 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,npmz*6,mpi_real,cart_neighbor(2), &
        tag,mpi_comm_world,rrequest,rierr)
 
-  call mpi_isend(send_buf_PID,np_buf,MPI_integer1,cart_neighbor(1), &
+  call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(1), &
        tag,mpi_comm_world,srequest,sierr)
-  call mpi_irecv(recv_buf_PID,npmz,MPI_integer1,cart_neighbor(2), &
+  call mpi_irecv(recv_buf_PID,npmz,pid_mpi_kind,cart_neighbor(2), &
        tag,mpi_comm_world,rrequest,rierr)
 
   call mpi_wait(srequest,sstatus,sierr)

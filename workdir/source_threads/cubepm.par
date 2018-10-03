@@ -120,3 +120,10 @@ integer(4), parameter   :: dim_z = nodes_dim**2
 integer(4), parameter :: pid_dm = 0
 integer(4), parameter :: pid_nu = 1
 
+#ifdef UNIQUE_PID
+integer, parameter :: pid_int_kind = 8
+integer, parameter :: pid_mpi_kind = mpi_integer8
+#else
+integer, parameter :: pid_int_kind = 1
+integer, parameter :: pid_mpi_kind = mpi_integer1
+#endif
