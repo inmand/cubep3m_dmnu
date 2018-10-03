@@ -1,7 +1,6 @@
 !! main particle mesh subroutine
 subroutine particle_mesh
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i, j, k, cur_tile, thread

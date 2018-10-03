@@ -10,8 +10,6 @@
 subroutine halofind 
     use omp_lib
     implicit none
-
-    include "mpif.h"
 #    include "cubepm.fh"
 
     real(4) :: z_write
@@ -348,9 +346,7 @@ subroutine find_halo_candidates(tile, ic)
     !
     use omp_lib
     implicit none
-
 #    include "cubepm.fh"
-!    include "mpif.h"
 
     integer(4), dimension(3) :: offset
     integer(4), dimension(3) :: cic_l,cic_h,tile
@@ -449,9 +445,7 @@ subroutine find_halo_particles(HODC, HMASS, HPOS, RODC, ITOT, DOVIR)
     !
     use omp_lib
     implicit none
-
 #    include "cubepm.fh"
-    include "mpif.h"
 
     real(4), intent(in) :: HODC, HMASS
     real(4), dimension(3), intent(inout) :: HPOS
@@ -680,11 +674,8 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
     ! Finds the mean velocity of all neutrinos within a radius of RSEARCH from
     ! the halo centre HPOS
     !
-
     implicit none
-
 #    include "cubepm.fh"
-    include "mpif.h"
 
     real(4), dimension(3), intent(in) :: HPOS
     real(4), intent(in) :: RSEARCH
@@ -750,7 +741,6 @@ subroutine initialize_halofind
     use omp_lib
     implicit none
 #    include "cubepm.fh"
-    include 'mpif.h'
 
     integer(4) :: ii, i, j, k, fstat
     real(4) :: r

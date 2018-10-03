@@ -1,6 +1,7 @@
 !-*-f90-*-
 !! Frequently changed parameters are found in this header file:
 #include "../parameters"
+include 'mpif.h'
 
 !! files / paths 
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
@@ -116,5 +117,6 @@ integer(4), parameter   :: dim_z = nodes_dim**2
 
 !! second species ids, note that the exact values don't matter
 !! just need to be different
-integer(4), parameter :: pid_dm = 1
-integer(4), parameter :: pid_nu = 2
+integer(4), parameter :: pid_dm = 0
+integer(4), parameter :: pid_nu = 1
+

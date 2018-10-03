@@ -1,7 +1,6 @@
 !! move grid back
 subroutine move_grid_back(force_grid_back)
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   logical, intent(in) :: force_grid_back

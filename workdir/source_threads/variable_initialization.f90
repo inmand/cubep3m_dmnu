@@ -1,7 +1,6 @@
 !! initialize variables
 subroutine variable_initialize
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i,fstat

@@ -1,7 +1,6 @@
 !write checkpoints to disk
 subroutine checkpoint(dokill)
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   logical, intent(in) :: dokill
@@ -149,7 +148,6 @@ end subroutine checkpoint
 ! kill_remaining (parameter in cubepm.par) seconds remaining.
 subroutine read_remaining_time
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
   
   integer(4) :: time_lefti

@@ -1,7 +1,6 @@
 !! pass particles to adjacent nodes
 subroutine particle_pass
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   real(4), parameter :: rnf_buf = nf_buf
@@ -492,7 +491,6 @@ end subroutine particle_pass
 
 subroutine check_buf_num(npl0,astr)
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
   character(len=*), intent(in) :: astr
   integer(4), intent(in) :: npl0
@@ -518,7 +516,6 @@ end subroutine check_buf_num
 
 subroutine check_par_num(npl,npb,npl0,astr)
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
   character(len=*), intent(in) :: astr
   integer(4), intent(in) :: npl,npb,npl0

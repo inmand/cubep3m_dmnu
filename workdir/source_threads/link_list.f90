@@ -2,7 +2,6 @@
 !! within the coarse mesh
 subroutine link_list
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i,j,k,pp,pc

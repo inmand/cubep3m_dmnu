@@ -1,7 +1,6 @@
 !! increment timestep 
 subroutine timestep
   implicit none 
-  include 'mpif.h'
 # include "cubepm.fh"
 
   real(4) :: ra,da_1,da_2,dt_e,am

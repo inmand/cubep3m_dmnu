@@ -4,7 +4,6 @@
 !! coarse mesh velocity update
 subroutine coarse_mesh
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
 # if VERBOSITY>0
@@ -22,7 +21,6 @@ end subroutine coarse_mesh
 !! calculate coarse mesh density
 subroutine coarse_mass
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i,j,k,k0,pp,ii,jj,kk
@@ -254,7 +252,6 @@ end subroutine coarse_force
 !! pass coarse mesh force along boundries to adjacent nodes
 subroutine coarse_force_buffer
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: buffer_size
@@ -311,7 +308,6 @@ end subroutine coarse_force_buffer
 !! calculate the maximum dt based on the coarse mesh force
 subroutine coarse_max_dt 
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(kind=4) :: i,j,k

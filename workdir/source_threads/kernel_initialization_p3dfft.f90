@@ -4,7 +4,6 @@
 !! construct fine mesh force kernel
 subroutine fine_kernel
   implicit none 
-  include 'mpif.h'
 # include "cubepm.fh"
   
   integer(kind=4) :: i,j,k,temp(3)
@@ -235,7 +234,6 @@ end subroutine fine_kernel
 !! coarse grid force kernel construction
 subroutine coarse_kernel
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(kind=4) :: i,j,k,i0,j0,k0,hc1,temp(3)

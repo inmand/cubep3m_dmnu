@@ -8,7 +8,6 @@
 subroutine cubepm_fftw(command)
   use p3dfft
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i
@@ -67,7 +66,6 @@ end subroutine cubepm_fftw
 subroutine pack_pencils  
   use omp_lib
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i,j,k,i0,i1,k1
@@ -132,7 +130,6 @@ end subroutine pack_pencils
 subroutine unpack_pencils
   use omp_lib
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: i,j,k,i0,i1,k1

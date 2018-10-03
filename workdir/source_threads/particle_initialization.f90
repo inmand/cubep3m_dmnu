@@ -2,7 +2,6 @@
 subroutine particle_initialize(ispec)
   use omp_lib
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4), intent(in) :: ispec

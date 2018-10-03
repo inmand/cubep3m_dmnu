@@ -1,7 +1,6 @@
 !! delete particles which lie outside of the physical region
 subroutine delete_particles
   implicit none
-  include 'mpif.h'
 # include "cubepm.fh"
 
   integer(4) :: pp,i
