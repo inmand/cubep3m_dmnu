@@ -70,6 +70,7 @@ integer(4) 								:: np_buf
 real(4) :: min_den_buf
 
 ! :: PID arrays
+integer(kind=pid_int_kind) :: pidmap
 integer(kind=pid_int_kind), dimension(max_np)                       :: PID
 integer(kind=pid_int_kind), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
 

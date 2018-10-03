@@ -7,7 +7,7 @@ subroutine checkpoint(dokill)
 
   logical :: checkpoint_nu
 
-  character (len=max_path) :: ofile,ofile2
+  character (len=max_path) :: ofile
   character (len=6) :: rank_s
   character (len=100) :: z_s  
 
@@ -16,14 +16,17 @@ subroutine checkpoint(dokill)
   real(kind=4) :: z_write
 
   integer(4) :: np_dm, np_nu, ind_check1, ind_check2
-  character (len=max_path) :: ofile_nu, ofile2_nu
+  character (len=max_path) :: ofile_nu, ofile_nu_pid
 
   if (rank.eq.0) write(*,*) 'starting checkpoint'
   if (rank.eq.0 .and. kill_step) write(*,*) 'checkpoint kill'
 
   !Whether to open neutrino file or not
   checkpoint_nu = a .gt. a_i_nu
-  np_dm = count(PID(1:np_local) == pid_dm)
+  np_dm=0
+  do i=1,np_local
+     if (pidmap(PID(i)).eq.pid_dm) np_dm=np_dm+1
+  end do
   np_nu = np_local - np_dm 
   if (rank == 0) write(*,*) "checkpoint np_dm, np_nu = ", np_dm, np_nu
 
@@ -84,6 +87,18 @@ subroutine checkpoint(dokill)
      endif
      ! Write header
      write(22) np_nu,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint,1,cur_halo,mass_p
+
+#    ifdef UNIQUE_PID     
+     ofile_nu_pid=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'pid'// &
+          rank_s(1:len_trim(rank_s))//'_nu.dat'
+     open(unit=23, file=ofile_nu_pid, status="replace", iostat=fstat, access="stream")
+     if (fstat /= 0) then
+        write(*,*) 'error opening checkpoint pid file for write'
+        write(*,*) 'rank',rank,'file:',ofile_nu_pid
+        call mpi_abort(mpi_comm_world,ierr,ierr)
+     endif
+     write(23) np_nu
+#    endif
   end if
 
   ! Write data for neutrino simulation
@@ -94,7 +109,7 @@ subroutine checkpoint(dokill)
      nplow=(i-1)*blocksize+1
      nphigh=min(i*blocksize,np_local)
      do j=nplow,nphigh
-        if (PID(j) == pid_dm) then
+        if (pidmap(PID(j)) == pid_dm) then
            write(12) xv(1:3,j) - shake_offset
            write(12) xv(4:6,j)
            ind_check1 = ind_check1 + 1
@@ -106,14 +121,21 @@ subroutine checkpoint(dokill)
            end if
            write(22) xv(1:3,j) - shake_offset
            write(22) xv(4:6,j)
+#          ifdef UNIQUE_PID
+           write(23) PID(j)
+#          endif
            ind_check2 = ind_check2 + 1
         endif
      enddo
   enddo
 
   close(12)
-  if (checkpoint_nu) close(22)
-
+  if (checkpoint_nu) then
+     close(22)
+#    ifdef UNIQUE_PID
+     close(23)
+#    endif
+  end if
   !! Consistency check
   if (ind_check1 .ne. np_dm .or. ind_check2 .ne. np_nu) then
      write(*,*) "Dark Matter checkpoint error: ind_checks ", ind_check1, np_dm, ind_check2, np_nu

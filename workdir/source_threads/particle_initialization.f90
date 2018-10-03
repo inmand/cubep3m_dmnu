@@ -14,6 +14,8 @@ subroutine particle_initialize(ispec)
   character(len=100) :: z_s, z_s2
   integer(4) :: np_nu
 
+  integer, dimension(nodes_dim**3) :: np_nu_rank
+
   integer(4) :: np_dm
   integer(8) :: np_total_nu
 
@@ -159,10 +161,56 @@ subroutine particle_initialize(ispec)
      enddo
      close(21)
 
-     ! Assign 1 byte integer PIDs
+#    ifdef UNIQUE_PID
+     if (restart_ic .or. restart_kill) then
+        !Read in PID file
+        ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'pid'// &
+            rank_s(1:len_trim(rank_s))//'_nu.dat'
+        open(unit=21, file=ofile, status="old", iostat=fstat, access="stream")
+        if (fstat /= 0) then
+           write(*,*) 'error opening checkpoint pid'
+           write(*,*) 'rank',rank,'file:',ofile
+           call mpi_abort(mpi_comm_world,ierr,ierr)
+        endif
+        read(21) i
+        if (i.ne. np_nu) then
+           write(*,*) 'error in pid file: np_nu does not match'
+           write(*,*) 'rank',rank,'expected/received np_nu',np_nu,i
+           call mpi_abort(mpi_comm_world,ierr,ierr)
+        end if
+        do i=np_local+1,np_local+np_nu
+           read(21) PID(i)
+        end do
+        close(21)
+     else
+        !Assign unique 8 byte integer PIDs, assumes each node starts with np_nu particles, write to file
+        ofile=output_path//'/node'//rank_s(1:len_trim(rank_s))//'/'//z_s(1:len_trim(z_s))//'pid'// &
+             rank_s(1:len_trim(rank_s))//'_nu.dat'
+        open(unit=23, file=ofile, status="replace", iostat=fstat, access="stream")
+        if (fstat /= 0) then
+           write(*,*) 'error opening checkpoint pid file for write'
+           write(*,*) 'rank',rank,'file:',ofile
+           call mpi_abort(mpi_comm_world,ierr,ierr)
+        endif
+        write(23) np_nu
+
+        !Find how many bh in previous nodes
+        call mpi_allgather(np_nu,1,mpi_integer,np_nu_rank,1,mpi_integer,mpi_comm_world,ierr)
+        np_nu_rank(1)=sum(np_nu_rank(1:rank+1))-np_nu_rank(rank+1)
+        do i = np_local+1, np_local+np_nu
+           PID(i) = int(i-np_local-1+pid_nu,kind=pid_int_kind)+int(np_nu_rank(1),kind=pid_int_kind)
+           write(23) PID(i)
+        end do
+
+        close(23)
+
+     end if
+#    else
+     ! Assign identical 1 byte integer PIDs
      do i = np_local+1, np_local+np_nu
         PID(i) = pid_nu
      enddo
+#    endif
 
      !! calculate total number of particles 
      npl8=int(np_local,kind=8)

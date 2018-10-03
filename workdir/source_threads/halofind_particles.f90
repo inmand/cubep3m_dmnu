@@ -140,7 +140,7 @@ subroutine halofind
     !! Exclude neutrinos from being included in halos by
     !! making the halofinder think they have already been inclued in a halo
     do i = 1, np_local
-        if (PID(i) .ne. pid_dm) then
+        if (pidmap(PID(i)) .ne. pid_dm) then
             hpart_odc(i) = 1
             hpart_vir(i) = 2 !2=nu and not in halo, will shift to 1 if in halo
         endif
@@ -294,13 +294,13 @@ subroutine halofind
 
     np_halo_local_odc = 0
     do ii = 1, np_local
-       if (PID(ii) == pid_dm .and. hpart_odc(ii) == 1) np_halo_local_odc = np_halo_local_odc + 1
+       if (pidmap(PID(ii)) == pid_dm .and. hpart_odc(ii) == 1) np_halo_local_odc = np_halo_local_odc + 1
     enddo
     call mpi_reduce(np_halo_local_odc, np_halo_odc, 1, mpi_integer8, mpi_sum, 0, mpi_comm_world, ierr)
 
     np_halo_local_vir = 0
     do ii = 1, np_local
-        if (PID(ii) == pid_dm .and. hpart_vir(ii) == 1) np_halo_local_vir = np_halo_local_vir + 1
+        if (pidmap(PID(ii)) == pid_dm .and. hpart_vir(ii) == 1) np_halo_local_vir = np_halo_local_vir + 1
     enddo
     call mpi_reduce(np_halo_local_vir, np_halo_vir, 1, mpi_integer8, mpi_sum, 0, mpi_comm_world, ierr)
 
@@ -710,7 +710,7 @@ subroutine neutrino_properties(HPOS, RSEARCH, XMEAN, VMEAN, NNU)
                 pp = hoc(i, j, k)
                 do
                     if (pp == 0) exit
-                    if (PID(pp) .ne. pid_dm .and. hpart_vir(pp).ne.1 ) then !! this is a neutrino
+                    if (pidmap(PID(pp)) .ne. pid_dm .and. hpart_vir(pp).ne.1 ) then !! this is a neutrino
                         p(:) = xv(:3, pp)
                         dr   = HPOS(:) - p(:)
                         r    = sqrt(dr(1)**2 + dr(2)**2 + dr(3)**2)
@@ -796,7 +796,7 @@ subroutine fine_ngp_mass(pp,tile,thread)
      if (pp == 0) exit
      x(:) = xv(1:3,pp) + offset(:)
      i1(:) = floor(x(:)) + 1
-     if (PID(pp).eq.pid_dm) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p!*mass_p_nudm_fac(pid_dm)*omega_m/omega_c
+     if (pidmap(PID(pp)).eq.pid_dm) rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p!*mass_p_nudm_fac(pid_dm)*omega_m/omega_c
      pp = ll(pp)
   enddo
 

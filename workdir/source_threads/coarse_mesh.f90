@@ -76,8 +76,8 @@ subroutine coarse_cic_mass(pp)
      dx2(:) = 1.0 - dx1(:)
 #    endif
 
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
+     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(pidmap(PID(pp))) 
+     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(pidmap(PID(pp)))
 
      rho_c(i1(1),i1(2),i1(3)) = rho_c(i1(1),i1(2),i1(3)) &
           + dx1(1) * dx1(2) * dx1(3)
@@ -131,8 +131,8 @@ subroutine coarse_cic_mass_boundry(pp)
      dx2(:) = 1.0 - dx1(:)
 #    endif
 
-     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(PID(pp)) 
-     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(PID(pp))
+     dx1(1) = mass_p * dx1(1) * mass_p_nudm_fac(pidmap(PID(pp)))
+     dx2(1) = mass_p * dx2(1) * mass_p_nudm_fac(pidmap(PID(pp)))
 
      if (i1(3) >= 1 .and. i1(3) <= nc_node_dim) then
         if (i1(2) >= 1 .and. i1(2) <= nc_node_dim) then
