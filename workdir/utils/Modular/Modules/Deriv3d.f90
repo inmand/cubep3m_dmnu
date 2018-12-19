@@ -205,4 +205,83 @@ contains
 
   end subroutine divergence
 
+  subroutine gradIgradJinvL(grid_in,grid_out,dim_i,dim_j)
+    implicit none
+    real, dimension(Ncells,Ncells,Ncells), intent(in) :: grid_in
+    real, dimension(Ncells,Ncells,Ncells), intent(out) :: grid_out
+    integer, intent(in) :: dim_i,dim_j
+
+    integer :: k,j,i,kg,jg,ig,mg,ind,dx,dxy
+    real :: kz,ky,kx,kr2
+    real, dimension(3) :: k3
+
+    real, parameter :: ncr = 1.0*nc
+    integer, parameter :: hc = nc/2
+
+    cube = grid_in
+    call reset_pencil
+    call cp_fftw(1)
+
+    ind = 0
+    dx = fsize(1)
+    dxy = dx * fsize(2)
+
+    !$omp parallel default(none) &
+    !$omp& private(k,j,i,kg,mg,jg,ig,ind,kz,ky,kx,kr2,k3) &
+    !$omp& shared(slab,dx,dxy,mypadd,fstart,dim_i,dim_j)
+    !$omp do schedule(dynamic)    
+    do k = 1, nc_pen+mypadd
+       ind = (k-1)*nc_node_dim*nc/2
+       do j = 1, nc_node_dim
+          do i = 1, nc, 2
+             kg = ind / dxy
+             mg = ind - kg * dxy
+             jg = mg / dx
+             ig = mg - jg * dx
+             kg = fstart(3) + kg
+             jg = fstart(2) + jg
+             ig = 2 * (fstart(1) + ig) - 1
+             ind = ind + 1
+             if (kg < hc+2) then
+                kz=kg-1
+             else
+                kz=kg-1-nc
+             endif
+             if (jg < hc+2) then
+                ky=jg-1
+             else
+                ky=jg-1-nc
+             endif
+             kx = (ig-1)/2
+
+             k3(1)=2.*sin(pi*kx/ncr)
+             k3(2)=2.*sin(pi*ky/ncr)
+             k3(3)=2.*sin(pi*kz/ncr)
+
+             kr2=k3(1)**2+k3(2)**2+k3(3)**2
+             if (kr2.eq.0) cycle
+
+             if (dim_i.ne.dim_j) then
+                k3(1)=sin(2.*pi*kx/ncr)
+                k3(2)=sin(2.*pi*ky/ncr)
+                k3(3)=sin(2.*pi*kz/ncr)
+             end if
+
+             slab(i:i+1,j,k)=slab(i:i+1,j,k)*k3(dim_i)*k3(dim_j)/kr2
+
+          end do
+       end do
+    end do
+    !$omp end do
+    !$omp end parallel
+
+    call force_pencil
+    call cp_fftw(-1)
+
+    grid_out=cube
+
+    return
+
+  end subroutine gradIgradJinvL
+
 end module Deriv3d

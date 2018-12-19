@@ -1,3 +1,5 @@
+Particles.o: Variables.o Parameters.o mMPI.o
+Interpolation.o: Variables.o Parameters.o mMPI.o
 Deriv3d.o: Variables.o Parameters.o mMPI.o Pencil.o
 Transfer.o: Variables.o Parameters.o mMPI.o Pencil.o
 Power.o: Variables.o Parameters.o mMPI.o Pencil.o
