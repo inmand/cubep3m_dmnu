@@ -233,6 +233,10 @@ subroutine particle_initialize(ispec)
 
   end if
 
+#ifdef TIDAL_FIELD
+  call initialize_tidal_field
+#endif
+
   !Print some stats to screen
   np_dm = np_local
   np_local = np_local + np_nu

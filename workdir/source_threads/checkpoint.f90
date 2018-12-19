@@ -141,6 +141,10 @@ subroutine checkpoint(dokill)
      write(*,*) "Dark Matter checkpoint error: ind_checks ", ind_check1, np_dm, ind_check2, np_nu
      call mpi_abort(mpi_comm_world,ierr,ierr)
   endif
+
+#ifdef TIDAL_FIELD
+  call checkpoint_tidal_field
+#endif
   
   if (dokill) then
      if (rank.eq.0) then

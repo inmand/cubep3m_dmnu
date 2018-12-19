@@ -74,6 +74,13 @@ integer(kind=pid_int_kind) :: pidmap
 integer(kind=pid_int_kind), dimension(max_np)                       :: PID
 integer(kind=pid_int_kind), dimension(max_buf)                        :: send_buf_PID, recv_buf_PID
 
+#ifdef TIDAL_FIELD
+! :: Tidal Field arrays
+real, dimension(3,3,n_bh,max_nts) :: tide_bh
+real, dimension(3,3,n_bh) :: tide_recv
+real, dimension(max_nts) :: tide_a
+#endif
+
 ! :: arrays storing modification to mass_p when omega_i not equal to omega_m
 real(4), dimension(pid_dm:pid_nu) :: mass_p_nudm_fac
 real(4) :: f_unclustered
@@ -112,6 +119,9 @@ common / drvar / f_mesh_mass
 #ifdef PP_EXT
 common / eppvarr / pp_ext_force_accum
 common / eppvari / ll_fine, hoc_fine
+#endif
+#ifdef TIDAL_FIELD
+common / tidevar / tide_bh, tide_a
 #endif
 common / lvar / min_den_buf
 common / ivar / slab_rank, num_checkpoints, &

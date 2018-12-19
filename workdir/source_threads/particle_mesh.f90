@@ -461,6 +461,10 @@ subroutine particle_mesh
      
   call coarse_mesh
 
+#ifdef TIDAL_FIELD
+  call compute_tidal_field
+#endif
+
   !! delete all particles outside (1:nc_node_dim]
   call delete_particles
 

@@ -127,3 +127,8 @@ integer, parameter :: pid_mpi_kind = mpi_integer8
 integer, parameter :: pid_int_kind = 1
 integer, parameter :: pid_mpi_kind = mpi_integer1
 #endif
+
+#ifdef TIDAL_FIELD
+real, parameter :: tide_rmax = 2.
+real, parameter :: tide_rmin = rsoft
+#endif
