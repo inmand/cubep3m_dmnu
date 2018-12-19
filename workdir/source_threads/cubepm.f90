@@ -17,8 +17,6 @@ program cubep3m_dmnu
   if (injection_step) call particle_initialize(pid_nu)
   call link_list
 
-  call particle_check
-
   if (rank == 0) then
      write(*,*) 
      sec1a = mpi_wtime(ierr)
@@ -31,7 +29,6 @@ program cubep3m_dmnu
 
      call timestep
      call particle_mesh
-     call particle_check
 
      if (checkpoint_step) then
 
