@@ -428,6 +428,9 @@ subroutine particle_pass
   call mpi_irecv(recv_buf,npmz*6,mpi_real,cart_neighbor(2), &
        tag,mpi_comm_world,rrequest,rierr)
 
+  call mpi_wait(srequest,sstatus,sierr)
+  call mpi_wait(rrequest,rstatus,rierr)
+
   call mpi_isend(send_buf_PID,np_buf,pid_mpi_kind,cart_neighbor(1), &
        tag,mpi_comm_world,srequest,sierr)
   call mpi_irecv(recv_buf_PID,npmz,pid_mpi_kind,cart_neighbor(2), &

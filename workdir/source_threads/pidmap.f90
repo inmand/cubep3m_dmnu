@@ -23,6 +23,8 @@ subroutine particle_check
 # include "cubepm.fh"
   integer(8) :: n,n_nu,n_dm,n_tot
 
+# if VERBOSITY>1
+
   n_dm=0;n_nu=0
   do n=1,np_local
      if (pidmap(PID(n)).eq.pid_dm) n_dm=n_dm+1
@@ -43,5 +45,7 @@ subroutine particle_check
   call mpi_reduce(n_dm,n_tot,1,mpi_integer8,mpi_sum,0,mpi_comm_world,ierr)
   if (rank.eq.0) write(*,*) 'n_tot=',n_tot
   if (rank.eq.0) write(*,*) ''
+
+# endif
 
 end subroutine particle_check

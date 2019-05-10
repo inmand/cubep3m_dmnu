@@ -9,7 +9,7 @@
 ! path to local scratch
 character(*), parameter :: scratch_path   = ''
 ! path to cubepm root directory
-character(*), parameter :: cubepm_root    = scratch_path//'source/workdir/'
+character(*), parameter :: cubepm_root    = scratch_path//'workdir/'
 ! path to simulation output
 character(*), parameter :: output_path    = scratch_path
 ! path to initial conditions
