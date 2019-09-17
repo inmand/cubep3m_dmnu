@@ -7,16 +7,14 @@
 #SBATCH --mem=8GB
 
 export OMP_STACKSIZE="100M"
-export OMP_NUM_THREADS="4"
+export OMP_NUM_THREADS="8"
 
 source /home/dbi208/.bashrc
 iload
 
-ORGDIR=$HOME/src/cubep3m_dmnu
-RUNDIR=$SCRATCH/DMNU/Test16/cubep3m_dmnu
-
-cp -r $ORGDIR $RUNDIR/source
-SUBDIR=$RUNDIR/source/workdir/batch
+cd $SLURM_SUBMIT_DIR
+SUBDIR=$SLURM_SUBMIT_DIR
+RUNDIR=$SUBDIR/../../
 
 echo ${SLURM_JOB_NODELIST} > $RUNDIR/list_of_nodes
 cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
