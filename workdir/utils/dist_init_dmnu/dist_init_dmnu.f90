@@ -58,7 +58,7 @@ program dist_init
 
 #ifdef NEUTRINOS
   integer, parameter :: nv=10000
-  character(*), parameter :: cdfTable = 'CDFTable.txt'
+  character(*), parameter :: cdfTable = cubepm_root//'batch/CDFTable.txt'
   real(4), dimension(2,nv) :: cdf    !Col1 is v, col2 is cdf
 #endif
 
