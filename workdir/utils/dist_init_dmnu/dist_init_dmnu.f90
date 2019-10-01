@@ -31,7 +31,7 @@ program dist_init
 #endif
   logical, parameter :: correct_kernel=.true.
 
-  real, parameter :: ns = 0.96 
+  real, parameter :: ns = n_s 
   real, parameter :: s8 = sigma_8
   real, parameter :: omegal=omega_l 
   real, parameter :: omegam=1.0-omegal 
