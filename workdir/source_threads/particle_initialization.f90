@@ -78,6 +78,7 @@ subroutine particle_initialize(ispec)
         read(21) np_local,a,t,tau,nts,dt_f_acc,dt_pp_acc,dt_c_acc,cur_checkpoint, &
              dummy,cur_halofind,mass_p
         if (rank == 0) print *,'restarting simulation from z=',1./a-1.
+        if (max(a,a_checkpoint(cur_checkpoint)).ge.a_i_nu) injection_step=.true.
      else
         read(21) np_local,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy,dummy
         if (rank == 0) print *,'starting simulation from z=',z_i

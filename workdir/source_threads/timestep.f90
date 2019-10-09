@@ -24,13 +24,7 @@ subroutine timestep
   enddo
   call mpi_allreduce(vmax_local, vmax, 1, mpi_real, mpi_max, mpi_comm_world, ierr)
 
-  if (a.lt.a_i_nu) then
-     !dm
-     Dx = real(nf_buf)-4.*mesh_scale ! 2.0 coarse grids 
-  else
-     !nu
-     Dx=real(nf_buf)-0.5*mesh_scale ! 5.5 coarse grids
-  end if
+  Dx = real(nf_buf)-offset_boost*mesh_scale 
 
   !! fbuf is the fraction of the buffer that the fastest particle is allowed to move. 
   !! As long as the maximum velocity increases no more than zeta = 2/fbuf - 1 compared 
