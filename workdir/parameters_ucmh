@@ -1,0 +1,95 @@
+!-*-f90-*-
+
+#define PP_EXT
+#define VERBOSITY 0
+
+!------------------------------------!
+!!file IO
+! path to local scratch
+character(*), parameter :: scratch_path   = '/lustre/work/derek.inman/cubep3m/output/'
+! path to cubepm root directory
+character(*), parameter :: cubepm_root    = '/home/derek.inman/Codes/cubep3m/cubep3m_dmnu/workdir/'
+! path to simulation output
+character(*), parameter :: output_path    = scratch_path
+! path to initial conditions
+character(*), parameter :: ic_path        = scratch_path
+! transfer functions
+integer, parameter      :: nk             = 10000
+character(len=*), parameter :: fntf       = cubepm_root//'transfer/ucmh/tk_fine_z999999.dat'
+character(len=*), parameter :: vfntf      = ''
+! file containing checkpoints
+character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_ucmh'
+
+!------------------------------------!
+!!Simulation parameters
+! nodes / dimension, total nodes = nodes_dim**3
+integer(4),   parameter :: nodes_dim      = 2
+! fine mesh tiles / node / dimension
+integer(4),   parameter :: tiles_node_dim = 2
+! cores / node
+integer(4),   parameter :: cores          = 8
+! nested threads
+integer(4),   parameter :: nested_threads = 1
+! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
+real(4), parameter :: density_buffer      = 3.0 !2.5 !@@
+! size of fine mesh tile in cells / dimension 
+integer(4),   parameter :: nf_tile        = 176!144,240,176
+! Fine mesh force cut-off in fine mesh cells (determined by kernel)
+integer(4),   parameter :: nf_cutoff      = 16
+! Fine mesh buffer size in fine mesh cells
+integer(4),   parameter :: nf_buf         = nf_cutoff + 8
+! Number of fine cells
+#ifndef COARSE_HACK
+integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim
+#else
+! Used in cic_*.f90 to compute on smaller grids
+integer, parameter :: coarsen_factor = 2
+integer(4),   parameter :: nc             = (nf_tile-2*nf_buf)*tiles_node_dim*nodes_dim / coarsen_factor
+#endif
+! controls number of cdm particles relative to neutrinos
+integer(4),   parameter :: ratio_nudm_dim = 1 !not used
+! body centered(1) or simple cubic(0) lattice
+integer(4),   parameter :: bcc            = 1
+! number of primordial black holes (total)
+integer(4),   parameter :: n_bh           = 0
+
+!------------------------------------!
+!!cosmology parameters
+! box size / dim (Mpc/h)
+real(4),      parameter :: box            = 0.012867963509103792 !0.0016
+! initial redshifts
+real(4),      parameter :: z_i            = 999999.0
+real(4),      parameter :: z_i_nu         = merge(z_i,0.,n_bh.ne.0)
+real(4),      parameter :: z_tf           = z_i !not used
+! hubble rate
+real(4),      parameter :: H0             = 67.5
+! initial conditions
+real(4),     parameter :: A_s             = 2.15e-9
+real(4),     parameter :: n_s             = 0.966
+real(4),     parameter :: alpha_s         = 0.002
+real(4),     parameter :: beta_s          = 0.01
+real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
+real(4),     parameter :: sigma_8         = 0.0 !not used
+! matter
+!  non-baryonic matter
+real(4),      parameter :: omega_cp       = 0.26
+!   primordial black holes
+real(4),      parameter :: f_bh          = n_bh*1e-5 !fraction of "omega_c" in pbh
+real(4),      parameter :: omega_p       = f_bh*omega_cp
+!   cold dark matter
+real(4),      parameter :: omega_c        = (1.-f_bh)*omega_cp
+!  baryons: homogeneous only, no hydro
+real(4),      parameter :: omega_b        = 0.05 
+!  neutrino parameters
+real(4),      parameter :: N_massive_nu   = 0.0
+real(4),      parameter :: mass_neutrino  = 0.0
+real(4),      parameter :: omega_nu       = omega_p !we map pbh onto neutrinos in cubep3m
+!  total matter
+real(4),      parameter :: omega_m        = omega_nu+omega_c+omega_b
+! radiation
+real(4),       parameter :: z_eq           = 3375.947801!3374.0
+real(4),       parameter :: a_eq           = 1./(1.+z_eq)
+real(4),       parameter :: omega_r        = omega_m*a_eq
+! dark energy
+real(4),      parameter :: omega_l        = 1.0-omega_m-omega_r
+real(4),      parameter :: wde            = -1.

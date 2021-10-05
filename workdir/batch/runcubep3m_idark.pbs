@@ -1,0 +1,22 @@
+#!/bin/bash 
+#PBS -N cubep3m_ucmh
+#PBS -o /home/derek.inman/pbs
+#PBS -e /home/derek.inman/pbs
+#PBS -l select=8:ncpus=8:mem=4gb
+#PBS -l walltime=04:00:00
+#PBS -u derek.inman
+#PBS -V
+#PBS -q large
+
+export OMP_STACKSIZE="100M"
+export OMP_NUM_THREADS="8"
+
+SUBDIR=/home/derek.inman/Codes/cubep3m/cubep3m_dmnu/workdir/batch/
+RUNDIR=/lustre/work/derek.inman/cubep3m/output/
+LOG=_log
+
+cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
+
+mpirun ${SUBDIR}../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
+mpirun ${SUBDIR}../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
+mpirun ${SUBDIR}../utils/dist_init_dmbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}

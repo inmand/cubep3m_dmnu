@@ -12,7 +12,7 @@ program dist_init
   logical, parameter :: turn_off_ad = .false.
   logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
 
-  real, parameter :: ns = n_s
+  real, parameter :: ns = n_s, ns2=alpha_s, ns3=beta_s
   real, parameter :: As = A_s
   real, parameter :: ko = k_o
   real, parameter :: s8 = sigma_8
@@ -435,7 +435,8 @@ contains
       close(11)
 
       !Compute power spectrum
-      tf(2,:) = As*(tf(1,:)/ko)**(ns-1.)*tf(2,:)**2 !Delta**2
+      !tf(2,:) = As*(tf(1,:)/ko)**(ns-1.)*tf(2,:)**2 !Delta**2
+      tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 !Delta**2
       
     endif
 
