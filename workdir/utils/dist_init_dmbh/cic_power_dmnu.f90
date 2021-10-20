@@ -1,3 +1,4 @@
+#define write_den
 !!
 !! cic_power_dmnu.f90
 !!

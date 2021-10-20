@@ -15,6 +15,7 @@ program dist_init
   real, parameter :: ns = n_s, ns2=alpha_s, ns3=beta_s
   real, parameter :: As = A_s
   real, parameter :: ko = k_o
+  real, parameter :: kfs = k_fs
   real, parameter :: s8 = sigma_8
   real, parameter :: omegal=omega_l 
   real, parameter :: omegam=omega_m
@@ -434,9 +435,15 @@ contains
       end do
       close(11)
 
-      !Compute power spectrum
+      !Compute power spectrum - Delta**2
       !tf(2,:) = As*(tf(1,:)/ko)**(ns-1.)*tf(2,:)**2 !Delta**2
-      tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 !Delta**2
+      tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 
+      !Multiply by free streaming scale
+      where (tf(1,:)<sqrt(3./2.)*kfs)
+         tf(2,:)=tf(2,:)*( (1-(2./3.)*(tf(1,:)/kfs)**2)*exp(-(tf(1,:)/kfs)**2) )**2
+      elsewhere
+         tf(2,:)=0
+      end where
       
     endif
 
@@ -2078,6 +2085,8 @@ contains
     x =log(kr)
     y =y1+(y2-y1)*(x-x1)/(x2-x1)
     power=exp(y)
+
+    if (tf(iy,i2).le.0 .or. tf(iy,i1).le.0) power=0.
     
     return
   end function power

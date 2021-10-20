@@ -3,7 +3,7 @@
 #PBS -o /home/derek.inman/pbs
 #PBS -e /home/derek.inman/pbs
 #PBS -l select=8:ncpus=8:mem=4gb
-#PBS -l walltime=04:00:00
+#PBS -l walltime=2:00:00
 #PBS -u derek.inman
 #PBS -V
 #PBS -q large
@@ -16,6 +16,8 @@ RUNDIR=/lustre/work/derek.inman/cubep3m/output/
 LOG=_log
 
 cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
+
+cp ${SUBDIR}/../parameters_ucmh ${RUNDIR}
 
 mpirun ${SUBDIR}../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
 mpirun ${SUBDIR}../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}

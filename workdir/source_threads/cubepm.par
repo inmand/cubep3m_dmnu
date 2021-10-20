@@ -22,7 +22,7 @@ logical, parameter	:: restart_ic =  .false.
 integer(4), parameter   :: restart_checkpoint = 1 ! line number in input/checkpoint 
 
 logical, parameter :: restart_kill = .false. !! Restart from kill_step
-character(*), parameter :: reskill_prefix = '0.528'
+character(*), parameter :: reskill_prefix = '49.000'
 
 real(4), parameter :: kill_remaining = 30.*60.
 

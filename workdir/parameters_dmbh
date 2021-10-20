@@ -7,9 +7,9 @@
 !------------------------------------!
 !!file IO
 ! path to local scratch
-character(*), parameter :: scratch_path   = ''
+character(*), parameter :: scratch_path   = '/lustre/work/derek.inman/cubep3m/test5/'
 ! path to cubepm root directory
-character(*), parameter :: cubepm_root    = scratch_path//'workdir/'
+character(*), parameter :: cubepm_root    = '/home/derek.inman/Codes/cubep3m/cubep3m_dmnu/workdir/'
 ! path to simulation output
 character(*), parameter :: output_path    = scratch_path
 ! path to initial conditions
@@ -18,7 +18,7 @@ character(*), parameter :: ic_path        = scratch_path
 integer, parameter      :: nk             = 1000
 character(len=*), parameter :: fntf       = cubepm_root//'transfer/dmbh/tk_fine_z999999.dat'
 character(len=*), parameter :: vfntf      = ''
-! file containing checkpoints
+! file containing checkpointsx
 character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_dmbh'
 
 !------------------------------------!
@@ -34,7 +34,7 @@ integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 2.5
 ! size of fine mesh tile in cells / dimension 
-integer(4),   parameter :: nf_tile        = 176!240,176
+integer(4),   parameter :: nf_tile        = 144!240,176
 ! Fine mesh force cut-off in fine mesh cells (determined by kernel)
 integer(4),   parameter :: nf_cutoff      = 16
 ! Fine mesh buffer size in fine mesh cells
@@ -67,6 +67,8 @@ real(4),      parameter :: H0             = 67.5
 ! initial conditions
 real(4),     parameter :: A_s             = 2.15e-9
 real(4),     parameter :: n_s             = 0.966
+real(4),     parameter :: alpha_s         = 0.002
+real(4),     parameter :: beta_s          = 0.01
 real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0 !not used
 ! matter

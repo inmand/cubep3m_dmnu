@@ -15,7 +15,7 @@ character(*), parameter :: output_path    = scratch_path
 character(*), parameter :: ic_path        = scratch_path
 ! transfer functions
 integer, parameter      :: nk             = 10000
-character(len=*), parameter :: fntf       = cubepm_root//'transfer/ucmh/tk_fine_z999999.dat'
+character(len=*), parameter :: fntf       = cubepm_root//'transfer/ucmh/tk_fine_z9999.dat'
 character(len=*), parameter :: vfntf      = ''
 ! file containing checkpoints
 character(*), parameter :: checkpoints    = cubepm_root//'input/checkpoints_ucmh'
@@ -33,7 +33,7 @@ integer(4),   parameter :: nested_threads = 1
 ! density buffer fraction (1.0 == no buffer, 2.0 == 2x avg density, etc)
 real(4), parameter :: density_buffer      = 3.0 !2.5 !@@
 ! size of fine mesh tile in cells / dimension 
-integer(4),   parameter :: nf_tile        = 176!144,240,176
+integer(4),   parameter :: nf_tile        = 176!144,176,240
 ! Fine mesh force cut-off in fine mesh cells (determined by kernel)
 integer(4),   parameter :: nf_cutoff      = 16
 ! Fine mesh buffer size in fine mesh cells
@@ -56,9 +56,9 @@ integer(4),   parameter :: n_bh           = 0
 !------------------------------------!
 !!cosmology parameters
 ! box size / dim (Mpc/h)
-real(4),      parameter :: box            = 0.012867963509103792 !0.0016
+real(4),      parameter :: box            = 0.3!0.001!0.012867963509103792 !0.0016
 ! initial redshifts
-real(4),      parameter :: z_i            = 999999.0
+real(4),      parameter :: z_i            = 9999.0!999999.0
 real(4),      parameter :: z_i_nu         = merge(z_i,0.,n_bh.ne.0)
 real(4),      parameter :: z_tf           = z_i !not used
 ! hubble rate
@@ -69,6 +69,7 @@ real(4),     parameter :: n_s             = 0.966
 real(4),     parameter :: alpha_s         = 0.002
 real(4),     parameter :: beta_s          = 0.01
 real(4),     parameter :: k_o             = 0.05/(H0/100.0) !h/Mpc
+real(4),     parameter :: k_fs            = 1e6 !h/Mpc
 real(4),     parameter :: sigma_8         = 0.0 !not used
 ! matter
 !  non-baryonic matter
