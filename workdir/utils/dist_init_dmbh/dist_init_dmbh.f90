@@ -9,13 +9,12 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
-  logical, parameter :: turn_off_ad = .false.
-  logical, parameter :: turn_off_iso = f_bh .eq. 0.0 !for safety
+  logical, parameter :: turn_off_ad = .true.!.false.
+  logical, parameter :: turn_off_iso = .true.!f_bh .eq. 0.0 !for safety
 
   real, parameter :: ns = n_s, ns2=alpha_s, ns3=beta_s
   real, parameter :: As = A_s
   real, parameter :: ko = k_o
-  real, parameter :: kfs = k_fs
   real, parameter :: s8 = sigma_8
   real, parameter :: omegal=omega_l 
   real, parameter :: omegam=omega_m
@@ -25,7 +24,11 @@ program dist_init
   real, parameter :: redshift=z_i
   real, parameter :: scalefactor=1/(1+redshift)
 
-  !! NEUTRINO sims may use this:
+  real, parameter :: sX = sqrt(TX/mX)*2.9979e5*aX !typical velocity scale in km/s (at z=0)
+  real, parameter :: kfs = (100.)*sqrt(omega_r)/sX/log(scalefactor/aX) !k_fs assuming a>>aeq
+  logical, parameter :: thermal_velocities=sX.gt.0
+
+  !! Conversion factor for velocity
   real(4), parameter :: Vphys2sim = 1.0/(300. * sqrt(omega_m) * box * (1. + redshift) / 2. / nc)
 
   !! Pi
@@ -1048,6 +1051,13 @@ contains
     integer(4), parameter :: xsize2 = 2*xsize1
     real(4) :: diso,viso
 
+    !Thermal velocities
+    integer, parameter :: nu=1000
+    real, parameter :: u_min=0,u_max=6
+    real, dimension(2,nu) :: uc
+    integer :: iC,iL,iR
+    real :: r1,r2,r3
+
     integer :: COMMAND
 
     real time1,time2
@@ -1070,6 +1080,25 @@ contains
  
     write(rank_s,'(i6)') rank
     rank_s=adjustl(rank_s)
+
+    !! Compute CDF
+    if (COMMAND.eq.1) then
+       if (.not.thermal_velocities) then
+          if (rank.eq.0) write(*,*) 'No dark matter thermal velocities'
+       else
+          if (rank.eq.0) then
+             write(*,*) 'Generating dark matter thermal velocities, sigma=',&
+                  &sX,' and kfs=',kfs,' and Vp2s=',Vphys2sim
+             !Compute cdf
+             do i=1,nu
+                uc(1,i)=u_min+(i-1.)*(u_max-u_min)/(nu-1.)
+                uc(2,i)=erf(uc(1,i)/sqrt(2.))-sqrt(2./pi)*uc(1,i)*exp(-uc(1,i)**2/2.)
+             end do
+          end if
+          call mpi_barrier(mpi_comm_world,ierr)
+          call mpi_bcast(uc,size(uc),mpi_real,0,mpi_comm_world,ierr)
+       end if
+    end if
 
     !! Open input file
     if (COMMAND == 1) then
@@ -1113,58 +1142,68 @@ contains
 
     !! Displace particles
     !! Finite-difference potential to get displacement field
-    !$omp parallel default(shared) private(k,k1,j,j1,i,i1,pos_in,pos_out,thread)
+    !$omp parallel default(shared) private(k,k1,j,j1,i,i1,pos_in,pos_out,thread,r1,r2,r3,iL,iR,iC)
     thread = 1
     thread = omp_get_thread_num() + 1
     if (COMMAND == 0) then 
-        !! First time we call dm We only need the positions
-        !$omp do schedule(dynamic)
-        do k=1,np_node_dim
-            pos_out = 1 + xsize1*(k-1)
-            do j=1,np_node_dim
-                do i=1,np_node_dim
-                    do sc=0,bcc
+       !! First time we call dm We only need the positions
+       !$omp do schedule(dynamic)
+       do k=1,np_node_dim
+          pos_out = 1 + xsize1*(k-1)
+          do j=1,np_node_dim
+             do i=1,np_node_dim
+                do sc=0,bcc
 
-                       k1=(nc/np)*(k-1)+1+sc
-                       j1=(nc/np)*(j-1)+1+sc
-                       i1=(nc/np)*(i-1)+1+sc
+                   k1=(nc/np)*(k-1)+1+sc
+                   j1=(nc/np)*(j-1)+1+sc
+                   i1=(nc/np)*(i-1)+1+sc
+                   
+                   !grid+adiabatic+isocurvature
+                   
+                   xvp(1,i,j+np_node_dim*sc,thread)=(i1-0.5)+& 
+                        &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
+                        &diso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2. 
 
-                       !grid+adiabatic+isocurvature
+                   xvp(2,i,j+np_node_dim*sc,thread)=(j1-0.5)+& 
+                        &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+& 
+                        &diso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2. 
+                   
+                   xvp(3,i,j+np_node_dim*sc,thread)=(k1-0.5)+& 
+                        &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+& 
+                        &diso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2. 
+                   
+                   !xvp(1,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+(i1-0.5)
+                   !xvp(2,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+(j1-0.5)
+                   !xvp(3,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+(k1-0.5)
 
-                       xvp(1,i,j+np_node_dim*sc,thread)=(i1-0.5)+& 
-                            &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
-                            &diso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2. 
-
-                       xvp(2,i,j+np_node_dim*sc,thread)=(j1-0.5)+& 
-                            &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+& 
-                            &diso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2. 
-
-                       xvp(3,i,j+np_node_dim*sc,thread)=(k1-0.5)+& 
-                            &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+& 
-                            &diso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2. 
-
-                       !xvp(1,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+(i1-0.5)
-                       !xvp(2,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+(j1-0.5)
-                       !xvp(3,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+(k1-0.5)
-
-                 end do
-
-                enddo
-            enddo
-            write(unit=11,pos=pos_out) xvp(1:3,:,:,thread) !! save in temp file 
-        enddo
-        !$omp end do
+                end do
+                
+             enddo
+          enddo
+          write(unit=11,pos=pos_out) xvp(1:3,:,:,thread) !! save in temp file 
+       enddo
+       !$omp end do
     else
         !! Second time we call dm we want velocity
-        !$omp do schedule(dynamic)
+        !$omp do schedule(static,1) ordered
         do k=1,np_node_dim
             pos_out = 1 + sizeof(np_local) + sizeof(header_garbage) + xsize2*(k-1)
             pos_in = 1 + xsize1*(k-1)
             read(unit=31,pos=pos_in) xvp(1:3,:,:,thread) !! catch from temp file
+            !$omp ordered
+            call random_number(xvp(4:6,:,:,thread)) !Compute random numbers for later
+            !$omp end ordered        
             do j=1,np_node_dim
                 do i=1,np_node_dim
                     do sc=0,bcc
-
+                       
+                       if (thermal_velocities) then
+                          !Need to store these first
+                          r1=xvp(4,i,j+np_node_dim*sc,thread)
+                          r2=xvp(5,i,j+np_node_dim*sc,thread)
+                          r3=xvp(6,i,j+np_node_dim*sc,thread)
+                       end if
+                       
                        k1=(nc/np)*(k-1)+1+sc
                        j1=(nc/np)*(j-1)+1+sc
                        i1=(nc/np)*(i-1)+1+sc
@@ -1186,6 +1225,29 @@ contains
                        !xvp(4,i,j+np_node_dim*sc,thread)=(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)
                        !xvp(5,i,j+np_node_dim*sc,thread)=(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)
                        !xvp(6,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)
+
+                       if (thermal_velocities) then
+                          !Convert r1 to amplitude
+                          iL=1
+                          iR=nu
+                          do while (iR-iL.gt.1)
+                             iC=(iR+iL)/2
+                             if (r1.gt.uc(2,iC)) then
+                                iL=iC
+                             else
+                                iR=iC
+                             end if
+                          end do
+                          r1=uc(1,iL)+(r1-uc(2,iL))*(uc(1,iR)-uc(1,iL))/(uc(2,iR)-uc(2,iL))
+                          r1=r1*(sX/scalefactor)*Vphys2sim
+                          !Now compute angles
+                          r2=r2*2.-1. !cos angle theta
+                          r3=r3*2.*pi !angle phi
+                          
+                          xvp(4,i,j+np_node_dim*sc,thread)=xvp(4,i,j+np_node_dim*sc,thread)+r1*sqrt(1.-r2**2)*cos(r3)
+                          xvp(5,i,j+np_node_dim*sc,thread)=xvp(5,i,j+np_node_dim*sc,thread)+r1*sqrt(1.-r2**2)*sin(r3)
+                          xvp(6,i,j+np_node_dim*sc,thread)=xvp(6,i,j+np_node_dim*sc,thread)+r1*r2
+                       end if
 
                     end do
 
