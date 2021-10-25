@@ -9,8 +9,8 @@ program dist_init
   logical, parameter :: generate_seeds=.false.
   logical, parameter :: correct_kernel=.true.
 
-  logical, parameter :: turn_off_ad = .true.!.false.
-  logical, parameter :: turn_off_iso = .true.!f_bh .eq. 0.0 !for safety
+  logical, parameter :: turn_off_ad = .false.
+  logical, parameter :: turn_off_iso = .true. !f_bh .eq. 0.0 !for safety
 
   real, parameter :: ns = n_s, ns2=alpha_s, ns3=beta_s
   real, parameter :: As = A_s
@@ -25,8 +25,8 @@ program dist_init
   real, parameter :: scalefactor=1/(1+redshift)
 
   real, parameter :: sX = sqrt(TX/mX)*2.9979e5*aX !typical velocity scale in km/s (at z=0)
-  real, parameter :: kfs = (100.)*sqrt(omega_r)/sX/log(scalefactor/aX) !k_fs assuming a>>aeq
-  logical, parameter :: thermal_velocities=sX.gt.0
+  logical, parameter :: thermal_velocities=.false.!sX.gt.0
+  real, parameter :: kfs = merge((100.)*sqrt(omega_r)/sX/log(scalefactor/aX),k_fs,thermal_velocities) !true assumes a>>aeq
 
   !! Conversion factor for velocity
   real(4), parameter :: Vphys2sim = 1.0/(300. * sqrt(omega_m) * box * (1. + redshift) / 2. / nc)
