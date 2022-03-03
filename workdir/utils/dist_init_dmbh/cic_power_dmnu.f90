@@ -113,7 +113,7 @@ program cic_power_dmnu
                                   (8*nf_buf**3 + 6*nf_buf*(((nf_tile-2*nf_buf)*tiles_node_dim)**2) + &
                                   12*(nf_buf**2)*((nf_tile-2*nf_buf)*tiles_node_dim))/8.0 )
 
-  integer(4), parameter :: max_np_dm = max_np / ratio_nudm_dim**3
+  integer(4), parameter :: max_np_dm = max_np !/ ratio_nudm_dim**3
   integer(4), parameter :: max_np_h = 1000000  
   integer(4), parameter :: np_buffer=int(2./3.*max_np)
 
@@ -3078,7 +3078,7 @@ end subroutine cic_halomass
 #ifdef GROUPS
         mp = ncr**3 / np_groups_dm(glook)
 #else
-        mp = (ncr/(np/ratio_nudm_dim))**3/(1+bcc)
+        mp = (ncr/(np/ratio_nudm_dim))**3/(1+bcc)/(np_shell)
 #endif
         np_total = np_local_dm
     else if (command == 0) then

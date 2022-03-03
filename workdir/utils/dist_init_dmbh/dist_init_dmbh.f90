@@ -26,7 +26,8 @@ program dist_init
 
   real, parameter :: sX = sqrt(TX/mX)*2.9979e5*aX !typical velocity scale in km/s (at z=0)
   logical, parameter :: thermal_velocities=.false.!sX.gt.0
-  real, parameter :: kfs = merge((100.)*sqrt(omega_r)/sX/log(scalefactor/aX),k_fs,thermal_velocities) !true assumes a>>aeq
+  real, parameter :: kfs = 1e15!merge((100.)*sqrt(omega_r)/sX/log(scalefactor/aX),k_fs,thermal_velocities) !true assumes a>>aeq
+  integer, parameter :: n_shell=np_shell
 
   !! Conversion factor for velocity
   real(4), parameter :: Vphys2sim = 1.0/(300. * sqrt(omega_m) * box * (1. + redshift) / 2. / nc)
@@ -41,7 +42,7 @@ program dist_init
 
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
-  integer, parameter :: np=hc 
+  integer, parameter :: np=hc/ratio_nudm_dim
   real, parameter    :: npr=np
 
   real, parameter :: knyq=pi*npr/box
@@ -62,7 +63,7 @@ program dist_init
   integer(8) :: plan, iplan
 
   !! Power spectrum arrays
-  real, dimension(3,nk) :: tf    !CLASS
+  real, dimension(4,nk) :: tf    !CLASS
   real, dimension(2,nc) :: pkm,pkn
 
   !! For pencils decomposition:
@@ -82,7 +83,7 @@ program dist_init
   real, dimension(0:nc_node_dim+1,0:nc_node_dim+1) :: phi_buf
 
   !! Particles arrays for subroutine dm
-  real, dimension(6,np_node_dim,np_node_dim*(1+bcc),num_threads) :: xvp
+  real, dimension(6,n_shell,1+bcc,np_node_dim,np_node_dim,num_threads) :: xvp
 
   !! Primordial black hole array
   real, dimension(6, n_bh) :: xvpbh,xvpbh0,xvpbhg
@@ -435,6 +436,7 @@ contains
       open(11,file=fntf)
       do k=1,nk
          read(11,*) tf(1,k),tf(2,k),tf(3,k)
+         tf(4,k)=sign(-1.,tf(2,k)) !Store density sign -- +-1
       end do
       close(11)
 
@@ -442,11 +444,12 @@ contains
       !tf(2,:) = As*(tf(1,:)/ko)**(ns-1.)*tf(2,:)**2 !Delta**2
       tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 
       !Multiply by free streaming scale
-      where (tf(1,:)<sqrt(3./2.)*kfs)
-         tf(2,:)=tf(2,:)*( (1-(2./3.)*(tf(1,:)/kfs)**2)*exp(-(tf(1,:)/kfs)**2) )**2
-      elsewhere
-         tf(2,:)=0
-      end where
+!!$      if (rank.eq.0) write(*,*) 'Free streaming cutoff: ',kfs
+!!$      where (tf(1,:)<sqrt(3./2.)*kfs)
+!!$         tf(2,:)=tf(2,:)*( (1-(2./3.)*(tf(1,:)/kfs)**2)*exp(-(tf(1,:)/kfs)**2) )**2
+!!$      elsewhere
+!!$         tf(2,:)=0
+!!$      end where
       
     endif
 
@@ -632,7 +635,8 @@ contains
 !!$                   slab(i:i+1,j,k)=0.
                 else
                     powm=power(2*pi*kr/box,1,2)/(4*pi*kr**3)
-                    slab(i:i+1,j,k)=sqrt(powm*ncr**3)*slab(i:i+1,j,k)
+                    slab(i:i+1,j,k)=powsign(2*pi*kr/box,1,4)*sqrt(powm*ncr**3)*slab(i:i+1,j,k)
+                    !slab(i:i+1,j,k)=sqrt(powm*ncr**3)*slab(i:i+1,j,k)
                 endif
             enddo
         enddo
@@ -1006,7 +1010,11 @@ contains
                         endif
                     enddo
                 endif
-
+                if (interpMTF.eq.0) then
+                   !For now set it so that there are no perturbations where delta=0
+                   interpVTF=0.
+                   interpMTF=1.
+                end if
                 !! Multiply slab by interpVTF/interpMTF*kr**2/kr
                 slab(i:i+1, j, k) = slab(i:i+1, j, k) * interpVTF/interpMTF * kr * (-1.0) !* (-2.0) * pi / ncr
                 if (kr .EQ. 0) slab(i:i+1,j,k) = 0.0
@@ -1047,7 +1055,7 @@ contains
     character(len=500) :: z_s
     integer(4), dimension(11) :: header_garbage
     integer(4) :: thread
-    integer(4), parameter :: xsize1 = 4*3*np_node_dim**2*(bcc+1) 
+    integer(4), parameter :: xsize1 = 4*3*np_node_dim**2*(bcc+1)*n_shell
     integer(4), parameter :: xsize2 = 2*xsize1
     real(4) :: diso,viso
 
@@ -1055,8 +1063,9 @@ contains
     integer, parameter :: nu=1000
     real, parameter :: u_min=0,u_max=6
     real, dimension(2,nu) :: uc
-    integer :: iC,iL,iR
+    integer :: iC,iL,iR,nsh
     real :: r1,r2,r3
+    real, dimension(3,n_shell) :: shell
 
     integer :: COMMAND
 
@@ -1086,9 +1095,20 @@ contains
        if (.not.thermal_velocities) then
           if (rank.eq.0) write(*,*) 'No dark matter thermal velocities'
        else
+          shell(:,1)=(/1,0,0/)
+          shell(:,2)=(/0,1,0/)
+          shell(:,3)=(/0,0,1/)
+          shell(:,4)=(/-1,0,0/)
+          shell(:,5)=(/0,-1,0/)
+          shell(:,6)=(/0,0,-1/)
           if (rank.eq.0) then
              write(*,*) 'Generating dark matter thermal velocities, sigma=',&
                   &sX,' and kfs=',kfs,' and Vp2s=',Vphys2sim
+             if (n_shell.eq.1) then
+                write(*,*) '--RNG Thermal velocities'
+             else
+                write(*,*) '--Shell thermal velocities: ',sqrt(3.)*(sX/scalefactor)*Vphys2sim
+             end if
              !Compute cdf
              do i=1,nu
                 uc(1,i)=u_min+(i-1.)*(u_max-u_min)/(nu-1.)
@@ -1131,7 +1151,7 @@ contains
     endif
 
     !! Write the header in checkpoint format with zeros for all variables (except np_local)
-    np_local=np_node_dim**3*(1+bcc)
+    np_local=np_node_dim**3*(1+bcc)*n_shell
     header_garbage(:) = 0
 
     if (COMMAND==1) then
@@ -1142,7 +1162,7 @@ contains
 
     !! Displace particles
     !! Finite-difference potential to get displacement field
-    !$omp parallel default(shared) private(k,k1,j,j1,i,i1,pos_in,pos_out,thread,r1,r2,r3,iL,iR,iC)
+    !$omp parallel default(shared) private(k,k1,j,j1,i,i1,pos_in,pos_out,thread,r1,r2,r3,iL,iR,iC,nsh)
     thread = 1
     thread = omp_get_thread_num() + 1
     if (COMMAND == 0) then 
@@ -1153,22 +1173,23 @@ contains
           do j=1,np_node_dim
              do i=1,np_node_dim
                 do sc=0,bcc
+                do nsh=1,n_shell
 
-                   k1=(nc/np)*(k-1)+1+sc
-                   j1=(nc/np)*(j-1)+1+sc
-                   i1=(nc/np)*(i-1)+1+sc
+                   k1=(nc/np)*(k-1)+1+sc*(nc/np/2)
+                   j1=(nc/np)*(j-1)+1+sc*(nc/np/2)
+                   i1=(nc/np)*(i-1)+1+sc*(nc/np/2)
                    
                    !grid+adiabatic+isocurvature
                    
-                   xvp(1,i,j+np_node_dim*sc,thread)=(i1-0.5)+& 
+                   xvp(1,nsh,1+sc,i,j,thread)=(i1-0.5)+& 
                         &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
                         &diso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2. 
 
-                   xvp(2,i,j+np_node_dim*sc,thread)=(j1-0.5)+& 
+                   xvp(2,nsh,1+sc,i,j,thread)=(j1-0.5)+& 
                         &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+& 
                         &diso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2. 
                    
-                   xvp(3,i,j+np_node_dim*sc,thread)=(k1-0.5)+& 
+                   xvp(3,nsh,1+sc,i,j,thread)=(k1-0.5)+& 
                         &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+& 
                         &diso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2. 
                    
@@ -1177,10 +1198,11 @@ contains
                    !xvp(3,i,j+np_node_dim*sc,thread)=(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+(k1-0.5)
 
                 end do
+                end do
                 
              enddo
           enddo
-          write(unit=11,pos=pos_out) xvp(1:3,:,:,thread) !! save in temp file 
+          write(unit=11,pos=pos_out) xvp(1:3,:,:,:,:,thread) !! save in temp file 
        enddo
        !$omp end do
     else
@@ -1189,36 +1211,37 @@ contains
         do k=1,np_node_dim
             pos_out = 1 + sizeof(np_local) + sizeof(header_garbage) + xsize2*(k-1)
             pos_in = 1 + xsize1*(k-1)
-            read(unit=31,pos=pos_in) xvp(1:3,:,:,thread) !! catch from temp file
+            read(unit=31,pos=pos_in) xvp(1:3,:,:,:,:,thread) !! catch from temp file
             !$omp ordered
-            call random_number(xvp(4:6,:,:,thread)) !Compute random numbers for later
+            call random_number(xvp(4:6,:,:,:,:,thread)) !Compute random numbers for later
             !$omp end ordered        
             do j=1,np_node_dim
                 do i=1,np_node_dim
                     do sc=0,bcc
+                    do nsh=1,n_shell
                        
                        if (thermal_velocities) then
                           !Need to store these first
-                          r1=xvp(4,i,j+np_node_dim*sc,thread)
-                          r2=xvp(5,i,j+np_node_dim*sc,thread)
-                          r3=xvp(6,i,j+np_node_dim*sc,thread)
+                          r1=xvp(4,nsh,1+sc,i,j,thread)
+                          r2=xvp(5,nsh,1+sc,i,j,thread)
+                          r3=xvp(6,nsh,1+sc,i,j,thread)
                        end if
                        
-                       k1=(nc/np)*(k-1)+1+sc
-                       j1=(nc/np)*(j-1)+1+sc
-                       i1=(nc/np)*(i-1)+1+sc
+                       k1=(nc/np)*(k-1)+1+sc*(nc/np/2)
+                       j1=(nc/np)*(j-1)+1+sc*(nc/np/2)
+                       i1=(nc/np)*(i-1)+1+sc*(nc/np/2)
 
                        !adiabatic+isocurvature
                        
-                       xvp(4,i,j+np_node_dim*sc,thread)=&
+                       xvp(4,nsh,1+sc,i,j,thread)=&
                             &(phi(i1-1,j1,k1)-phi(i1+1,j1,k1))/2./(4.*pi)+& 
                             &viso*(phi_iso(i1-1,j1,k1)-phi_iso(i1+1,j1,k1))/2.
 
-                       xvp(5,i,j+np_node_dim*sc,thread)=&
+                       xvp(5,nsh,1+sc,i,j,thread)=&
                             &(phi(i1,j1-1,k1)-phi(i1,j1+1,k1))/2./(4.*pi)+&
                             &viso*(phi_iso(i1,j1-1,k1)-phi_iso(i1,j1+1,k1))/2.
 
-                       xvp(6,i,j+np_node_dim*sc,thread)=&
+                       xvp(6,nsh,1+sc,i,j,thread)=&
                             &(phi(i1,j1,k1-1)-phi(i1,j1,k1+1))/2./(4.*pi)+&
                             &viso*(phi_iso(i1,j1,k1-1)-phi_iso(i1,j1,k1+1))/2.
 
@@ -1243,17 +1266,28 @@ contains
                           !Now compute angles
                           r2=r2*2.-1. !cos angle theta
                           r3=r3*2.*pi !angle phi
-                          
-                          xvp(4,i,j+np_node_dim*sc,thread)=xvp(4,i,j+np_node_dim*sc,thread)+r1*sqrt(1.-r2**2)*cos(r3)
-                          xvp(5,i,j+np_node_dim*sc,thread)=xvp(5,i,j+np_node_dim*sc,thread)+r1*sqrt(1.-r2**2)*sin(r3)
-                          xvp(6,i,j+np_node_dim*sc,thread)=xvp(6,i,j+np_node_dim*sc,thread)+r1*r2
+
+
+                          if (n_shell.eq.1) then
+                             !RNG
+                             xvp(4,nsh,1+sc,i,j,thread)=xvp(4,nsh,1+sc,i,j,thread)+r1*sqrt(1.-r2**2)*cos(r3)
+                             xvp(5,nsh,1+sc,i,j,thread)=xvp(5,nsh,1+sc,i,j,thread)+r1*sqrt(1.-r2**2)*sin(r3)
+                             xvp(6,nsh,1+sc,i,j,thread)=xvp(6,nsh,1+sc,i,j,thread)+r1*r2
+                          else
+                             !Not RNG
+                             r1=sqrt(3.)*(sX/scalefactor)*Vphys2sim
+                             xvp(4:6,nsh,1+sc,i,j,thread)=&
+                                  &xvp(4:6,nsh,1+sc,i,j,thread)+r1*shell(:,nsh)
+                          end if
+
                        end if
 
+                    end do
                     end do
 
                 enddo
             enddo
-            write(unit=11,pos=pos_out) xvp(:,:,:,thread)
+            write(unit=11,pos=pos_out) xvp(:,:,:,:,:,thread)
         enddo
         !$omp end do
     endif
@@ -2152,6 +2186,34 @@ contains
     
     return
   end function power
+
+  !Returns sign at kr
+  function powsign(kr,ix,is)
+   implicit none
+    real    :: kr
+    integer :: ix,is
+    integer :: i,i1,i2
+    real    :: x,y,x1,x2,y1,y2
+    real    :: powsign
+
+    i1=1
+    i2=nk
+    do while (i2-i1 .gt. 1)
+       i=(i1+i2)/2
+       if (kr .gt. tf(ix,i)) then
+          i1=i
+       else
+          i2=i
+       endif
+    enddo
+
+    x1=log(tf(ix,i1))
+    x2=log(tf(ix,i2))
+    x =log(kr)
+    powsign=merge(tf(is,i1),tf(is,i2),(x-x1)/(x2-x1).le.0.5)
+
+    return
+  end function powsign
 
 !!------------------------------------------------------------------!!
   function tophat(x)

@@ -17,6 +17,8 @@ subroutine particle_mesh
   external omp_get_thread_num
   real(4), dimension(nested_threads) :: pp_ext_sum
 
+  real(4) :: rsoft_a
+
   !! Variables that appear in the nested parts (give them all _n suffix) 
   integer(4) :: i_n, j_n, k_n, thread_n, n_pairs_n 
   real(4), dimension(3) :: x_n, offset_n, dx1_n, dx2_n
@@ -41,6 +43,13 @@ subroutine particle_mesh
   call mpi_barrier(mpi_comm_world, ierr)
   call particle_pass
   call mpi_barrier(mpi_comm_world, ierr)
+
+  if (np_shell.gt.1 .and. a.le.a_eq) then
+     rsoft_a=(pp_range*2+1)*sqrt(3.)/2.!(pp_range+2.)*sqrt(3)
+  else
+     rsoft_a=rsoft
+  end if
+  !rsoft_a=rsoft
 
 # if VERBOSITY>0
   if (rank.eq.0) write(*,*) ':: fine + pp forces'
@@ -198,7 +207,7 @@ subroutine particle_mesh
 
                                 sep_n = xv(:3,pp1_n) - xv(:3,pp2_n)                      
                                 rmag_n = sqrt(sep_n(1)*sep_n(1) + sep_n(2)*sep_n(2) + sep_n(3)*sep_n(3))
-                                if (rmag_n > rsoft) then
+                                if (rmag_n > rsoft_a) then
 
                                    force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)  !mass_p divides out below
                                    
@@ -349,7 +358,7 @@ subroutine particle_mesh
                                    sep_n = xv(:3,pp1_n) - xv(:3,pp2_n)
                                    rmag_n = sqrt(sep_n(1)*sep_n(1) + sep_n(2)*sep_n(2) + sep_n(3)*sep_n(3))
 
-                                   if (rmag_n > rsoft) then
+                                   if (rmag_n > rsoft_a) then
                                       
                                       if(rmag_n>real(nf_cutoff)+sqrt(3.0))then
                                          force_pp_n = mass_p*(sep_n/(rmag_n*pp_bias)**3)

@@ -3,13 +3,20 @@
 #PBS -o /home/derek.inman/pbs
 #PBS -e /home/derek.inman/pbs
 #PBS -l select=8:ncpus=8:mem=4gb
-#PBS -l walltime=2:00:00
+#PBS -l walltime=12:00:00
 #PBS -u derek.inman
 #PBS -V
 #PBS -q large
 
-export OMP_STACKSIZE="100M"
-export OMP_NUM_THREADS="8"
+export NUM_MPI='8'
+export NUM_PPN='1'
+
+export I_MPI_PIN_DOMAIN='omp'
+export OMP_NUM_THREADS='8'
+#NUM_THREADS=ncpus/NUM_PPN
+
+export OMP_STACKSIZE='100M'
+###
 
 SUBDIR=/home/derek.inman/Codes/cubep3m/cubep3m_dmnu/workdir/batch/
 RUNDIR=/lustre/work/derek.inman/cubep3m/output/
@@ -19,6 +26,6 @@ cat /proc/cpuinfo | grep "model name" | head -n1 >> $RUNDIR/list_of_nodes
 
 cp ${SUBDIR}/../parameters_ucmh ${RUNDIR}
 
-mpirun ${SUBDIR}../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
-mpirun ${SUBDIR}../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
-mpirun ${SUBDIR}../utils/dist_init_dmbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
+mpirun -ppn $NUM_PPN -n $NUM_MPI ${SUBDIR}../utils/dist_init_dmbh/dist_init_dmbh >& ${RUNDIR}/dist_init_dmbh${LOG}
+mpirun -ppn $NUM_PPN -n $NUM_MPI ${SUBDIR}../source_threads/cubep3m >& ${RUNDIR}/cubep3m${LOG}
+mpirun -ppn $NUM_PPN -n $NUM_MPI ${SUBDIR}../utils/dist_init_dmbh/ngp_power >& ${RUNDIR}/ngp_power${LOG}
