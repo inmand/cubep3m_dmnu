@@ -442,7 +442,9 @@ contains
 
       !Compute power spectrum - Delta**2
       !tf(2,:) = As*(tf(1,:)/ko)**(ns-1.)*tf(2,:)**2 !Delta**2
-      tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 
+      !tf(2,:) = As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2)*tf(2,:)**2 
+      tf(2,:) = sqrt(As*(tf(1,:)/ko)**(ns-1.+(ns2/2.)*log(tf(1,:)/ko)+(ns3/6.)*log(tf(1,:)/ko)**2))*tf(2,:) !Signed
+
       !Multiply by free streaming scale
 !!$      if (rank.eq.0) write(*,*) 'Free streaming cutoff: ',kfs
 !!$      where (tf(1,:)<sqrt(3./2.)*kfs)
@@ -634,9 +636,14 @@ contains
 !!$                   !Don't turn on super-nyquist modes
 !!$                   slab(i:i+1,j,k)=0.
                 else
-                    powm=power(2*pi*kr/box,1,2)/(4*pi*kr**3)
-                    slab(i:i+1,j,k)=powsign(2*pi*kr/box,1,4)*sqrt(powm*ncr**3)*slab(i:i+1,j,k)
+                    !powm=power(2*pi*kr/box,1,2)/(4*pi*kr**3)
+                    !slab(i:i+1,j,k)=powsign(2*pi*kr/box,1,4)*sqrt(powm*ncr**3)*slab(i:i+1,j,k)
                     !slab(i:i+1,j,k)=sqrt(powm*ncr**3)*slab(i:i+1,j,k)
+
+                    powm=signed_power(2*pi*kr/box,1,2)/sqrt(4*pi*kr**3)
+                    slab(i:i+1,j,k)=powm*sqrt(ncr**3)*slab(i:i+1,j,k)
+
+
                 endif
             enddo
         enddo
@@ -2186,6 +2193,53 @@ contains
     
     return
   end function power
+
+  function signed_power(kr,ix,iy) result(power)
+   implicit none
+    real    :: kr
+    integer :: ix,iy
+
+    integer :: i,i1,i2
+    real    :: x,y,x1,x2,y1,y2
+    real    :: power
+
+    i1=1
+    i2=nk
+    do while (i2-i1 .gt. 1)
+       i=(i1+i2)/2
+       if (kr .gt. tf(ix,i)) then
+          i1=i
+       else
+          i2=i
+       endif
+    enddo
+
+    if (tf(iy,i1)*tf(iy,i2)>0) then
+       !Log interpolate
+       x1=log(tf(ix,i1))
+       y1=log(abs(tf(iy,i1)))
+       x2=log(tf(ix,i2))
+       y2=log(abs(tf(iy,i2)))
+       x =log(kr)
+       y =y1+(y2-y1)*(x-x1)/(x2-x1)
+       power=exp(y)
+       power=sign(power,tf(iy,i2))
+    else
+       !Linear interpolate
+       x1=tf(ix,i1)
+       y1=tf(iy,i1)
+       x2=tf(ix,i2)
+       y2=tf(iy,i2)
+       x=kr
+       y=y1+(y2-y1)*(x-x1)/(x2-x1)
+       power=y
+    end if
+
+    !if (tf(iy,i2).le.0 .or. tf(iy,i1).le.0) power=0.
+    
+    return
+  end function signed_power
+
 
   !Returns sign at kr
   function powsign(kr,ix,is)
