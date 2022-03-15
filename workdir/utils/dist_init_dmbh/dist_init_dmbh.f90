@@ -24,7 +24,7 @@ program dist_init
   real, parameter :: redshift=z_i
   real, parameter :: scalefactor=1/(1+redshift)
 
-  real, parameter :: sX = sqrt(TX/mX)*2.9979e5*aX !typical velocity scale in km/s (at z=0)
+  real, parameter :: sX = sqrt(1.2254167*ad**2*Td/mX)*2.9979e5 !typical velocity scale in km/s (at z=0), 1.225 is Gamma[3/4]
   logical, parameter :: thermal_velocities=.false.!sX.gt.0
   real, parameter :: kfs = 1e15!merge((100.)*sqrt(omega_r)/sX/log(scalefactor/aX),k_fs,thermal_velocities) !true assumes a>>aeq
   integer, parameter :: n_shell=np_shell
@@ -44,6 +44,10 @@ program dist_init
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
   integer, parameter :: np=hc/ratio_nudm_dim
   real, parameter    :: npr=np
+
+  !! particle shifts in +xy, +z <- need 0<=shift<=ratio_nudm_dim-1; if all +1 and bcc particles overlap
+  integer, parameter :: p_shift_xy=0!ratio_nudm_dim-1
+  integer, parameter :: p_shift_z =0!ratio_nudm_dim-1
 
   real, parameter :: knyq=pi*npr/box
 
@@ -1182,9 +1186,9 @@ contains
                 do sc=0,bcc
                 do nsh=1,n_shell
 
-                   k1=(nc/np)*(k-1)+1+sc*(nc/np/2)
-                   j1=(nc/np)*(j-1)+1+sc*(nc/np/2)
-                   i1=(nc/np)*(i-1)+1+sc*(nc/np/2)
+                   k1=(nc/np)*(k-1)+1+sc*(nc/np/2)+p_shift_z
+                   j1=(nc/np)*(j-1)+1+sc*(nc/np/2)+p_shift_xy
+                   i1=(nc/np)*(i-1)+1+sc*(nc/np/2)+p_shift_xy
                    
                    !grid+adiabatic+isocurvature
                    
@@ -1234,9 +1238,9 @@ contains
                           r3=xvp(6,nsh,1+sc,i,j,thread)
                        end if
                        
-                       k1=(nc/np)*(k-1)+1+sc*(nc/np/2)
-                       j1=(nc/np)*(j-1)+1+sc*(nc/np/2)
-                       i1=(nc/np)*(i-1)+1+sc*(nc/np/2)
+                       k1=(nc/np)*(k-1)+1+sc*(nc/np/2)+p_shift_z
+                       j1=(nc/np)*(j-1)+1+sc*(nc/np/2)+p_shift_xy
+                       i1=(nc/np)*(i-1)+1+sc*(nc/np/2)+p_shift_xy
 
                        !adiabatic+isocurvature
                        
